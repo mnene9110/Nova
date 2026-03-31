@@ -48,6 +48,7 @@ export async function initializePesaPalTransaction(email: string, amount: number
       return { error: 'PESAPAL_IPN_ID is required for V3 transactions.' };
     }
 
+    // Live production order ID prefix
     const orderId = `MF-LIVE-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     const response = await fetch(`${PESAPAL_BASE_URL}/api/Transactions/SubmitOrderRequest`, {
