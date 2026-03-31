@@ -7,7 +7,6 @@ import {
   ChevronRight, 
   Copy, 
   Coins, 
-  Crown, 
   ClipboardList, 
   Wallet, 
   Store, 
@@ -69,16 +68,11 @@ export default function ProfilePage() {
     { label: "Tasks", icon: ClipboardList, color: "text-primary", bg: "bg-primary/5" },
     { label: "Income", icon: Wallet, color: "text-primary", bg: "bg-primary/5" },
     { label: "Store", icon: Store, color: "text-primary", bg: "bg-primary/5" },
-    { label: "Aristocracy", icon: Crown, color: "text-amber-600", bg: "bg-amber-50" },
   ]
 
   const otherTools = [
-    { label: "Bag", icon: Briefcase },
-    { label: "Level", icon: TrendingUp },
-    { label: "Badge", icon: Award },
     { label: "Certified", icon: ShieldCheck },
     { label: "Service", icon: Headset },
-    { label: "Feedback", icon: MessageSquareText },
     { label: "Settings", icon: SettingsIcon, href: "/settings" },
   ]
 
@@ -96,12 +90,6 @@ export default function ProfilePage() {
               <ChevronRight className="w-4 h-4 text-white/60" />
             </div>
             
-            <div className="flex gap-1.5">
-              <span className="bg-white/10 px-1.5 py-0.5 rounded-md text-[8px] font-black text-white italic backdrop-blur-sm">SVIP1</span>
-              <span className="bg-white/10 px-1.5 py-0.5 rounded-md text-[8px] font-black text-white italic backdrop-blur-sm">V VIP1</span>
-              <span className="bg-white/10 px-1.5 py-0.5 rounded-md text-[8px] font-black text-white italic backdrop-blur-sm">✦ 1.</span>
-            </div>
-
             <div className="flex items-center gap-1.5 text-white/40">
               <span className="text-[10px] font-bold tracking-tight">ID:{displayNumericId}</span>
               <div 
@@ -121,7 +109,7 @@ export default function ProfilePage() {
       </header>
 
       <main className="px-4 mt-6 space-y-6">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1">
           <div 
             className="bg-primary rounded-[2rem] p-5 flex items-center gap-3 shadow-lg hover:scale-[1.01] transition-transform cursor-pointer"
             onClick={() => router.push('/coins')}
@@ -136,12 +124,9 @@ export default function ProfilePage() {
               <span className="text-[10px] text-white/60 font-black uppercase tracking-widest mt-1">Recharge</span>
             </div>
           </div>
-          <div className="bg-white/80 backdrop-blur-sm rounded-[2rem] p-5 flex items-center justify-center shadow-lg hover:scale-[1.01] transition-transform cursor-pointer border border-gray-100">
-             <span className="text-2xl font-black text-primary italic tracking-tighter">VIP1</span>
-          </div>
         </div>
 
-        <section className="bg-white/80 rounded-[2.5rem] p-6 grid grid-cols-4 gap-y-8 border border-gray-50 shadow-sm">
+        <section className="bg-white/80 rounded-[2.5rem] p-6 grid grid-cols-3 gap-y-8 border border-gray-50 shadow-sm">
           {actions.map((action) => (
             <div key={action.label} className="flex flex-col items-center gap-2 group cursor-pointer">
               <div className={`w-12 h-12 ${action.bg} rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform`}>

@@ -22,7 +22,6 @@ function ChatSessionItem({ session }: { session: any }) {
     async function fetchUser() {
       if (!firestore || !session.otherUserId) return
       try {
-        // Consolidated to 'users' collection
         const userDoc = await getDoc(doc(firestore, "users", session.otherUserId))
         if (userDoc.exists()) {
           setOtherUserData(userDoc.data())
@@ -36,7 +35,6 @@ function ChatSessionItem({ session }: { session: any }) {
     fetchUser()
   }, [firestore, session.otherUserId])
 
-  // Real-time presence listener for each item
   useEffect(() => {
     if (!database || !session.otherUserId) return
     const presenceRef = ref(database, `users/${session.otherUserId}/presence`)
@@ -114,7 +112,6 @@ export default function ChatListPage() {
           otherUserId: key,
           ...val
         }))
-        // Sort sessions by timestamp (descending)
         sessionList.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
         setSessions(sessionList)
       } else {
@@ -132,9 +129,6 @@ export default function ChatListPage() {
             Chats
             <MessageSquare className="w-8 h-8 text-white/30" />
           </h1>
-          <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">
-            <span className="text-white font-black text-[10px]">{sessions.length}</span>
-          </div>
         </div>
       </header>
 
@@ -163,19 +157,6 @@ export default function ChatListPage() {
               <Link href="/discover">
                 <Button className="rounded-full px-8 bg-primary hover:bg-primary shadow-lg shadow-primary/20 font-black text-xs uppercase">Find Matches</Button>
               </Link>
-            </div>
-          )}
-
-          {sessions.length > 0 && (
-            <div className="flex items-center gap-4 py-8 px-4 mt-8 border-t border-gray-50 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
-              <div className="w-14 h-14 bg-primary/5 rounded-3xl flex items-center justify-center shrink-0 border border-primary/10">
-                <Mail className="w-7 h-7 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-sm text-gray-900 font-headline">Archive</h3>
-                <p className="text-[11px] text-gray-400 font-medium">Conversations from last season</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-gray-300" />
             </div>
           )}
         </section>

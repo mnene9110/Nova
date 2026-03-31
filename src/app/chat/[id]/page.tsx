@@ -200,7 +200,6 @@ export default function ChatDetailPage() {
     setIsVideoHidden(!newState)
   }
 
-  // Presence & Message Listeners
   useEffect(() => {
     if (!database || !otherUserId) return
     const presenceRef = ref(database, `users/${otherUserId}/presence`)
@@ -260,12 +259,10 @@ export default function ChatDetailPage() {
       {callStatus !== 'idle' && (
         <div className="absolute inset-0 z-[100] bg-black flex flex-col animate-in fade-in zoom-in duration-500">
           <div className="relative flex-1 flex flex-col">
-            {/* Background Blur */}
             <div className="absolute inset-0 z-0 opacity-40">
                <img src={otherUserImage} className="w-full h-full object-cover blur-3xl scale-110" alt="bg" />
             </div>
 
-            {/* Waiting State UI */}
             {callStatus !== 'ongoing' && (
               <div className="flex-1 relative z-10 flex flex-col items-center justify-center p-6 text-center text-white">
                 <Avatar className="w-32 h-32 border-4 border-white/20 shadow-2xl mx-auto ring-4 ring-primary/20 animate-pulse">
@@ -280,7 +277,6 @@ export default function ChatDetailPage() {
               </div>
             )}
 
-            {/* Privacy Mode Overlay (Only when ongoing and video hidden) */}
             {callStatus === 'ongoing' && isVideoHidden && (
               <div className="absolute inset-0 z-20 bg-gray-900 flex flex-col items-center justify-center">
                 <Avatar className="w-40 h-40 border-4 border-white/10 shadow-2xl">
@@ -290,10 +286,8 @@ export default function ChatDetailPage() {
               </div>
             )}
 
-            {/* Zego Container */}
             <div ref={zegoContainerRef} className={cn("flex-1 z-10 bg-transparent", (callStatus !== 'ongoing' || isVideoHidden) && "hidden")} />
 
-            {/* Call Controls */}
             <div className="relative z-30 px-8 pb-12 pt-6 flex justify-center items-center gap-6 bg-gradient-to-t from-black/80 to-transparent">
               {callStatus === 'ongoing' && (
                 <>
@@ -362,14 +356,6 @@ export default function ChatDetailPage() {
       </header>
 
       <ScrollArea className="flex-1 px-4 py-4">
-        <div className="mx-auto max-w-[95%] bg-white rounded-3xl p-5 shadow-sm border border-gray-100 mb-6 text-center space-y-2">
-            <div className="flex items-center justify-center gap-2">
-               <Badge className="bg-primary text-white text-[10px] rounded-full px-3 py-0.5">{otherUser.gender === 'female' ? '♀' : '♂'} · {otherUser.location || "Nearby"}</Badge>
-               <Badge variant="outline" className="text-[10px] rounded-full px-3 py-0.5 border-primary/20 text-primary">ID: {otherUser.numericId || '...'}</Badge>
-            </div>
-            <p className="text-[11px] text-gray-500 italic">"{(otherUser.bio || "Finding my flow on MatchFlow.")?.slice(0, 100)}..."</p>
-        </div>
-
         <div className="flex flex-col gap-4">
           {messages.map((msg) => {
             const isMe = msg.senderId === currentUser?.uid
