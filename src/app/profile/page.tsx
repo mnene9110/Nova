@@ -10,7 +10,6 @@ import {
   ClipboardList, 
   ShieldCheck, 
   Headset, 
-  Gamepad2,
   Loader2
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -144,12 +143,6 @@ export default function ProfilePage() {
                 <span className="text-[10px] font-black text-gray-400 group-hover:text-primary text-center transition-colors">{tool.label}</span>
               </div>
             ))}
-            <div className="flex flex-col items-center gap-2 relative group cursor-pointer">
-               <div className="bg-primary rounded-2xl p-3 shadow-lg shadow-primary/10 group-hover:scale-105 transition-transform">
-                  <Gamepad2 className="w-6 h-6 text-white" />
-               </div>
-               <span className="absolute -bottom-1 bg-accent text-[8px] font-black px-2 py-0.5 rounded-full shadow-sm text-black">PLAY</span>
-            </div>
           </div>
         </section>
       </main>

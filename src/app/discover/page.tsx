@@ -71,7 +71,7 @@ export default function DiscoverPage() {
               <div className="w-12 h-12 bg-black/10 backdrop-blur-lg rounded-full flex items-center justify-center shrink-0 border border-black/10">
                 <CircleDollarSign className="w-6 h-6 text-black" />
               </div>
-              <p className="font-headline font-black text-lg text-black leading-tight">Daily Gold</p>
+              <p className="font-headline font-black text-lg text-black leading-tight">Task Center</p>
             </div>
           </div>
         </div>

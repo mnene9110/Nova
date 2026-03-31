@@ -8,12 +8,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useToast } from "@/hooks/use-toast"
-import { generateConversationStarters } from "@/ai/flows/ai-conversation-starter"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
 import { ref, push, onValue, serverTimestamp as rtdbTimestamp, update, set, remove } from "firebase/database"
-import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { getZegoConfig } from "@/app/actions/zego"
 
@@ -31,8 +29,6 @@ export default function ChatDetailPage() {
   const zegoContainerRef = useRef<HTMLDivElement>(null)
   
   const [inputText, setInputText] = useState("")
-  const [isAiLoading, setIsAiLoading] = useState(false)
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>(["Hey! How's your day?", "What are your hobbies?", "Tell me something interesting!"])
   
   // Call States
   const [callStatus, setCallStatus] = useState<'idle' | 'ringing' | 'calling' | 'ongoing' | 'incoming'>('idle')
@@ -375,22 +371,7 @@ export default function ChatDetailPage() {
         </div>
       </ScrollArea>
 
-      <footer className="p-4 bg-white border-t border-gray-100 shadow-lg space-y-4">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-          {aiSuggestions.map((suggestion, idx) => (
-            <button key={idx} className="rounded-full border border-primary/20 text-primary text-[11px] h-8 px-4 font-bold shrink-0 bg-white hover:bg-primary/5 transition-all" onClick={() => setInputText(suggestion)}>{suggestion}</button>
-          ))}
-          <Button variant="ghost" size="sm" className="bg-primary/10 text-primary rounded-full h-8 px-4 font-black text-xs shrink-0" onClick={async () => {
-              setIsAiLoading(true)
-              try {
-                const res = await generateConversationStarters({ otherUserBio: otherUser.bio || "A new user.", otherUserInterests: otherUser.interests || [] })
-                setAiSuggestions(res.suggestions)
-              } finally { setIsAiLoading(false) }
-            }} disabled={isAiLoading}>
-            {isAiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Spark ✨"}
-          </Button>
-        </div>
-
+      <footer className="p-4 bg-white border-t border-gray-100 shadow-lg">
         <div className="flex items-center gap-2">
           <Input value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="Type a message..." className="rounded-full h-12 bg-slate-50 border-none px-5 text-sm font-medium" onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} />
           <Button size="icon" className={cn("rounded-full w-12 h-12 transition-all", inputText.trim() ? "bg-primary text-white shadow-xl" : "bg-gray-200 text-gray-400")} onClick={() => handleSendMessage()} disabled={!inputText.trim()}><Send className="w-5 h-5 rotate-45" /></Button>
