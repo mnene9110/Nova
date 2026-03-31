@@ -11,7 +11,7 @@ export async function GET() {
   }
 
   try {
-    // Step 1: get token
+    // Step 1: get token from live production
     const tokenRes = await fetch("https://pay.pesapal.com/pesapalv3/api/Auth/RequestToken", {
       method: "POST",
       headers: {
@@ -30,7 +30,7 @@ export async function GET() {
       return NextResponse.json({ error: "Failed to retrieve token", details: tokenData }, { status: 500 });
     }
 
-    // Step 2: register IPN
+    // Step 2: register IPN in live production
     const ipnRes = await fetch("https://pay.pesapal.com/pesapalv3/api/URLSetup/RegisterIPN", {
       method: "POST",
       headers: {

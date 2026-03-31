@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 /**
  * @fileOverview Temporary debug route to test PesaPal Production token generation.
+ * Points to the live production endpoint.
  */
 
 export async function GET() {

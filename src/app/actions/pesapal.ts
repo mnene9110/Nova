@@ -2,7 +2,7 @@
 
 /**
  * @fileOverview Server actions for PesaPal V3 Production integration.
- * Handles authentication and transaction initialization.
+ * Handles authentication and transaction initialization using live endpoints.
  */
 
 const PESAPAL_BASE_URL = 'https://pay.pesapal.com/pesapalv3';
