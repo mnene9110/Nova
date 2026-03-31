@@ -1,11 +1,12 @@
 {
-  "name": "MatchFlow",
+  "name": "MatchFlow - Genuine Connections",
   "short_name": "MatchFlow",
   "description": "Find your perfect match with video calls and AI icebreakers.",
-  "start_url": "/",
+  "start_url": "/welcome",
   "display": "standalone",
-  "background_color": "#800000",
+  "background_color": "#ffffff",
   "theme_color": "#800000",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "https://picsum.photos/seed/mf192/192/192",
