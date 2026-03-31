@@ -154,6 +154,7 @@ export default function ChatDetailPage() {
   }
 
   const otherUserImage = (otherUser.profilePhotoUrls && otherUser.profilePhotoUrls[0]) || `https://picsum.photos/seed/${otherUser.id}/100/100`
+  const displayNumericId = otherUser.numericId || otherUser.id?.slice(-8).toUpperCase();
 
   return (
     <div className="flex flex-col h-svh bg-slate-50 relative overflow-hidden">
@@ -217,7 +218,7 @@ export default function ChatDetailPage() {
                   {otherUser.gender === 'female' ? '♀' : '♂'} · {otherUser.location || "Nearby"}
                </Badge>
                <Badge variant="outline" className="text-[10px] rounded-full px-3 py-0.5 border-primary/20 text-primary">
-                 ID: {otherUser.id?.slice(-6).toUpperCase()}
+                 ID: {displayNumericId}
                </Badge>
             </div>
             <p className="text-[11px] text-center text-gray-500 font-medium leading-relaxed italic">

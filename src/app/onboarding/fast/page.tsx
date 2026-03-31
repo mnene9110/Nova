@@ -30,9 +30,13 @@ export default function FastOnboardingPage() {
   const handleConfirm = () => {
     if (!user || !gender || !country) return
 
+    // Generate a unique 8-digit numeric ID
+    const numericId = Math.floor(10000000 + Math.random() * 90000000);
+
     const userProfileRef = doc(firestore, "userProfiles", user.uid)
     const profileData = {
       id: user.uid,
+      numericId,
       authProviderId: "anonymous",
       username: `Guest_${user.uid.slice(0, 5)}`,
       email: null,

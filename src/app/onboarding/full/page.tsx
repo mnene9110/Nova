@@ -35,9 +35,13 @@ export default function FullOnboardingPage() {
   const handleSave = () => {
     if (!user || !name || !dob || !gender || !country || !lookingFor) return
 
+    // Generate a unique 8-digit numeric ID
+    const numericId = Math.floor(10000000 + Math.random() * 90000000);
+
     const userProfileRef = doc(firestore, "userProfiles", user.uid)
     const profileData = {
       id: user.uid,
+      numericId,
       authProviderId: "password",
       username: name,
       email: user.email,

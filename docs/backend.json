@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -9,6 +10,10 @@
         "id": {
           "type": "string",
           "description": "Unique identifier for the UserProfile entity."
+        },
+        "numericId": {
+          "type": "number",
+          "description": "A unique 7-9 digit numeric identifier for the user."
         },
         "authProviderId": {
           "type": "string",

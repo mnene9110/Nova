@@ -40,16 +40,17 @@ export default function ProfilePage() {
 
   const coinAccountRef = useMemoFirebase(() => {
     if (!firestore || !currentUser) return null;
-    // Fixed path to ensure even number of segments
     return doc(firestore, "users", currentUser.uid, "coinAccount", "primary");
   }, [firestore, currentUser])
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc(userProfileRef)
   const { data: coinAccount, isLoading: isCoinsLoading } = useDoc(coinAccountRef)
 
+  const displayNumericId = userProfile?.numericId || currentUser?.uid.slice(-8).toUpperCase();
+
   const copyId = () => {
-    if (currentUser?.uid) {
-      navigator.clipboard.writeText(currentUser.uid);
+    if (displayNumericId) {
+      navigator.clipboard.writeText(displayNumericId.toString());
       toast({
         title: "Copied!",
         description: "User ID copied to clipboard.",
@@ -116,7 +117,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex items-center gap-1.5 text-white/40">
-              <span className="text-[10px] font-bold tracking-tight">ID:{currentUser?.uid.slice(-8).toUpperCase()}</span>
+              <span className="text-[10px] font-bold tracking-tight">ID:{displayNumericId}</span>
               <div 
                 className="p-0.5 hover:bg-white/5 rounded transition-colors cursor-pointer"
                 onClick={copyId}

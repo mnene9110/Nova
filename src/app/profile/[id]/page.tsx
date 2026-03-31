@@ -76,6 +76,7 @@ export default function ProfileDetailPage() {
   ]
 
   const userImage = (userProfile.profilePhotoUrls && userProfile.profilePhotoUrls[0]) || `https://picsum.photos/seed/${userProfile.id}/600/800`
+  const displayNumericId = userProfile.numericId || userProfile.id.slice(-8).toUpperCase();
 
   return (
     <div className="flex flex-col min-h-svh bg-black relative">
@@ -119,7 +120,7 @@ export default function ProfileDetailPage() {
         <div className="space-y-6">
           <div className="space-y-1">
             <h1 className="text-3xl font-black font-headline text-gray-900 leading-tight">{userProfile.username}</h1>
-            <p className="text-xs font-bold text-gray-400">ID:{userProfile.id.slice(-8).toUpperCase()}</p>
+            <p className="text-xs font-bold text-gray-400">ID:{displayNumericId}</p>
           </div>
 
           <div className="flex flex-wrap gap-2">
