@@ -53,8 +53,6 @@ export default function DiscoverPage() {
   const profilesQuery = useMemoFirebase(() => collection(firestore, 'userProfiles'), [firestore])
   const { data: firestoreUsers } = useCollection(profilesQuery)
   
-  const [activeTab, setActiveTab] = useState("Recommend")
-
   const users = (firestoreUsers && firestoreUsers.length > 0) ? firestoreUsers.map(u => ({
     id: u.id,
     name: u.username || "Unknown",
@@ -103,24 +101,13 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Header with Title and Actions */}
       <div className="sticky top-0 z-20 bg-white px-4 py-4 flex items-center justify-between border-b border-gray-50">
         <div className="flex items-center gap-6">
-          {["Recommend", "New", "Nearby"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                "relative text-xl font-headline font-bold transition-all",
-                activeTab === tab ? "text-black scale-110" : "text-muted-foreground/50"
-              )}
-            >
-              {tab}
-              {activeTab === tab && (
-                <div className="absolute -bottom-1 left-0 right-0 h-1.5 bg-[#E9FF97] -z-10 rounded-full animate-in fade-in zoom-in duration-300" />
-              )}
-            </button>
-          ))}
+          <h2 className="relative text-xl font-headline font-bold text-black scale-110">
+            Recommend
+            <div className="absolute -bottom-1 left-0 right-0 h-1.5 bg-[#E9FF97] -z-10 rounded-full" />
+          </h2>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative cursor-pointer p-1">
