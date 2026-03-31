@@ -34,8 +34,7 @@ export default function WelcomePage() {
 
   return (
     <div className="flex flex-col h-svh bg-white relative overflow-hidden">
-      <div className="h-10 bg-primary w-full" />
-
+      {/* Top bar removed as requested */}
       <main className="flex-1 flex flex-col items-center justify-center px-8 text-center">
         <div className="mb-8 relative">
           <div className="w-28 h-28 bg-primary rounded-[2rem] shadow-2xl flex items-center justify-center transform rotate-3">

@@ -84,8 +84,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col h-svh bg-white relative overflow-hidden">
-      <div className="h-10 bg-primary w-full shrink-0" />
-
+      {/* Top bar removed as requested */}
       <header className="absolute top-12 left-2 z-10">
         <Button 
           variant="ghost" 
