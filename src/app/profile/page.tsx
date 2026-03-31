@@ -33,9 +33,10 @@ export default function ProfilePage() {
   const firestore = useFirestore()
   const { toast } = useToast()
 
-  const userProfileRef = useMemoFirebase(() => {
+  const userRef = useMemoFirebase(() => {
     if (!firestore || !currentUser) return null;
-    return doc(firestore, "userProfiles", currentUser.uid);
+    // Consolidated to 'users' collection
+    return doc(firestore, "users", currentUser.uid);
   }, [firestore, currentUser])
 
   const coinAccountRef = useMemoFirebase(() => {
@@ -43,7 +44,7 @@ export default function ProfilePage() {
     return doc(firestore, "users", currentUser.uid, "coinAccount", "primary");
   }, [firestore, currentUser])
 
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc(userProfileRef)
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc(userRef)
   const { data: coinAccount, isLoading: isCoinsLoading } = useDoc(coinAccountRef)
 
   const displayNumericId = userProfile?.numericId || currentUser?.uid.slice(-8).toUpperCase();

@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Navbar } from "@/components/Navbar"
 import { Mail, Loader2, MessageSquare, ChevronRight } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -13,15 +13,17 @@ import { doc, getDoc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 
 function ChatSessionItem({ session }: { session: any }) {
-  const { firestore } = useFirebase()
+  const { firestore, database } = useFirebase()
   const [otherUserData, setOtherUserData] = useState<any>(null)
+  const [presence, setPresence] = useState<{ online: boolean; lastSeen?: number }>({ online: false })
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function fetchUser() {
       if (!firestore || !session.otherUserId) return
       try {
-        const userDoc = await getDoc(doc(firestore, "userProfiles", session.otherUserId))
+        // Consolidated to 'users' collection
+        const userDoc = await getDoc(doc(firestore, "users", session.otherUserId))
         if (userDoc.exists()) {
           setOtherUserData(userDoc.data())
         }
@@ -33,6 +35,26 @@ function ChatSessionItem({ session }: { session: any }) {
     }
     fetchUser()
   }, [firestore, session.otherUserId])
+
+  // Real-time presence listener for each item
+  useEffect(() => {
+    if (!database || !session.otherUserId) return
+    const presenceRef = ref(database, `users/${session.otherUserId}/presence`)
+    return onValue(presenceRef, (snap) => {
+      const val = snap.val()
+      setPresence(val || { online: false })
+    })
+  }, [database, session.otherUserId])
+
+  const presenceText = useMemo(() => {
+    if (presence.online) return "Online";
+    if (!presence.lastSeen) return "Offline";
+    const date = new Date(presence.lastSeen);
+    const now = new Date();
+    const diffInDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+    if (diffInDays > 2) return "Offline";
+    return `Last seen ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  }, [presence]);
 
   const name = otherUserData?.username || `User ${session.otherUserId?.slice(0, 4)}`
   const image = (otherUserData?.profilePhotoUrls && otherUserData.profilePhotoUrls[0]) || `https://picsum.photos/seed/${session.otherUserId}/100/100`
@@ -47,11 +69,14 @@ function ChatSessionItem({ session }: { session: any }) {
           <AvatarImage src={image} className="object-cover" />
           <AvatarFallback>{name[0]}</AvatarFallback>
         </Avatar>
-        <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm" />
+        <div className={cn(
+          "absolute bottom-0 right-0 w-4.5 h-4.5 border-2 border-white rounded-full shadow-sm transition-all duration-500",
+          presence.online ? "bg-green-500 scale-110" : "bg-gray-300"
+        )} />
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex justify-between items-baseline mb-1">
+        <div className="flex justify-between items-baseline mb-0.5">
           <h3 className="font-bold text-sm text-gray-900 truncate font-headline">{name}</h3>
           {session.timestamp && (
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">
@@ -59,9 +84,12 @@ function ChatSessionItem({ session }: { session: any }) {
             </span>
           )}
         </div>
-        <p className="text-[12px] text-gray-500 truncate font-medium">
-          {session.lastMessage || "Start a conversation"}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-[12px] text-gray-500 truncate font-medium flex-1">
+            {session.lastMessage || "Start a conversation"}
+          </p>
+          <span className="text-[9px] font-black text-primary/40 uppercase tracking-tighter shrink-0">{presenceText}</span>
+        </div>
       </div>
       
       <ChevronRight className="w-5 h-5 text-gray-200 group-hover:text-primary transition-colors" />
@@ -100,8 +128,8 @@ export default function ChatListPage() {
     <div className="flex flex-col min-h-svh pb-24 bg-transparent">
       <header className="bg-transparent pt-12 pb-6 px-6 sticky top-0 z-20">
         <div className="flex items-center justify-between">
-          <h1 className="text-4xl font-headline font-black text-white relative flex items-center gap-3">
-            Messages
+          <h1 className="text-4xl font-logo text-white relative flex items-center gap-3">
+            Chats
             <MessageSquare className="w-8 h-8 text-white/30" />
           </h1>
           <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">

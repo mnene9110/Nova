@@ -38,7 +38,8 @@ export default function FullOnboardingPage() {
     // Generate a unique 8-digit numeric ID
     const numericId = Math.floor(10000000 + Math.random() * 90000000);
 
-    const userProfileRef = doc(firestore, "userProfiles", user.uid)
+    // Consolidated to 'users' collection
+    const userRef = doc(firestore, "users", user.uid)
     const profileData = {
       id: user.uid,
       numericId,
@@ -55,9 +56,9 @@ export default function FullOnboardingPage() {
       interests: ["Nature", "Water sports", "Adventure"]
     }
 
-    setDocumentNonBlocking(userProfileRef, profileData, { merge: true })
+    setDocumentNonBlocking(userRef, profileData, { merge: true })
     
-    // Fixed path to ensure even number of segments: /users/{userId}/coinAccount/primary
+    // Coin account remains structured as per blueprint linked to user
     const coinAccountRef = doc(firestore, "users", user.uid, "coinAccount", "primary")
     setDocumentNonBlocking(coinAccountRef, {
       id: user.uid,
