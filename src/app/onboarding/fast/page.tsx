@@ -43,6 +43,17 @@ export default function FastOnboardingPage() {
     }
 
     setDocumentNonBlocking(userProfileRef, profileData, { merge: true })
+    
+    // Initialize coin account
+    const coinAccountRef = doc(firestore, "users", user.uid, "coinAccount", "default")
+    setDocumentNonBlocking(coinAccountRef, {
+      id: "default",
+      userId: user.uid,
+      balance: 100,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }, { merge: true })
+
     router.push("/discover")
   }
 

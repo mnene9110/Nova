@@ -2,10 +2,12 @@
 "use client"
 
 import { Navbar } from "@/components/Navbar"
-import { Coins, Zap, Check, Star } from "lucide-react"
+import { Coins, Zap, Check, Star, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { useDoc, useFirestore, useUser, useMemoFirebase } from "@/firebase"
+import { doc } from "firebase/firestore"
 
 const PACKAGES = [
   { id: 1, amount: 100, price: "$4.99", label: "Starter Pack", icon: Zap },
@@ -14,6 +16,16 @@ const PACKAGES = [
 ]
 
 export default function CoinsPage() {
+  const { user } = useUser()
+  const firestore = useFirestore()
+  
+  const coinAccountRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, "users", user.uid, "coinAccount", "default");
+  }, [firestore, user])
+  
+  const { data: coinAccount, isLoading } = useDoc(coinAccountRef)
+
   return (
     <div className="flex flex-col min-h-svh pb-24 bg-white">
       <header className="p-8 text-center space-y-2">
@@ -29,7 +41,11 @@ export default function CoinsPage() {
             </div>
             <div>
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Balance</p>
-              <p className="text-2xl font-bold">150 Coins</p>
+              {isLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              ) : (
+                <p className="text-2xl font-bold">{coinAccount?.balance || 0} Coins</p>
+              )}
             </div>
           </div>
           <Badge variant="outline" className="text-primary border-primary">Free Bonus +10</Badge>

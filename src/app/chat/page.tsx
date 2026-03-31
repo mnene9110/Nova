@@ -1,27 +1,33 @@
+
 "use client"
 
 import { Navbar } from "@/components/Navbar"
-import { Mail } from "lucide-react"
+import { Mail, Loader2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
-import { PlaceHolderImages } from "@/lib/placeholder-images"
+import { useFirebase, useUser, useCollection, useMemoFirebase } from "@/firebase"
+import { collection, query, where } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 
-const CHATS = [
-  { id: "1", name: "kerry 🌚😟🥰", lastMsg: "Ata wewe uko uku? tunaweza d...", time: "03-31 11:01", unread: 1, image: PlaceHolderImages.find(i => i.id === 'user-1')?.imageUrl, online: true, tag: "0.2°C" },
-  { id: "2", name: "honey cup 🌹😏", lastMsg: "hello baby 🥰🥰🥰", time: "03-31 10:59", unread: 2, image: PlaceHolderImages.find(i => i.id === 'user-2')?.imageUrl, online: false },
-  { id: "3", name: "Angel 💞", lastMsg: "hi how are you 🥰Pls check my...", time: "03-31 08:40", unread: 1, image: PlaceHolderImages.find(i => i.id === 'user-5')?.imageUrl, online: false },
-  { id: "4", name: "natasha956", lastMsg: "hi am doing good", time: "03-31 07:45", unread: 1, image: PlaceHolderImages.find(i => i.id === 'user-3')?.imageUrl, online: false, tag: "0.2°C" },
-  { id: "5", name: "shania", lastMsg: "what are you doing darling", time: "03-31 07:44", unread: 2, image: PlaceHolderImages.find(i => i.id === 'user-4')?.imageUrl, online: false },
-  { id: "6", name: "Naughty Mama❤️", lastMsg: "unataka mamaaa mwenye atak...", time: "03-31 07:41", unread: 0, image: "https://picsum.photos/seed/naughty/200/200", online: true, specialFrame: true, tag: "0.2°C" },
-  { id: "7", name: "Jojo 💦💋", lastMsg: "hi how are you 🥰Pls check my...", time: "03-31 07:41", unread: 1, image: "https://picsum.photos/seed/jojo/200/200", online: false },
-  { id: "8", name: "bella", lastMsg: "heey", time: "03-31 07:39", unread: 2, image: "https://picsum.photos/seed/bella/200/200", online: false, tag: "0.2°C" },
-]
-
 export default function ChatListPage() {
+  const { firestore } = useFirebase()
+  const { user: currentUser } = useUser()
+
+  const sessionsQuery = useMemoFirebase(() => {
+    if (!firestore || !currentUser) return null;
+    // Note: In a real app, you might want to query for user1Id OR user2Id. 
+    // For simplicity, we'll fetch all sessions where either participant is the current user.
+    // Ideally we'd have a 'participants' array.
+    return collection(firestore, 'chatSessions');
+  }, [firestore, currentUser])
+
+  const { data: allSessions, isLoading } = useCollection(sessionsQuery)
+  
+  // Filter sessions where the current user is part of the ID or participants
+  const mySessions = allSessions?.filter(s => s.id.includes(currentUser?.uid || "")) || []
+
   return (
     <div className="flex flex-col min-h-svh pb-24 bg-transparent">
-      {/* Top Header Area */}
       <header className="bg-transparent pt-10 pb-4 px-6 sticky top-0 z-20">
         <div className="flex items-center">
           <h1 className="text-3xl font-headline font-black text-white relative">
@@ -33,53 +39,43 @@ export default function ChatListPage() {
 
       <main className="flex-1 px-4 mt-4 bg-white rounded-t-[3rem] shadow-2xl pt-6">
         <section>
-          {CHATS.map((chat) => (
-            <Link 
-              key={chat.id} 
-              href={`/chat/${chat.id}`} 
-              className="flex items-center gap-4 py-4 hover:bg-gray-50/50 rounded-2xl px-2 transition-colors group"
-            >
-              <div className="relative shrink-0">
-                <div className={cn(
-                  "rounded-full p-0.5 transition-transform group-active:scale-95",
-                  chat.specialFrame ? "bg-gradient-to-tr from-primary to-accent p-[2px]" : ""
-                )}>
-                  <Avatar className="w-14 h-14 border-2 border-white shadow-sm">
-                    <AvatarImage src={chat.image} className="object-cover" />
-                    <AvatarFallback>{chat.name[0]}</AvatarFallback>
-                  </Avatar>
-                </div>
-                {chat.online && (
-                  <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full shadow-md" />
-                )}
-              </div>
+          {isLoading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : mySessions.length > 0 ? (
+            mySessions.map((session) => {
+              const otherUserId = session.id.replace(currentUser?.uid || "", "").replace("_", "")
+              const sessionName = `User ${otherUserId.slice(0, 4)}`
+              const sessionImage = `https://picsum.photos/seed/${otherUserId}/100/100`
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <h3 className="font-bold text-sm text-gray-900 truncate">{chat.name}</h3>
-                  {chat.tag && (
-                    <span className="flex items-center gap-0.5 text-[9px] text-primary bg-primary/5 px-1.5 py-0.5 rounded-md font-black italic">
-                      🔥 {chat.tag}
-                    </span>
-                  )}
-                </div>
-                <p className="text-[13px] text-gray-400 truncate font-medium">
-                  {chat.lastMsg}
-                </p>
-              </div>
-
-              <div className="flex flex-col items-end gap-1.5 shrink-0 ml-2">
-                <span className="text-[9px] text-gray-300 font-bold tracking-tighter">
-                  {chat.time}
-                </span>
-                {chat.unread > 0 && (
-                  <div className="bg-primary text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-lg">
-                    {chat.unread}
+              return (
+                <Link 
+                  key={session.id} 
+                  href={`/chat/${otherUserId}`} 
+                  className="flex items-center gap-4 py-4 hover:bg-gray-50/50 rounded-2xl px-2 transition-colors group"
+                >
+                  <div className="relative shrink-0">
+                    <Avatar className="w-14 h-14 border-2 border-white shadow-sm">
+                      <AvatarImage src={sessionImage} className="object-cover" />
+                      <AvatarFallback>{sessionName[0]}</AvatarFallback>
+                    </Avatar>
                   </div>
-                )}
-              </div>
-            </Link>
-          ))}
+
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-sm text-gray-900 truncate">{sessionName}</h3>
+                    <p className="text-[13px] text-gray-400 truncate font-medium">
+                      Active session
+                    </p>
+                  </div>
+                </Link>
+              )
+            })
+          ) : (
+            <div className="text-center py-20 text-gray-400 font-medium">
+              No active conversations yet.
+            </div>
+          )}
 
           <div className="flex items-center gap-4 py-6 px-2 mt-2 border-t border-gray-50 opacity-60">
             <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
