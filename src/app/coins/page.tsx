@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
@@ -35,8 +36,8 @@ function WalletContent() {
   
   const coinAccountRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    // Path corrected to match backend.json: /users/{userId}/coinAccount (Document)
-    return doc(firestore, "users", user.uid, "coinAccount");
+    // Path fixed to match standardized backend.json: /coinAccounts/{userId}
+    return doc(firestore, "coinAccounts", user.uid);
   }, [firestore, user])
   
   const { data: coinAccount, isLoading } = useDoc(coinAccountRef)

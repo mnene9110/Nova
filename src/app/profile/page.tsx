@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Navbar } from "@/components/Navbar"
@@ -30,8 +31,8 @@ export default function ProfilePage() {
 
   const coinAccountRef = useMemoFirebase(() => {
     if (!firestore || !currentUser) return null;
-    // Path corrected to match backend.json: /users/{userId}/coinAccount (Document)
-    return doc(firestore, "users", currentUser.uid, "coinAccount");
+    // Path fixed to match standardized backend.json: /coinAccounts/{userId}
+    return doc(firestore, "coinAccounts", currentUser.uid);
   }, [firestore, currentUser])
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc(userRef)

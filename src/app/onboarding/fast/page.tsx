@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -47,8 +48,8 @@ export default function FastOnboardingPage() {
 
     setDocumentNonBlocking(userRef, profileData, { merge: true })
     
-    // Path corrected to match backend.json: /users/{userId}/coinAccount (Document)
-    const coinAccountRef = doc(firestore, "users", user.uid, "coinAccount")
+    // Path fixed to match standardized backend.json: /coinAccounts/{userId}
+    const coinAccountRef = doc(firestore, "coinAccounts", user.uid)
     setDocumentNonBlocking(coinAccountRef, {
       id: user.uid,
       userId: user.uid,
