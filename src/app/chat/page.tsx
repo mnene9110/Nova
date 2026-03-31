@@ -1,12 +1,11 @@
 "use client"
 
 import { Navbar } from "@/components/Navbar"
-import { Gift, User, Mail } from "lucide-react"
+import { Mail } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
 
 const CHATS = [
   { id: "1", name: "kerry 🌚😟🥰", lastMsg: "Ata wewe uko uku? tunaweza d...", time: "03-31 11:01", unread: 1, image: PlaceHolderImages.find(i => i.id === 'user-1')?.imageUrl, online: true, tag: "0.2°C" },
@@ -20,48 +19,15 @@ const CHATS = [
 ]
 
 export default function ChatListPage() {
-  const [activeTab, setActiveTab] = useState("Chat")
-
   return (
     <div className="flex flex-col min-h-svh pb-24 bg-transparent">
       {/* Top Header Area */}
       <header className="bg-transparent pt-10 pb-4 px-6 sticky top-0 z-20">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <button 
-              onClick={() => setActiveTab("Chat")}
-              className={cn(
-                "text-2xl font-headline font-black relative transition-all",
-                activeTab === "Chat" ? "text-white" : "text-white/40"
-              )}
-            >
-              Chat
-              {activeTab === "Chat" && (
-                <div className="absolute -bottom-1 left-0 right-0 h-1 bg-accent rounded-full" />
-              )}
-            </button>
-            <button 
-              onClick={() => setActiveTab("Call")}
-              className={cn(
-                "text-2xl font-headline font-black relative transition-all",
-                activeTab === "Call" ? "text-white" : "text-white/40"
-              )}
-            >
-              Call
-              {activeTab === "Call" && (
-                <div className="absolute -bottom-1 left-0 right-0 h-1 bg-accent rounded-full" />
-              )}
-            </button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center text-white/60 hover:text-white transition-colors cursor-pointer">
-              <Gift className="w-4 h-4" />
-            </div>
-            <div className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center text-white/60 hover:text-white transition-colors cursor-pointer">
-              <User className="w-4 h-4" />
-            </div>
-          </div>
+        <div className="flex items-center">
+          <h1 className="text-3xl font-headline font-black text-white relative">
+            Chat
+            <div className="absolute -bottom-1 left-0 right-0 h-1 bg-primary rounded-full" />
+          </h1>
         </div>
       </header>
 
@@ -92,7 +58,7 @@ export default function ChatListPage() {
                 <div className="flex items-center gap-2 mb-0.5">
                   <h3 className="font-bold text-sm text-gray-900 truncate">{chat.name}</h3>
                   {chat.tag && (
-                    <span className="flex items-center gap-0.5 text-[9px] text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-md font-black italic">
+                    <span className="flex items-center gap-0.5 text-[9px] text-primary bg-primary/5 px-1.5 py-0.5 rounded-md font-black italic">
                       🔥 {chat.tag}
                     </span>
                   )}
@@ -107,7 +73,7 @@ export default function ChatListPage() {
                   {chat.time}
                 </span>
                 {chat.unread > 0 && (
-                  <div className="bg-red-500 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-lg shadow-red-100">
+                  <div className="bg-primary text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-lg">
                     {chat.unread}
                   </div>
                 )}
@@ -116,8 +82,8 @@ export default function ChatListPage() {
           ))}
 
           <div className="flex items-center gap-4 py-6 px-2 mt-2 border-t border-gray-50 opacity-60">
-            <div className="w-12 h-12 bg-amber-400 rounded-full flex items-center justify-center shrink-0 shadow-lg shadow-amber-50">
-              <Mail className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+              <Mail className="w-6 h-6 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-sm text-gray-900">Expired Messages</h3>
