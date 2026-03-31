@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ChevronLeft, Video, Send, Mic, Image as ImageIcon, Phone, Gift, Hash, Smile, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,7 @@ import { generateConversationStarters } from "@/ai/flows/ai-conversation-starter
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
-import { ref, push, onValue, serverTimestamp as rtdbTimestamp, set } from "firebase/database"
+import { ref, push, onValue, serverTimestamp as rtdbTimestamp, update, child } from "firebase/database"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
@@ -22,10 +22,11 @@ export default function ChatDetailPage() {
   const { firestore, database } = useFirebase()
   const router = useRouter()
   const { toast } = useToast()
+  const scrollRef = useRef<HTMLDivElement>(null)
   
   const [inputText, setInputText] = useState("")
   const [isAiLoading, setIsAiLoading] = useState(false)
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>(["Good to meet you here", "Nice to meet you", "What's your plan?"])
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>(["Hey! How's your day?", "Nice to meet you!", "What are your hobbies?"])
   const [isVideoActive, setIsVideoActive] = useState(false)
   const [messages, setMessages] = useState<any[]>([])
   const [isOnline, setIsOnline] = useState(false)
@@ -62,36 +63,42 @@ export default function ChatDetailPage() {
     })
   }, [database, chatId])
 
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [messages])
+
   const handleSendMessage = (text = inputText) => {
     if (!text.trim() || !currentUser || !chatId || !database) return
     
+    const messagesRef = ref(database, `chats/${chatId}/messages`)
+    const newMessageKey = push(messagesRef).key
+
     const messageData = {
       messageText: text,
       senderId: currentUser.uid,
       sentAt: rtdbTimestamp(),
-      chatSessionId: chatId
     }
 
-    // Push message to chat room
-    push(ref(database, `chats/${chatId}/messages`), messageData)
-
-    // Update session summaries for both users
+    // Atomic updates across RTDB paths
     const updates: any = {}
-    updates[`users/${currentUser.uid}/chats/${otherUserId}`] = {
+    updates[`/chats/${chatId}/messages/${newMessageKey}`] = messageData
+    updates[`/users/${currentUser.uid}/chats/${otherUserId}`] = {
       lastMessage: text,
       timestamp: rtdbTimestamp(),
-      otherUserId: otherUserId
+      otherUserId: otherUserId,
+      chatId: chatId
     }
-    updates[`users/${otherUserId}/chats/${currentUser.uid}`] = {
+    updates[`/users/${otherUserId}/chats/${currentUser.uid}`] = {
       lastMessage: text,
       timestamp: rtdbTimestamp(),
-      otherUserId: currentUser.uid
+      otherUserId: currentUser.uid,
+      chatId: chatId
     }
     
-    // Using simple set for atomic-like behavior on shallow paths
-    set(ref(database, `users/${currentUser.uid}/chats/${otherUserId}`), updates[`users/${currentUser.uid}/chats/${otherUserId}`])
-    set(ref(database, `users/${otherUserId}/chats/${currentUser.uid}`), updates[`users/${otherUserId}/chats/${currentUser.uid}`])
-
+    update(ref(database), updates)
     setInputText("")
   }
 
@@ -110,7 +117,7 @@ export default function ChatDetailPage() {
   if (!otherUser) {
     return (
       <div className="flex flex-col items-center justify-center h-svh bg-white p-6 text-center">
-        <h2 className="text-2xl font-bold mb-4">Chat Unavailable</h2>
+        <h2 className="text-2xl font-bold mb-4 font-headline">Chat Unavailable</h2>
         <Button onClick={() => router.back()}>Go Back</Button>
       </div>
     )
@@ -129,7 +136,7 @@ export default function ChatDetailPage() {
                 <p className="text-white/60">Connecting...</p>
              </div>
              <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-6">
-                <Button onClick={() => setIsVideoActive(false)} variant="destructive" className="rounded-full w-16 h-16">
+                <Button onClick={() => setIsVideoActive(false)} variant="destructive" className="rounded-full w-16 h-16 shadow-2xl">
                   End
                 </Button>
              </div>
@@ -137,21 +144,20 @@ export default function ChatDetailPage() {
         </div>
       )}
 
-      <header className="px-4 py-3 bg-white flex items-center justify-between sticky top-0 z-10 border-b">
+      <header className="px-4 py-3 bg-white flex items-center justify-between sticky top-0 z-10 border-b shadow-sm">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => router.back()} className="p-0 h-auto font-bold flex items-center gap-1">
             <ChevronLeft className="w-6 h-6" />
-            <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] min-w-[24px] text-center">99+</span>
           </Button>
-          <div className="flex flex-col items-center flex-1">
-            <h3 className="font-bold text-base leading-none">{otherUser.username}</h3>
+          <div className="flex flex-col items-start flex-1">
+            <h3 className="font-bold text-base leading-none font-headline">{otherUser.username}</h3>
             <div className="flex items-center gap-1 mt-1">
                <div className={cn("w-2 h-2 rounded-full", isOnline ? "bg-green-500" : "bg-gray-300")} />
                <span className="text-[10px] text-muted-foreground font-medium">{isOnline ? 'Online' : 'Offline'}</span>
             </div>
           </div>
         </div>
-        <Avatar className="w-8 h-8">
+        <Avatar className="w-8 h-8 border">
           <AvatarImage src={otherUserImage} className="object-cover" />
           <AvatarFallback>{otherUser.username?.[0]}</AvatarFallback>
         </Avatar>
@@ -159,41 +165,40 @@ export default function ChatDetailPage() {
 
       <ScrollArea className="flex-1 bg-gray-50/30">
         <div className="px-4 py-4 space-y-6">
+          {/* User Preview Card */}
           <div className="bg-[#E0F2FE] rounded-[2rem] p-5 shadow-sm space-y-4 relative overflow-hidden">
             <div className="flex items-center justify-between">
               <div className="flex flex-wrap gap-2">
                  <Badge className="bg-primary hover:bg-primary text-white border-none text-[10px] px-3 py-0.5 rounded-full font-black">
-                    ♀ 20
+                    {otherUser.gender === 'female' ? '♀' : '♂'} {otherUser.dateOfBirth ? (new Date().getFullYear() - new Date(otherUser.dateOfBirth).getFullYear()) : '20'}
                  </Badge>
                  <Badge className="bg-[#FFB13B] hover:bg-[#FFB13B] text-white border-none text-[10px] px-3 py-0.5 rounded-full font-black">
-                    {otherUser.location || "Earth"}
+                    {otherUser.location || "Nearby"}
                  </Badge>
               </div>
             </div>
 
             <div className="flex items-center gap-2 bg-[#FCF8B4] w-fit px-2.5 py-1 rounded-lg">
                <span className="text-[10px]">👤✅</span>
-               <span className="text-[10px] font-black uppercase tracking-tighter text-black">Real Person</span>
+               <span className="text-[10px] font-black uppercase tracking-tighter text-black">Verified User</span>
             </div>
 
             <div className="flex gap-2">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-14 h-14 rounded-xl overflow-hidden border border-white/20">
+                <div key={i} className="w-14 h-14 rounded-xl overflow-hidden border-2 border-white shadow-sm">
                   <img src={`https://picsum.photos/seed/${otherUserId}-${i}/100/100`} className="w-full h-full object-cover" alt="Gallery" />
                 </div>
               ))}
             </div>
 
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-primary font-black text-sm">
-                <span>👥</span> Personality similarity: 86%
-              </div>
               <p className="text-xs text-gray-500 font-medium">
-                Can chat with her/him {otherUser.interests?.map(interest => `🌱${interest}`).join(' ') || '🌱Happiness'} 🥳
+                Common interests: {otherUser.interests?.slice(0, 3).map(interest => `🌱${interest}`).join(' ') || '🌱MatchFlow'}
               </p>
             </div>
           </div>
 
+          {/* Messages */}
           <div className="flex flex-col gap-4">
             {messages.map((msg) => {
               const isMe = msg.senderId === currentUser?.uid
@@ -216,11 +221,13 @@ export default function ChatDetailPage() {
                 </div>
               )
             })}
+            <div ref={scrollRef} />
           </div>
         </div>
       </ScrollArea>
 
       <footer className="p-4 bg-white border-t space-y-4">
+        {/* AI Suggestions */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
           {aiSuggestions.map((suggestion, idx) => (
             <Button 
@@ -236,16 +243,25 @@ export default function ChatDetailPage() {
             className="bg-primary hover:bg-primary/90 text-white rounded-full h-8 px-5 font-black text-xs shrink-0"
             onClick={async () => {
               setIsAiLoading(true)
-              const res = await generateConversationStarters({ otherUserBio: otherUser.bio || "", otherUserInterests: otherUser.interests || [] })
-              setAiSuggestions(res.suggestions)
-              setIsAiLoading(false)
+              try {
+                const res = await generateConversationStarters({ 
+                  otherUserBio: otherUser.bio || "No bio yet", 
+                  otherUserInterests: otherUser.interests || [] 
+                })
+                setAiSuggestions(res.suggestions)
+              } catch (e) {
+                console.error("AI failed", e)
+              } finally {
+                setIsAiLoading(false)
+              }
             }}
             disabled={isAiLoading}
           >
-            Next
+            {isAiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Next AI Tip"}
           </Button>
         </div>
 
+        {/* Input Bar */}
         <div className="flex items-center gap-2">
           <Button size="icon" variant="ghost" className="rounded-full text-gray-400">
             <Mic className="w-6 h-6" />
@@ -255,7 +271,7 @@ export default function ChatDetailPage() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Type a message..."
-              className="rounded-full h-11 bg-gray-50 border-none pr-10 pl-4"
+              className="rounded-full h-11 bg-gray-50 border-none pr-10 pl-4 focus-visible:ring-primary/20"
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             />
             <Button size="icon" variant="ghost" className="absolute right-1 text-amber-400">
@@ -265,16 +281,18 @@ export default function ChatDetailPage() {
           <Button 
             size="icon" 
             variant="ghost" 
-            className="rounded-full text-gray-400"
+            className="rounded-full text-primary"
             onClick={() => handleSendMessage()}
+            disabled={!inputText.trim()}
           >
-            <Send className="w-6 h-6 rotate-45" />
+            <Send className="w-6 h-6 rotate-45 fill-current" />
           </Button>
         </div>
 
+        {/* Actions Bar */}
         <div className="flex justify-between items-center px-2 pt-2">
            <Button variant="ghost" size="icon" className="text-gray-400"><ImageIcon className="w-6 h-6" /></Button>
-           <Button variant="ghost" size="icon" className="text-gray-400" onClick={() => router.push('/calls')}><Phone className="w-6 h-6" /></Button>
+           <Button variant="ghost" size="icon" className="text-gray-400"><Phone className="w-6 h-6" /></Button>
            <Button variant="ghost" size="icon" className="text-amber-400"><Gift className="w-6 h-6 fill-current" /></Button>
            <Button variant="ghost" size="icon" className="text-gray-400" onClick={startVideoCall}><Video className="w-6 h-6" /></Button>
            <div className="relative">
