@@ -69,38 +69,6 @@ export default function ChatDetailPage() {
     }
   }, []);
 
-  // Signaling Listener
-  useEffect(() => {
-    if (!database || !chatId || !currentUser) return
-    const callRef = ref(database, `calls/${chatId}`)
-    return onValue(callRef, (snap) => {
-      const data = snap.val()
-      if (!data) {
-        if (callStatus !== 'idle') {
-          stopAllMedia();
-          setCallStatus('idle');
-        }
-        return
-      }
-
-      setCallType(data.callType || 'video')
-
-      if (data.status === 'ringing' && data.callerId !== currentUser.uid) {
-        setCallStatus('incoming')
-      } else if (data.status === 'ringing' && data.callerId === currentUser.uid) {
-        setCallStatus('calling')
-      } else if (data.status === 'accepted') {
-        setCallStatus('ongoing')
-        initiateZegoCall(chatId);
-      } else if (data.status === 'declined') {
-        stopAllMedia();
-        setCallStatus('idle')
-        remove(callRef)
-        toast({ title: "Call Declined", description: `${otherUser?.username || 'User'} is unavailable.` })
-      }
-    })
-  }, [database, chatId, currentUser, otherUser, callStatus]);
-
   const initiateZegoCall = async (roomID: string) => {
     if (!ZegoUIKitPrebuilt || !currentUser || !zegoContainerRef.current) return;
 
@@ -143,6 +111,38 @@ export default function ChatDetailPage() {
       },
     });
   };
+
+  // Signaling Listener
+  useEffect(() => {
+    if (!database || !chatId || !currentUser) return
+    const callRef = ref(database, `calls/${chatId}`)
+    return onValue(callRef, (snap) => {
+      const data = snap.val()
+      if (!data) {
+        if (callStatus !== 'idle') {
+          stopAllMedia();
+          setCallStatus('idle');
+        }
+        return
+      }
+
+      setCallType(data.callType || 'video')
+
+      if (data.status === 'ringing' && data.callerId !== currentUser.uid) {
+        setCallStatus('incoming')
+      } else if (data.status === 'ringing' && data.callerId === currentUser.uid) {
+        setCallStatus('calling')
+      } else if (data.status === 'accepted') {
+        setCallStatus('ongoing')
+        initiateZegoCall(chatId);
+      } else if (data.status === 'declined') {
+        stopAllMedia();
+        setCallStatus('idle')
+        remove(callRef)
+        toast({ title: "Call Declined", description: `${otherUser?.username || 'User'} is unavailable.` })
+      }
+    })
+  }, [database, chatId, currentUser, otherUser, callStatus]);
 
   const handleInitiateCall = (type: 'video' | 'audio') => {
     if (!database || !chatId || !currentUser) return

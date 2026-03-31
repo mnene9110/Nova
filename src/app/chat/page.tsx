@@ -15,7 +15,6 @@ function ChatSessionItem({ session }: { session: any }) {
   const { firestore, database } = useFirebase()
   const [otherUserData, setOtherUserData] = useState<any>(null)
   const [presence, setPresence] = useState<{ online: boolean; lastSeen?: number }>({ online: false })
-  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function fetchUser() {
@@ -27,8 +26,6 @@ function ChatSessionItem({ session }: { session: any }) {
         }
       } catch (e) {
         console.error("Failed to fetch user in chat list", e)
-      } finally {
-        setIsLoading(false)
       }
     }
     fetchUser()
