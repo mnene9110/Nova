@@ -2,39 +2,84 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Mail, Lock, ChevronLeft } from "lucide-react"
+import { Mail, Lock, ChevronLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
 import { useAuth, useUser, initiateEmailSignIn, initiateEmailSignUp } from "@/firebase"
+import { useToast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [isPending, setIsPending] = useState(false)
   const router = useRouter()
   const auth = useAuth()
   const { user } = useUser()
+  const { toast } = useToast()
 
   useEffect(() => {
     if (user && !user.isAnonymous) {
-      // Check if user has a profile or just signed up
-      // For simplicity, we redirect to onboarding if they just signed up
-      // In a real app, you'd check Firestore first
+      // Redirect based on whether the account is new
+      const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+      if (isNewUser) {
+        router.push("/onboarding/full")
+      } else {
+        router.push("/discover")
+      }
     }
   }, [user, router])
 
   const handleSignIn = () => {
-    if (email && password) {
-      initiateEmailSignIn(auth, email, password)
-      router.push("/discover")
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please enter both email and password.",
+      })
+      return
     }
+
+    setIsPending(true)
+    initiateEmailSignIn(auth, email, password)
+      .catch((error: any) => {
+        setIsPending(false)
+        toast({
+          variant: "destructive",
+          title: "Sign In Failed",
+          description: error.message || "Invalid email or password.",
+        })
+      })
   }
 
   const handleSignUp = () => {
-    if (email && password) {
-      initiateEmailSignUp(auth, email, password)
-      router.push("/onboarding/full")
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please enter both email and password.",
+      })
+      return
     }
+
+    setIsPending(true)
+    initiateEmailSignUp(auth, email, password)
+      .catch((error: any) => {
+        setIsPending(false)
+        if (error.code === 'auth/email-already-in-use') {
+          toast({
+            variant: "destructive",
+            title: "Account Exists",
+            description: "This email is already registered. Please sign in instead.",
+          })
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Sign Up Failed",
+            description: error.message || "Could not create account.",
+          })
+        }
+      })
   }
 
   return (
@@ -96,18 +141,20 @@ export default function LoginPage() {
 
         <div className="w-full space-y-4 pt-4">
           <Button 
-            className="w-full h-16 rounded-full bg-[#7E8EF1] hover:bg-[#6C7DE0] text-white text-xl font-bold shadow-lg shadow-[#7E8EF1]/20 transition-all active:scale-95"
+            className="w-full h-16 rounded-full bg-[#7E8EF1] hover:bg-[#6C7DE0] text-white text-xl font-bold shadow-lg shadow-[#7E8EF1]/20 transition-all active:scale-95 flex items-center justify-center"
             onClick={handleSignIn}
+            disabled={isPending}
           >
-            Sign In
+            {isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : "Sign In"}
           </Button>
 
           <Button 
             variant="secondary"
-            className="w-full h-16 rounded-full bg-[#1F2937] hover:bg-[#111827] text-white text-xl font-bold shadow-lg transition-all active:scale-95"
+            className="w-full h-16 rounded-full bg-[#1F2937] hover:bg-[#111827] text-white text-xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center"
             onClick={handleSignUp}
+            disabled={isPending}
           >
-            Create Account
+            {isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : "Create Account"}
           </Button>
         </div>
 
