@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ChevronLeft, Video, Send, Mic, Image as ImageIcon, Phone, Gift, Hash, Smile, Loader2 } from "lucide-react"
+import { ChevronLeft, Video, Send, Mic, Image as ImageIcon, Phone, Gift, Hash, Smile, Loader2, MoreVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -12,7 +12,7 @@ import { generateConversationStarters } from "@/ai/flows/ai-conversation-starter
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
-import { ref, push, onValue, serverTimestamp as rtdbTimestamp, update, child } from "firebase/database"
+import { ref, push, onValue, serverTimestamp as rtdbTimestamp, update } from "firebase/database"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
@@ -26,7 +26,7 @@ export default function ChatDetailPage() {
   
   const [inputText, setInputText] = useState("")
   const [isAiLoading, setIsAiLoading] = useState(false)
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>(["Hey! How's your day?", "Nice to meet you!", "What are your hobbies?"])
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>(["Hey! How's your day?", "What are your hobbies?", "Tell me something interesting!"])
   const [isVideoActive, setIsVideoActive] = useState(false)
   const [messages, setMessages] = useState<any[]>([])
   const [isOnline, setIsOnline] = useState(false)
@@ -56,6 +56,8 @@ export default function ChatDetailPage() {
           id: key,
           ...val
         }))
+        // Sort by timestamp
+        msgList.sort((a, b) => (a.sentAt || 0) - (b.sentAt || 0))
         setMessages(msgList)
       } else {
         setMessages([])
@@ -126,17 +128,17 @@ export default function ChatDetailPage() {
   const otherUserImage = (otherUser.profilePhotoUrls && otherUser.profilePhotoUrls[0]) || `https://picsum.photos/seed/${otherUser.id}/100/100`
 
   return (
-    <div className="flex flex-col h-svh bg-white relative">
+    <div className="flex flex-col h-svh bg-slate-50 relative">
       {isVideoActive && (
         <div className="absolute inset-0 z-[100] bg-black flex flex-col animate-in fade-in zoom-in duration-500">
            <div className="relative flex-1">
              <img src={otherUserImage} className="w-full h-full object-cover opacity-80" alt="Video Call" />
              <div className="absolute top-10 left-6 text-white">
-                <h2 className="text-2xl font-bold font-headline">{otherUser.username}</h2>
-                <p className="text-white/60">Connecting...</p>
+                <h2 className="text-3xl font-bold font-logo">{otherUser.username}</h2>
+                <p className="text-white/60 font-medium">Connecting...</p>
              </div>
-             <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-6">
-                <Button onClick={() => setIsVideoActive(false)} variant="destructive" className="rounded-full w-16 h-16 shadow-2xl">
+             <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-6">
+                <Button onClick={() => setIsVideoActive(false)} variant="destructive" className="rounded-full w-16 h-16 shadow-2xl scale-110">
                   End
                 </Button>
              </div>
@@ -144,109 +146,107 @@ export default function ChatDetailPage() {
         </div>
       )}
 
-      <header className="px-4 py-3 bg-white flex items-center justify-between sticky top-0 z-10 border-b shadow-sm">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => router.back()} className="p-0 h-auto font-bold flex items-center gap-1">
-            <ChevronLeft className="w-6 h-6" />
+      {/* Modern Header */}
+      <header className="px-4 py-3 bg-white/80 backdrop-blur-md flex items-center justify-between sticky top-0 z-10 border-b border-gray-100 shadow-sm">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-gray-100">
+            <ChevronLeft className="w-6 h-6 text-gray-700" />
           </Button>
-          <div className="flex flex-col items-start flex-1">
-            <h3 className="font-bold text-base leading-none font-headline">{otherUser.username}</h3>
-            <div className="flex items-center gap-1 mt-1">
-               <div className={cn("w-2 h-2 rounded-full", isOnline ? "bg-green-500" : "bg-gray-300")} />
-               <span className="text-[10px] text-muted-foreground font-medium">{isOnline ? 'Online' : 'Offline'}</span>
+          <div className="flex items-center gap-3">
+            <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
+              <AvatarImage src={otherUserImage} className="object-cover" />
+              <AvatarFallback>{otherUser.username?.[0]}</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <h3 className="font-bold text-sm leading-none font-headline">{otherUser.username}</h3>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className={cn("w-2 h-2 rounded-full", isOnline ? "bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-gray-300")} />
+                <span className="text-[10px] text-muted-foreground font-black uppercase tracking-tight">{isOnline ? 'Online' : 'Offline'}</span>
+              </div>
             </div>
           </div>
         </div>
-        <Avatar className="w-8 h-8 border">
-          <AvatarImage src={otherUserImage} className="object-cover" />
-          <AvatarFallback>{otherUser.username?.[0]}</AvatarFallback>
-        </Avatar>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-primary rounded-full" onClick={startVideoCall}>
+            <Video className="w-5 h-5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-primary rounded-full">
+            <MoreVertical className="w-5 h-5" />
+          </Button>
+        </div>
       </header>
 
-      <ScrollArea className="flex-1 bg-gray-50/30">
-        <div className="px-4 py-4 space-y-6">
-          {/* User Preview Card */}
-          <div className="bg-[#E0F2FE] rounded-[2rem] p-5 shadow-sm space-y-4 relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-wrap gap-2">
-                 <Badge className="bg-primary hover:bg-primary text-white border-none text-[10px] px-3 py-0.5 rounded-full font-black">
-                    {otherUser.gender === 'female' ? '♀' : '♂'} {otherUser.dateOfBirth ? (new Date().getFullYear() - new Date(otherUser.dateOfBirth).getFullYear()) : '20'}
-                 </Badge>
-                 <Badge className="bg-[#FFB13B] hover:bg-[#FFB13B] text-white border-none text-[10px] px-3 py-0.5 rounded-full font-black">
-                    {otherUser.location || "Nearby"}
-                 </Badge>
-              </div>
+      {/* Messages Scroll Area */}
+      <ScrollArea className="flex-1 px-4 py-4">
+        <div className="space-y-6">
+          {/* Info Card */}
+          <div className="mx-auto max-w-[90%] bg-white rounded-[2rem] p-5 shadow-sm border border-gray-100 space-y-3">
+            <div className="flex items-center justify-center gap-2">
+               <Badge className="bg-primary hover:bg-primary text-white text-[10px] rounded-full px-3">
+                  {otherUser.gender === 'female' ? '♀' : '♂'} · {otherUser.location || "Nearby"}
+               </Badge>
             </div>
-
-            <div className="flex items-center gap-2 bg-[#FCF8B4] w-fit px-2.5 py-1 rounded-lg">
-               <span className="text-[10px]">👤✅</span>
-               <span className="text-[10px] font-black uppercase tracking-tighter text-black">Verified User</span>
-            </div>
-
-            <div className="flex gap-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-14 h-14 rounded-xl overflow-hidden border-2 border-white shadow-sm">
-                  <img src={`https://picsum.photos/seed/${otherUserId}-${i}/100/100`} className="w-full h-full object-cover" alt="Gallery" />
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500 font-medium">
-                Common interests: {otherUser.interests?.slice(0, 3).map(interest => `🌱${interest}`).join(' ') || '🌱MatchFlow'}
-              </p>
-            </div>
+            <p className="text-[11px] text-center text-gray-500 font-medium leading-relaxed italic">
+              "{(otherUser.bio || "Finding my flow on MatchFlow.")?.slice(0, 80)}..."
+            </p>
           </div>
 
-          {/* Messages */}
           <div className="flex flex-col gap-4">
+            {messages.length === 0 && (
+               <div className="text-center py-10 opacity-40">
+                  <p className="text-xs font-bold uppercase tracking-widest">Say Hi to start the flow</p>
+               </div>
+            )}
             {messages.map((msg) => {
               const isMe = msg.senderId === currentUser?.uid
               return (
-                <div key={msg.id} className={cn("flex gap-2", isMe ? "flex-row-reverse" : "flex-row")}>
-                  {!isMe && (
-                    <Avatar className="w-10 h-10 border-2 border-white shadow-sm shrink-0">
-                      <AvatarImage src={otherUserImage} className="object-cover" />
-                      <AvatarFallback>{otherUser.username?.[0]}</AvatarFallback>
-                    </Avatar>
-                  )}
+                <div key={msg.id} className={cn("flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300", isMe ? "justify-end" : "justify-start")}>
                   <div className={cn(
-                    "max-w-[70%] px-4 py-2.5 rounded-2xl text-sm shadow-sm",
+                    "max-w-[80%] px-4 py-3 shadow-sm text-sm relative",
                     isMe 
-                    ? "bg-primary text-white rounded-tr-none" 
-                    : "bg-white text-gray-900 rounded-tl-none border border-gray-100"
+                    ? "bg-primary text-white rounded-2xl rounded-tr-none" 
+                    : "bg-white text-gray-800 rounded-2xl rounded-tl-none border border-gray-100"
                   )}>
-                    {msg.messageText}
+                    <p className="leading-relaxed font-medium">{msg.messageText}</p>
+                    {msg.sentAt && (
+                      <span className={cn(
+                        "text-[9px] block mt-1 text-right",
+                        isMe ? "text-white/60" : "text-gray-400"
+                      )}>
+                        {new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
                   </div>
                 </div>
               )
             })}
-            <div ref={scrollRef} />
+            <div ref={scrollRef} className="h-4" />
           </div>
         </div>
       </ScrollArea>
 
-      <footer className="p-4 bg-white border-t space-y-4">
-        {/* AI Suggestions */}
+      {/* Footer / Input */}
+      <footer className="p-4 bg-white border-t border-gray-100 shadow-[0_-4px_10px_rgba(0,0,0,0.02)] space-y-4">
+        {/* AI Icebreakers */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
           {aiSuggestions.map((suggestion, idx) => (
             <Button 
               key={idx} 
               variant="outline" 
-              className="rounded-full border-primary/40 text-primary text-[11px] h-8 px-4 font-bold shrink-0 hover:bg-primary/5"
+              className="rounded-full border-primary/20 text-primary text-[11px] h-8 px-4 font-bold shrink-0 hover:bg-primary/5 whitespace-nowrap"
               onClick={() => setInputText(suggestion)}
             >
               {suggestion}
             </Button>
           ))}
           <Button 
-            className="bg-primary hover:bg-primary/90 text-white rounded-full h-8 px-5 font-black text-xs shrink-0"
+            className="bg-primary/10 hover:bg-primary/20 text-primary rounded-full h-8 px-4 font-black text-xs shrink-0 flex items-center gap-1.5"
             onClick={async () => {
               setIsAiLoading(true)
               try {
                 const res = await generateConversationStarters({ 
-                  otherUserBio: otherUser.bio || "No bio yet", 
-                  otherUserInterests: otherUser.interests || [] 
+                  otherUserBio: otherUser.bio || "A new MatchFlow user.", 
+                  otherUserInterests: otherUser.interests || ["Nature"] 
                 })
                 setAiSuggestions(res.suggestions)
               } catch (e) {
@@ -257,47 +257,49 @@ export default function ChatDetailPage() {
             }}
             disabled={isAiLoading}
           >
-            {isAiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Next AI Tip"}
+            {isAiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Spark it ✨"}
           </Button>
         </div>
 
-        {/* Input Bar */}
+        {/* Input Controls */}
         <div className="flex items-center gap-2">
-          <Button size="icon" variant="ghost" className="rounded-full text-gray-400">
-            <Mic className="w-6 h-6" />
+          <Button size="icon" variant="ghost" className="rounded-full text-gray-400 hover:text-primary">
+            <Mic className="w-5 h-5" />
           </Button>
           <div className="flex-1 relative flex items-center">
             <Input 
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Type a message..."
-              className="rounded-full h-11 bg-gray-50 border-none pr-10 pl-4 focus-visible:ring-primary/20"
+              placeholder="Your message..."
+              className="rounded-full h-12 bg-gray-50 border-none pr-12 pl-5 focus-visible:ring-primary/20 text-sm font-medium"
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             />
-            <Button size="icon" variant="ghost" className="absolute right-1 text-amber-400">
+            <Button size="icon" variant="ghost" className="absolute right-1.5 text-amber-400 hover:bg-transparent">
                <Smile className="w-5 h-5 fill-current" />
             </Button>
           </div>
           <Button 
             size="icon" 
-            variant="ghost" 
-            className="rounded-full text-primary"
+            className={cn(
+              "rounded-full w-12 h-12 transition-all shadow-lg",
+              inputText.trim() ? "bg-primary text-white scale-100" : "bg-gray-200 text-gray-400 scale-90"
+            )}
             onClick={() => handleSendMessage()}
             disabled={!inputText.trim()}
           >
-            <Send className="w-6 h-6 rotate-45 fill-current" />
+            <Send className="w-5 h-5 rotate-45 relative left-[-2px] fill-current" />
           </Button>
         </div>
 
-        {/* Actions Bar */}
-        <div className="flex justify-between items-center px-2 pt-2">
-           <Button variant="ghost" size="icon" className="text-gray-400"><ImageIcon className="w-6 h-6" /></Button>
-           <Button variant="ghost" size="icon" className="text-gray-400"><Phone className="w-6 h-6" /></Button>
-           <Button variant="ghost" size="icon" className="text-amber-400"><Gift className="w-6 h-6 fill-current" /></Button>
-           <Button variant="ghost" size="icon" className="text-gray-400" onClick={startVideoCall}><Video className="w-6 h-6" /></Button>
+        {/* Rapid Actions */}
+        <div className="flex justify-between items-center px-4 pt-1">
+           <Button variant="ghost" size="icon" className="text-gray-400 hover:text-primary"><ImageIcon className="w-5 h-5" /></Button>
+           <Button variant="ghost" size="icon" className="text-gray-400 hover:text-primary"><Phone className="w-5 h-5" /></Button>
+           <Button variant="ghost" size="icon" className="text-amber-400 hover:text-amber-500"><Gift className="w-5 h-5 fill-current" /></Button>
+           <Button variant="ghost" size="icon" className="text-gray-400 hover:text-primary" onClick={startVideoCall}><Video className="w-5 h-5" /></Button>
            <div className="relative">
-              <Button variant="ghost" size="icon" className="text-gray-400"><Hash className="w-6 h-6" /></Button>
-              <span className="absolute -top-1 -right-1 bg-primary text-white text-[7px] font-black px-1 rounded-full">New</span>
+              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-primary"><Hash className="w-5 h-5" /></Button>
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[7px] font-black px-1.5 rounded-full shadow-sm animate-bounce">!</span>
            </div>
         </div>
       </footer>
