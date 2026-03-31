@@ -1,20 +1,54 @@
 
 "use client"
 
+import { useState, useEffect, useMemo } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ChevronLeft, MoreHorizontal, Phone, Plus, Globe, GraduationCap, CigaretteOff, GlassWater, Sparkles, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { useDoc, useFirestore, useMemoFirebase } from "@/firebase"
+import { useDoc, useFirestore, useFirebase, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
+import { ref, onValue } from "firebase/database"
+import { cn } from "@/lib/utils"
 
 export default function ProfileDetailPage() {
   const { id } = useParams()
   const router = useRouter()
   const firestore = useFirestore()
+  const { database } = useFirebase()
   
   const docRef = useMemoFirebase(() => doc(firestore, "userProfiles", id as string), [firestore, id])
   const { data: userProfile, isLoading } = useDoc(docRef)
+
+  const [presence, setPresence] = useState<{ online: boolean; lastSeen?: number }>({ online: false })
+
+  useEffect(() => {
+    if (!database || !id) return
+    const presenceRef = ref(database, `users/${id}/presence`)
+    return onValue(presenceRef, (snap) => {
+      const val = snap.val()
+      if (val) setPresence(val)
+      else setPresence({ online: false })
+    })
+  }, [database, id])
+
+  const presenceText = useMemo(() => {
+    if (presence.online) return "Online";
+    if (!presence.lastSeen) return "Offline";
+    
+    const date = new Date(presence.lastSeen);
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+    if (diffInDays > 2) return "Offline";
+
+    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (date.toDateString() === now.toDateString()) {
+      return `Last seen at ${timeStr}`;
+    }
+    return `Last seen ${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} at ${timeStr}`;
+  }, [presence]);
 
   if (isLoading) {
     return (
@@ -63,8 +97,13 @@ export default function ProfileDetailPage() {
         </div>
 
         <div className="absolute bottom-32 left-6 flex items-center gap-2 px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10">
-          <div className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
-          <span className="text-white text-[10px] font-black uppercase tracking-tight">Online</span>
+          <div className={cn(
+            "w-2.5 h-2.5 rounded-full transition-all duration-500",
+            presence.online ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse" : "bg-gray-400"
+          )} />
+          <span className="text-white text-[10px] font-black uppercase tracking-tight">
+            {presenceText}
+          </span>
         </div>
 
         <div className="absolute bottom-24 right-4 flex gap-2">
@@ -88,7 +127,7 @@ export default function ProfileDetailPage() {
                 <span>👤</span> 🪙 20
              </div>
              <div className="bg-amber-100/50 text-amber-600 px-2.5 py-1 rounded-md text-[10px] font-black italic">
-                Online · {userProfile.location || 'Nearby'}
+                {presenceText} · {userProfile.location || 'Nearby'}
              </div>
              <div className="bg-primary/5 text-primary/70 px-2.5 py-1 rounded-md text-[10px] font-black italic">
                 {userProfile.location}

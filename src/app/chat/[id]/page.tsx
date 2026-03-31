@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ChevronLeft, Video, Send, Mic, Image as ImageIcon, Phone, Gift, Hash, Smile, Loader2, MoreVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -30,7 +30,7 @@ export default function ChatDetailPage() {
   const [aiSuggestions, setAiSuggestions] = useState<string[]>(["Hey! How's your day?", "What are your hobbies?", "Tell me something interesting!"])
   const [isVideoActive, setIsVideoActive] = useState(false)
   const [messages, setMessages] = useState<any[]>([])
-  const [isOnline, setIsOnline] = useState(false)
+  const [presence, setPresence] = useState<{ online: boolean; lastSeen?: number }>({ online: false })
   
   const chatId = currentUser && otherUserId ? [currentUser.uid, otherUserId].sort().join("_") : ""
 
@@ -40,9 +40,14 @@ export default function ChatDetailPage() {
   // Presence Listener
   useEffect(() => {
     if (!database || !otherUserId) return
-    const presenceRef = ref(database, `users/${otherUserId}/presence/online`)
+    const presenceRef = ref(database, `users/${otherUserId}/presence`)
     return onValue(presenceRef, (snap) => {
-      setIsOnline(!!snap.val())
+      const val = snap.val()
+      if (val) {
+        setPresence(val)
+      } else {
+        setPresence({ online: false })
+      }
     })
   }, [database, otherUserId])
 
@@ -71,6 +76,24 @@ export default function ChatDetailPage() {
     }
   }, [messages])
 
+  const presenceText = useMemo(() => {
+    if (presence.online) return "Online";
+    if (!presence.lastSeen) return "Offline";
+    
+    const date = new Date(presence.lastSeen);
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+    if (diffInDays > 2) return "Offline";
+
+    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (date.toDateString() === now.toDateString()) {
+      return `Last seen at ${timeStr}`;
+    }
+    return `Last seen ${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} at ${timeStr}`;
+  }, [presence]);
+
   const handleSendMessage = (text = inputText) => {
     if (!text.trim() || !currentUser || !chatId || !database || !otherUserId) return
     
@@ -80,7 +103,7 @@ export default function ChatDetailPage() {
     const messageData = {
       messageText: text,
       senderId: currentUser.uid,
-      sentAt: Date.now(), // Use local timestamp for immediate UI sort if needed, though RTDB timestamp is better
+      sentAt: Date.now(),
     }
 
     const updates: any = {}
@@ -106,7 +129,7 @@ export default function ChatDetailPage() {
        toast({
          variant: "destructive",
          title: "Sync Error",
-         description: "Failed to sync message to the cloud. Please check your connection."
+         description: "Failed to send message. Please check your connection."
        })
     })
 
@@ -166,8 +189,10 @@ export default function ChatDetailPage() {
             <div className="flex flex-col">
               <h3 className="font-bold text-sm leading-none font-headline">{otherUser.username}</h3>
               <div className="flex items-center gap-1.5 mt-1">
-                <span className={cn("w-2 h-2 rounded-full", isOnline ? "bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-gray-300")} />
-                <span className="text-[10px] text-muted-foreground font-black uppercase tracking-tight">{isOnline ? 'Online' : 'Offline'}</span>
+                <span className={cn("w-2 h-2 rounded-full transition-all duration-500", presence.online ? "bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-gray-300")} />
+                <span className="text-[10px] text-muted-foreground font-black uppercase tracking-tight">
+                  {presenceText}
+                </span>
               </div>
             </div>
           </div>
