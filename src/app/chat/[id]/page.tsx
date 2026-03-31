@@ -16,6 +16,9 @@ import { ref, push, onValue, serverTimestamp as rtdbTimestamp, update, set, remo
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
+// Dynamic import for Zego to avoid SSR issues if any
+let ZegoUIKitPrebuilt: any = null;
+
 export default function ChatDetailPage() {
   const params = useParams()
   const otherUserId = params?.id as string
@@ -23,8 +26,10 @@ export default function ChatDetailPage() {
   const { firestore, database } = useFirebase()
   const router = useRouter()
   const { toast } = useToast()
+  
   const scrollRef = useRef<HTMLDivElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const zegoContainerRef = useRef<HTMLDivElement>(null)
+  const [zegoInstance, setZegoInstance] = useState<any>(null)
   
   const [inputText, setInputText] = useState("")
   const [isAiLoading, setIsAiLoading] = useState(false)
@@ -33,43 +38,46 @@ export default function ChatDetailPage() {
   // Call States
   const [callStatus, setCallStatus] = useState<'idle' | 'ringing' | 'calling' | 'ongoing' | 'incoming'>('idle')
   const [callType, setCallType] = useState<'video' | 'audio'>('video')
-  const [hasCameraPermission, setHasCameraPermission] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [isVideoOff, setIsVideoOff] = useState(false)
-  const [stream, setStream] = useState<MediaStream | null>(null)
 
   const [messages, setMessages] = useState<any[]>([])
   const [presence, setPresence] = useState<{ online: boolean; lastSeen?: number }>({ online: false })
   
   const chatId = currentUser && otherUserId ? [currentUser.uid, otherUserId].sort().join("_") : ""
 
-  // Use unified 'users' collection
   const otherUserRef = useMemoFirebase(() => otherUserId ? doc(firestore, "users", otherUserId) : null, [firestore, otherUserId])
   const { data: otherUser, isLoading: isOtherUserLoading } = useDoc(otherUserRef)
 
-  // signaling logic: stop stream helper
-  const stopStream = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => {
-        track.stop()
-        console.log(`Track ${track.kind} stopped`)
-      })
-      setStream(null)
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null
-    }
-    setHasCameraPermission(false)
-  }
+  // Load Zego Library
+  useEffect(() => {
+    import('@zegocloud/zego-uikit-prebuilt').then((module) => {
+      ZegoUIKitPrebuilt = module.ZegoUIKitPrebuilt;
+    });
+  }, []);
 
-  // Cleanup stream on unmount
+  // Cleanup helper: Terminates hardware access
+  const stopAllMedia = async () => {
+    if (zegoInstance) {
+      try {
+        zegoInstance.destroy();
+      } catch (e) {
+        console.error("Error destroying Zego instance", e);
+      }
+      setZegoInstance(null);
+    }
+    // Also explicitly check navigator media if we used any fallback
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }).catch(() => null);
+      stream?.getTracks().forEach(track => track.stop());
+    } catch(e) {}
+  };
+
   useEffect(() => {
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop())
-      }
+      stopAllMedia();
     }
-  }, [stream])
+  }, [zegoInstance]);
 
   // Signaling Listener for Calls
   useEffect(() => {
@@ -79,8 +87,8 @@ export default function ChatDetailPage() {
       const data = snap.val()
       if (!data) {
         if (callStatus !== 'idle') {
-          stopStream()
-          setCallStatus('idle')
+          stopAllMedia();
+          setCallStatus('idle');
         }
         return
       }
@@ -93,58 +101,56 @@ export default function ChatDetailPage() {
         setCallStatus('calling')
       } else if (data.status === 'accepted') {
         setCallStatus('ongoing')
+        initiateZegoCall(chatId);
       } else if (data.status === 'declined') {
-        stopStream()
+        stopAllMedia();
         setCallStatus('idle')
         remove(callRef)
         toast({ title: "Call Declined", description: `${otherUser?.username || 'User'} is busy.` })
       }
     })
-  }, [database, chatId, currentUser, otherUser, callStatus, stream])
+  }, [database, chatId, currentUser, otherUser, callStatus]);
 
-  // Media Access
-  const enableMedia = async (type: 'video' | 'audio') => {
-    try {
-      const constraints = { 
-        video: type === 'video', 
-        audio: true 
-      }
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
-      setStream(mediaStream)
-      setHasCameraPermission(type === 'video')
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
-      }
-      
-      if (type === 'audio') setIsVideoOff(true)
-    } catch (error) {
-      console.error('Error accessing media:', error)
-      setHasCameraPermission(false)
-      toast({
-        variant: 'destructive',
-        title: 'Media Access Denied',
-        description: 'Please enable camera/mic permissions to use calls.',
-      })
-    }
-  }
+  // Zego Media Implementation
+  const initiateZegoCall = async (roomID: string) => {
+    if (!ZegoUIKitPrebuilt || !currentUser || !zegoContainerRef.current) return;
 
-  // Toggle Mute
-  useEffect(() => {
-    if (stream) {
-      stream.getAudioTracks().forEach(track => {
-        track.enabled = !isMuted
-      })
-    }
-  }, [isMuted, stream])
+    const appID = Number(process.env.NEXT_PUBLIC_ZEGO_APP_ID);
+    const serverSecret = process.env.NEXT_PUBLIC_ZEGO_SERVER_SECRET;
 
-  // Toggle Video
-  useEffect(() => {
-    if (stream) {
-      stream.getVideoTracks().forEach(track => {
-        track.enabled = !isVideoOff
-      })
+    if (!appID || !serverSecret) {
+      toast({ variant: "destructive", title: "Config Missing", description: "Zego AppID or ServerSecret not set in .env" });
+      handleEndCall();
+      return;
     }
-  }, [isVideoOff, stream])
+
+    const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+      appID,
+      serverSecret,
+      roomID,
+      currentUser.uid,
+      currentUser.displayName || `User_${currentUser.uid.slice(0, 5)}`
+    );
+
+    const zp = ZegoUIKitPrebuilt.create(kitToken);
+    setZegoInstance(zp);
+
+    zp.joinRoom({
+      container: zegoContainerRef.current,
+      mode: ZegoUIKitPrebuilt.OneONoneCall,
+      showPreJoinView: false,
+      turnOnMicrophoneWhenJoining: true,
+      turnOnCameraWhenJoining: callType === 'video',
+      showMyCameraToggleButton: true,
+      showMyMicrophoneToggleButton: true,
+      showAudioVideoSettingsButton: false,
+      showTextChat: false,
+      showUserList: false,
+      onLeaveRoom: () => {
+        handleEndCall();
+      },
+    });
+  };
 
   const handleInitiateCall = (type: 'video' | 'audio') => {
     if (!database || !chatId || !currentUser) return
@@ -157,21 +163,19 @@ export default function ChatDetailPage() {
       callType: type,
       timestamp: Date.now()
     })
-    enableMedia(type)
   }
 
   const handleAcceptCall = () => {
     if (!database || !chatId) return
     const callRef = ref(database, `calls/${chatId}`)
     update(callRef, { status: 'accepted' })
-    enableMedia(callType)
   }
 
   const handleDeclineCall = () => {
     if (!database || !chatId) return
     const callRef = ref(database, `calls/${chatId}`)
     update(callRef, { status: 'declined' })
-    stopStream()
+    stopAllMedia();
     setCallStatus('idle')
   }
 
@@ -179,7 +183,7 @@ export default function ChatDetailPage() {
     if (!database || !chatId) return
     const callRef = ref(database, `calls/${chatId}`)
     remove(callRef)
-    stopStream()
+    stopAllMedia();
     setCallStatus('idle')
   }
 
@@ -257,20 +261,9 @@ export default function ChatDetailPage() {
                <img src={otherUserImage} className="w-full h-full object-cover blur-3xl opacity-40 scale-110" alt="bg" />
             </div>
 
-            {/* Remote/Main Video Area */}
-            <div className="flex-1 relative z-10 flex flex-col items-center justify-center p-6 text-center text-white">
-              {callStatus === 'ongoing' ? (
-                <div className="w-full h-full bg-slate-900/50 rounded-[3rem] overflow-hidden relative shadow-2xl">
-                  {/* Remote Stream Placeholder */}
-                  <img src={otherUserImage} className="w-full h-full object-cover opacity-60" alt="Remote" />
-                  <div className="absolute bottom-6 left-6 text-left">
-                     <h2 className="text-2xl font-black font-headline">{otherUser.username}</h2>
-                     <p className="text-xs font-bold text-white/40 uppercase tracking-widest">
-                       {callType === 'video' ? 'Video Connected' : 'Audio Connected'}
-                     </p>
-                  </div>
-                </div>
-              ) : (
+            {/* Calling/Ringing State UI */}
+            {callStatus !== 'ongoing' && (
+              <div className="flex-1 relative z-10 flex flex-col items-center justify-center p-6 text-center text-white">
                 <div className="space-y-6 animate-pulse">
                   <Avatar className="w-32 h-32 border-4 border-white/20 shadow-2xl mx-auto ring-4 ring-primary/20">
                     <AvatarImage src={otherUserImage} className="object-cover" />
@@ -282,64 +275,40 @@ export default function ChatDetailPage() {
                     </p>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* Local Preview (PiP) */}
-            <div className="absolute top-10 right-6 w-32 aspect-[3/4] bg-black rounded-3xl overflow-hidden shadow-2xl border-2 border-white/10 z-20 transition-all">
-               {isVideoOff ? (
-                 <div className="w-full h-full bg-slate-800 flex items-center justify-center">
-                    <Avatar className="w-16 h-16 border-2 border-white/20">
-                      <AvatarImage src={currentUserImage} className="object-cover" />
-                    </Avatar>
-                 </div>
-               ) : (
-                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-               )}
-               {!hasCameraPermission && !isVideoOff && (
-                 <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-                    <Camera className="w-6 h-6 text-white/20" />
-                 </div>
-               )}
-            </div>
+            {/* Zego Container (visible only when ongoing) */}
+            <div ref={zegoContainerRef} className={cn("flex-1 z-10 bg-transparent", callStatus !== 'ongoing' && "hidden")} />
 
-            {/* Call Controls */}
-            <div className="relative z-20 px-8 pb-12 pt-6 flex justify-center gap-6">
-              {callStatus === 'incoming' ? (
-                <>
-                  <Button onClick={handleAcceptCall} className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 shadow-2xl scale-110">
-                    {callType === 'video' ? <Video className="w-7 h-7 fill-white" /> : <Phone className="w-7 h-7 fill-white" />}
-                  </Button>
-                  <Button onClick={handleDeclineCall} variant="destructive" className="w-16 h-16 rounded-full shadow-2xl scale-110">
-                    <PhoneOff className="w-7 h-7" />
-                  </Button>
-                </>
-              ) : (
-                <div className="bg-white/10 backdrop-blur-2xl rounded-full px-6 py-4 flex items-center gap-6 shadow-2xl border border-white/10">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => setIsMuted(!isMuted)} 
-                    className={cn("rounded-full w-12 h-12 transition-all", isMuted ? "bg-red-500 text-white" : "text-white hover:bg-white/10")}
-                  >
-                    {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-                  </Button>
-                  
+            {/* Call Controls for Ringing/Incoming */}
+            {callStatus !== 'ongoing' && (
+              <div className="relative z-20 px-8 pb-12 pt-6 flex justify-center gap-6">
+                {callStatus === 'incoming' ? (
+                  <>
+                    <Button onClick={handleAcceptCall} className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 shadow-2xl scale-110">
+                      {callType === 'video' ? <Video className="w-7 h-7 fill-white" /> : <Phone className="w-7 h-7 fill-white" />}
+                    </Button>
+                    <Button onClick={handleDeclineCall} variant="destructive" className="w-16 h-16 rounded-full shadow-2xl scale-110">
+                      <PhoneOff className="w-7 h-7" />
+                    </Button>
+                  </>
+                ) : (
                   <Button onClick={handleEndCall} variant="destructive" className="rounded-full w-16 h-16 shadow-2xl transition-transform hover:scale-105 active:scale-95">
                     <PhoneOff className="w-7 h-7" />
                   </Button>
+                )}
+              </div>
+            )}
 
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => setIsVideoOff(!isVideoOff)} 
-                    className={cn("rounded-full w-12 h-12 transition-all", isVideoOff ? "bg-red-500 text-white" : "text-white hover:bg-white/10")}
-                  >
-                    {isVideoOff ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
-                  </Button>
-                </div>
-              )}
-            </div>
+            {/* End Call Button for Ongoing (Fallback UI if SDK buttons hidden) */}
+            {callStatus === 'ongoing' && (
+              <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50">
+                 <Button onClick={handleEndCall} variant="destructive" className="rounded-full w-14 h-14 opacity-40 hover:opacity-100 transition-opacity">
+                    <PhoneOff className="w-5 h-5" />
+                 </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
