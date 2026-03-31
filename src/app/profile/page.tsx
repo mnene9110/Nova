@@ -1,8 +1,9 @@
+
 "use client"
 
 import { Navbar } from "@/components/Navbar"
 import { 
-  Settings, 
+  Settings as SettingsIcon, 
   ChevronRight, 
   Copy, 
   Coins, 
@@ -21,8 +22,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export default function ProfilePage() {
+  const router = useRouter()
   const stats = [
     { label: "Friends", value: 0 },
     { label: "Following", value: 0 },
@@ -38,7 +42,7 @@ export default function ProfilePage() {
 
   const actions = [
     { label: "Tasks", icon: ClipboardList, color: "text-red-500", bg: "bg-red-50" },
-    { label: "Income", icon: Wallet, color: "text-maroon-600", bg: "bg-red-50" },
+    { label: "Income", icon: Wallet, color: "text-primary", bg: "bg-red-50" },
     { label: "Store", icon: Store, color: "text-red-500", bg: "bg-red-50" },
     { label: "Aristocracy", icon: Crown, color: "text-amber-600", bg: "bg-amber-50" },
   ]
@@ -50,7 +54,7 @@ export default function ProfilePage() {
     { label: "Certified", icon: ShieldCheck },
     { label: "Service", icon: Headset },
     { label: "Feedback", icon: MessageSquareText },
-    { label: "Settings", icon: Settings },
+    { label: "Settings", icon: SettingsIcon, href: "/settings" },
   ]
 
   return (
@@ -150,7 +154,11 @@ export default function ProfilePage() {
           <h2 className="font-headline font-black text-base px-1">Other Tools</h2>
           <div className="grid grid-cols-4 gap-y-8">
             {otherTools.map((tool) => (
-              <div key={tool.label} className="flex flex-col items-center gap-2 group cursor-pointer">
+              <div 
+                key={tool.label} 
+                className="flex flex-col items-center gap-2 group cursor-pointer"
+                onClick={() => tool.href && router.push(tool.href)}
+              >
                 <div className="w-11 h-11 flex items-center justify-center rounded-full group-hover:bg-primary/10 transition-colors">
                   <tool.icon className="w-6 h-6 text-gray-400 group-hover:text-primary transition-colors" />
                 </div>
