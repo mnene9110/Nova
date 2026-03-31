@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Navbar } from "@/components/Navbar"
@@ -61,25 +62,25 @@ export default function DiscoverPage() {
 
   return (
     <div className="flex flex-col min-h-svh pb-24 bg-white">
-      {/* Top Banner Area - Reduced card size */}
+      {/* Top Banner Area - Adjusted card size */}
       <div className="bg-maroon-800/5 pt-4 px-4 pb-2">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-[#FFCF4D] rounded-xl p-2.5 flex items-center gap-2 shadow-sm hover:scale-[1.01] transition-transform cursor-pointer h-16">
-            <div className="w-8 h-8 bg-white/40 rounded-full flex items-center justify-center shrink-0">
-              <Mic className="w-4 h-4 text-black" />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-[#FFCF4D] rounded-2xl p-4 flex items-center gap-3 shadow-sm hover:scale-[1.01] transition-transform cursor-pointer h-20">
+            <div className="w-10 h-10 bg-white/40 rounded-full flex items-center justify-center shrink-0">
+              <Mic className="w-5 h-5 text-black" />
             </div>
             <div>
-              <p className="font-headline font-bold text-[13px] text-black leading-tight">Voice Chat</p>
-              <p className="text-[9px] text-black/60">Connect now</p>
+              <p className="font-headline font-bold text-sm text-black leading-tight">Voice Chat</p>
+              <p className="text-[10px] text-black/60 font-medium">Connect now</p>
             </div>
           </div>
-          <div className="bg-maroon-700 rounded-xl p-2.5 flex items-center gap-2 shadow-sm hover:scale-[1.01] transition-transform cursor-pointer h-16">
-            <div className="w-8 h-8 bg-white/30 rounded-full flex items-center justify-center shrink-0">
-              <CircleDollarSign className="w-4 h-4 text-white" />
+          <div className="bg-maroon-700 rounded-2xl p-4 flex items-center gap-3 shadow-sm hover:scale-[1.01] transition-transform cursor-pointer h-20">
+            <div className="w-10 h-10 bg-white/30 rounded-full flex items-center justify-center shrink-0">
+              <CircleDollarSign className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="font-headline font-bold text-[13px] text-white leading-tight">Tasks</p>
-              <p className="text-[9px] text-white/60">Earn rewards</p>
+              <p className="font-headline font-bold text-sm text-white leading-tight">Tasks</p>
+              <p className="text-[10px] text-white/60 font-medium">Earn rewards</p>
             </div>
           </div>
         </div>
