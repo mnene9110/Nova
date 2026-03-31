@@ -84,7 +84,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col h-svh bg-white relative overflow-hidden">
-      <div className="h-10 bg-[#7E8EF1] w-full shrink-0" />
+      <div className="h-10 bg-primary w-full shrink-0" />
 
       <header className="absolute top-12 left-2 z-10">
         <Button 
@@ -99,7 +99,7 @@ export default function LoginPage() {
 
       <main className="flex-1 flex flex-col items-center justify-center px-8 w-full max-w-sm mx-auto space-y-10">
         <div className="text-center space-y-2">
-          <h1 className="text-5xl font-logo text-[#7E8EF1]">MatchFlow</h1>
+          <h1 className="text-5xl font-logo text-primary">MatchFlow</h1>
           <p className="text-muted-foreground text-lg font-medium opacity-60">
             Sign in to find your perfect match
           </p>
@@ -141,7 +141,7 @@ export default function LoginPage() {
 
         <div className="w-full space-y-4 pt-4">
           <Button 
-            className="w-full h-16 rounded-full bg-[#7E8EF1] hover:bg-[#6C7DE0] text-white text-xl font-bold shadow-lg shadow-[#7E8EF1]/20 transition-all active:scale-95 flex items-center justify-center"
+            className="w-full h-16 rounded-full bg-primary hover:bg-primary/90 text-white text-xl font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center"
             onClick={handleSignIn}
             disabled={isPending}
           >

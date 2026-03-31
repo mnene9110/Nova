@@ -17,17 +17,17 @@ export default function WelcomePage() {
 
   return (
     <div className="flex flex-col h-svh bg-white relative overflow-hidden">
-      <div className="h-10 bg-[#7E8EF1] w-full" />
+      <div className="h-10 bg-primary w-full" />
 
       <main className="flex-1 flex flex-col items-center justify-center px-8 text-center">
         <div className="mb-8 relative">
-          <div className="w-28 h-28 bg-[#7E8EF1] rounded-[2rem] shadow-2xl flex items-center justify-center transform rotate-3">
+          <div className="w-28 h-28 bg-primary rounded-[2rem] shadow-2xl flex items-center justify-center transform rotate-3">
             <span className="text-white text-5xl font-bold font-headline -rotate-3">MF</span>
           </div>
-          <div className="absolute -inset-4 bg-[#7E8EF1]/10 rounded-full blur-3xl -z-10" />
+          <div className="absolute -inset-4 bg-primary/10 rounded-full blur-3xl -z-10" />
         </div>
 
-        <h1 className="text-5xl font-logo text-[#7E8EF1] mb-6">MatchFlow</h1>
+        <h1 className="text-5xl font-logo text-primary mb-6">MatchFlow</h1>
 
         <p className="text-muted-foreground text-lg leading-relaxed max-w-[280px] mb-20">
           Connect through voice, video, and meaningful conversations.
@@ -35,7 +35,7 @@ export default function WelcomePage() {
 
         <div className="w-full space-y-4 max-w-sm">
           <Button 
-            className="w-full h-16 rounded-full bg-[#7E8EF1] hover:bg-[#6C7DE0] text-white text-lg font-bold gap-3 shadow-lg shadow-[#7E8EF1]/20"
+            className="w-full h-16 rounded-full bg-primary hover:bg-primary/90 text-white text-lg font-bold gap-3 shadow-lg shadow-primary/20"
             onClick={() => router.push("/login")}
           >
             <Mail className="w-6 h-6" />
