@@ -5,7 +5,7 @@ import React, { DependencyList, createContext, useContext, ReactNode, useMemo, u
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
-import { Database } from 'firebase/database';
+import { Database, ref, onValue, set, onDisconnect, serverTimestamp as rtdbTimestamp } from 'firebase/database';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 
 interface FirebaseProviderProps {
@@ -81,6 +81,36 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     );
     return () => unsubscribe();
   }, [auth]);
+
+  // Global Presence System Logic
+  useEffect(() => {
+    if (!userAuthState.user || !database) return;
+
+    const userId = userAuthState.user.uid;
+    const userStatusRef = ref(database, `users/${userId}/presence`);
+    const connectedRef = ref(database, '.info/connected');
+
+    const unsubscribe = onValue(connectedRef, (snap) => {
+      if (snap.val() === true) {
+        // We are connected (or reconnected)!
+        // When I disconnect, update this child to offline and set last seen
+        onDisconnect(userStatusRef).set({
+          online: false,
+          lastSeen: rtdbTimestamp()
+        }).then(() => {
+          // After setting up the onDisconnect, set the user to online
+          set(userStatusRef, {
+            online: true,
+            lastSeen: rtdbTimestamp()
+          });
+        });
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [userAuthState.user, database]);
 
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(firebaseApp && firestore && auth && database);
