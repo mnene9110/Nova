@@ -7,24 +7,29 @@ import Image from "next/image"
 import { Mic, CircleDollarSign, Loader2, Sparkles, TrendingUp } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase"
+import { useCollection, useFirestore, useMemoFirebase, useUser } from "@/firebase"
 import { collection } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 
 export default function DiscoverPage() {
   const [activeTab, setActiveTab] = useState<'recommend' | 'nearby'>('recommend')
-  const firestore = useFirestore()
+  const { firestore } = useFirestore()
+  const { user: currentUser } = useUser()
+  
   const profilesQuery = useMemoFirebase(() => collection(firestore, 'userProfiles'), [firestore])
   const { data: firestoreUsers, isLoading } = useCollection(profilesQuery)
   
-  const users = firestoreUsers?.map(u => ({
+  // Filter out the current user from the discovery list
+  const filteredUsers = firestoreUsers?.filter(u => u.id !== currentUser?.uid) || []
+
+  const users = filteredUsers.map(u => ({
     id: u.id,
-    name: u.username || "Unknown",
+    name: u.username || "MatchFlow User",
     coins: 20,
     distance: u.location || "Nearby",
     status: "Online",
     image: (u.profilePhotoUrls && u.profilePhotoUrls[0]) || `https://picsum.photos/seed/${u.id}/600/800`
-  })) || []
+  }))
 
   const displayUsers = activeTab === 'nearby' 
     ? users.filter(u => u.distance.toLowerCase().includes('km'))
@@ -35,7 +40,7 @@ export default function DiscoverPage() {
       {/* Top Banner Area */}
       <div className="pt-8 px-4 pb-6">
         <div className="grid grid-cols-2 gap-4">
-          <div className="relative group overflow-hidden bg-gradient-to-br from-[#800000] to-[#b30000] rounded-[2.5rem] p-6 shadow-2xl hover:scale-[1.03] active:scale-95 transition-all cursor-pointer h-36 flex flex-col justify-center border border-white/20">
+          <div className="relative group overflow-hidden bg-gradient-to-br from-primary to-primary/80 rounded-[2.5rem] p-6 shadow-2xl hover:scale-[1.03] active:scale-95 transition-all cursor-pointer h-36 flex flex-col justify-center border border-white/20">
             <div className="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors" />
             <div className="flex items-center gap-3 relative z-10">
               <div className="w-12 h-12 bg-white/10 backdrop-blur-lg rounded-full flex items-center justify-center shrink-0 border border-white/20 shadow-xl">
