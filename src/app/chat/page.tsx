@@ -3,10 +3,10 @@
 
 import { useState, useEffect } from "react"
 import { Navbar } from "@/components/Navbar"
-import { Mail, Loader2, MessageSquare } from "lucide-react"
+import { Mail, Loader2, MessageSquare, ChevronRight } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
-import { useFirebase, useUser, useFirestore } from "@/firebase"
+import { useFirebase, useUser } from "@/firebase"
 import { ref, onValue } from "firebase/database"
 import { doc, getDoc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
@@ -33,34 +33,37 @@ function ChatSessionItem({ session }: { session: any }) {
     fetchUser()
   }, [firestore, session.otherUserId])
 
-  const name = otherUserData?.username || `User ${session.otherUserId.slice(0, 4)}`
+  const name = otherUserData?.username || `User ${session.otherUserId?.slice(0, 4)}`
   const image = (otherUserData?.profilePhotoUrls && otherUserData.profilePhotoUrls[0]) || `https://picsum.photos/seed/${session.otherUserId}/100/100`
 
   return (
     <Link 
       href={`/chat/${session.otherUserId}`} 
-      className="flex items-center gap-4 py-4 hover:bg-gray-50/50 rounded-2xl px-2 transition-colors group"
+      className="flex items-center gap-4 py-4 hover:bg-slate-50/80 rounded-3xl px-3 transition-all group active:scale-[0.98]"
     >
       <div className="relative shrink-0">
-        <Avatar className="w-14 h-14 border-2 border-white shadow-md">
+        <Avatar className="w-16 h-16 border-2 border-white shadow-lg ring-2 ring-primary/5">
           <AvatarImage src={image} className="object-cover" />
           <AvatarFallback>{name[0]}</AvatarFallback>
         </Avatar>
+        <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm" />
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex justify-between items-baseline">
+        <div className="flex justify-between items-baseline mb-1">
           <h3 className="font-bold text-sm text-gray-900 truncate font-headline">{name}</h3>
           {session.timestamp && (
-            <span className="text-[10px] text-gray-400">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">
               {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
         </div>
-        <p className="text-[13px] text-gray-500 truncate font-medium mt-0.5">
+        <p className="text-[12px] text-gray-500 truncate font-medium">
           {session.lastMessage || "Start a conversation"}
         </p>
       </div>
+      
+      <ChevronRight className="w-5 h-5 text-gray-200 group-hover:text-primary transition-colors" />
     </Link>
   )
 }
@@ -94,46 +97,58 @@ export default function ChatListPage() {
 
   return (
     <div className="flex flex-col min-h-svh pb-24 bg-transparent">
-      <header className="bg-transparent pt-12 pb-4 px-6 sticky top-0 z-20">
-        <div className="flex items-center">
-          <h1 className="text-3xl font-headline font-black text-white relative flex items-center gap-2">
-            Chat
-            <MessageSquare className="w-6 h-6 text-white/40" />
-            <div className="absolute -bottom-1 left-0 right-0 h-1 bg-primary rounded-full" />
+      <header className="bg-transparent pt-12 pb-6 px-6 sticky top-0 z-20">
+        <div className="flex items-center justify-between">
+          <h1 className="text-4xl font-headline font-black text-white relative flex items-center gap-3">
+            Messages
+            <MessageSquare className="w-8 h-8 text-white/30" />
           </h1>
+          <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">
+            <span className="text-white font-black text-[10px]">{sessions.length}</span>
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 px-4 mt-4 bg-white rounded-t-[3rem] shadow-2xl pt-6">
-        <section>
+      <main className="flex-1 px-4 bg-white rounded-t-[3.5rem] shadow-2xl pt-8">
+        <section className="space-y-2">
           {isLoading ? (
-            <div className="flex justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="flex flex-col items-center justify-center py-24 gap-4">
+              <Loader2 className="w-10 h-10 animate-spin text-primary" />
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest animate-pulse">Syncing flows...</p>
             </div>
           ) : sessions.length > 0 ? (
-            <div className="divide-y divide-gray-50">
+            <div className="flex flex-col gap-2">
               {sessions.map((session) => (
                 <ChatSessionItem key={session.otherUserId} session={session} />
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-400 font-medium gap-4">
-              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center">
-                <MessageSquare className="w-8 h-8 text-gray-200" />
+            <div className="flex flex-col items-center justify-center py-24 text-gray-400 font-medium gap-6">
+              <div className="w-20 h-20 bg-slate-50 rounded-[2.5rem] flex items-center justify-center border border-gray-100 shadow-inner">
+                <MessageSquare className="w-10 h-10 text-gray-200" />
               </div>
-              <p>No active conversations yet.</p>
+              <div className="text-center space-y-2">
+                <p className="text-sm font-bold text-gray-900">Your flow is quiet</p>
+                <p className="text-xs text-gray-400 max-w-[200px] leading-relaxed">Head to Discover and send an icebreaker to get started.</p>
+              </div>
+              <Link href="/discover">
+                <Button className="rounded-full px-8 bg-primary hover:bg-primary shadow-lg shadow-primary/20 font-black text-xs uppercase">Find Matches</Button>
+              </Link>
             </div>
           )}
 
-          <div className="flex items-center gap-4 py-6 px-2 mt-4 border-t border-gray-50 opacity-60">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
-              <Mail className="w-6 h-6 text-primary" />
+          {sessions.length > 0 && (
+            <div className="flex items-center gap-4 py-8 px-4 mt-8 border-t border-gray-50 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
+              <div className="w-14 h-14 bg-primary/5 rounded-3xl flex items-center justify-center shrink-0 border border-primary/10">
+                <Mail className="w-7 h-7 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-sm text-gray-900 font-headline">Archive</h3>
+                <p className="text-[11px] text-gray-400 font-medium">Conversations from last season</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300" />
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-sm text-gray-900 font-headline">History</h3>
-              <p className="text-xs text-gray-400 font-medium">History of old conversations</p>
-            </div>
-          </div>
+          )}
         </section>
       </main>
 
