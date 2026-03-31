@@ -1,10 +1,9 @@
 "use client"
 
 import { Navbar } from "@/components/Navbar"
-import { Search, Heart, Gift, User, ArrowUpDown, Mail } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Gift, User, Mail } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/avatar"
 import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
@@ -26,14 +25,14 @@ export function ChatListPage() {
   return (
     <div className="flex flex-col min-h-svh pb-24 bg-white">
       {/* Top Header Area */}
-      <header className="bg-maroon-800/10 pt-10 pb-4 px-4 sticky top-0 z-20 backdrop-blur-sm border-b border-maroon-800/20">
+      <header className="bg-white pt-12 pb-4 px-6 sticky top-0 z-20 border-b border-gray-100">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-8">
             <button 
               onClick={() => setActiveTab("Chat")}
               className={cn(
-                "text-2xl font-headline font-bold relative transition-all",
-                activeTab === "Chat" ? "text-black" : "text-black/40"
+                "text-2xl font-headline font-black relative transition-all",
+                activeTab === "Chat" ? "text-black" : "text-gray-300"
               )}
             >
               Chat
@@ -44,8 +43,8 @@ export function ChatListPage() {
             <button 
               onClick={() => setActiveTab("Call")}
               className={cn(
-                "text-2xl font-headline font-bold relative transition-all",
-                activeTab === "Call" ? "text-black" : "text-black/40"
+                "text-2xl font-headline font-black relative transition-all",
+                activeTab === "Call" ? "text-black" : "text-gray-300"
               )}
             >
               Call
@@ -56,28 +55,28 @@ export function ChatListPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-white/40 rounded-full flex items-center justify-center">
-              <Gift className="w-5 h-5 text-black" />
+            <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-black hover:bg-gray-100 transition-colors cursor-pointer">
+              <Gift className="w-5 h-5" />
             </div>
-            <div className="w-10 h-10 bg-white/40 rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-black" />
+            <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-black hover:bg-gray-100 transition-colors cursor-pointer">
+              <User className="w-5 h-5" />
             </div>
           </div>
         </div>
       </header>
 
       <main className="flex-1 px-4">
-        <section className="mt-2 divide-y divide-gray-50">
+        <section className="mt-2">
           {CHATS.map((chat) => (
             <Link 
               key={chat.id} 
               href={`/chat/${chat.id}`} 
-              className="flex items-center gap-3 py-4 hover:bg-gray-50/50 transition-colors"
+              className="flex items-center gap-4 py-4 hover:bg-gray-50/50 rounded-2xl px-2 transition-colors group"
             >
               <div className="relative shrink-0">
                 <div className={cn(
-                  "rounded-full p-0.5",
-                  chat.specialFrame ? "bg-gradient-to-tr from-maroon-600 to-maroon-800 ring-2 ring-maroon-200" : ""
+                  "rounded-full p-0.5 transition-transform group-active:scale-95",
+                  chat.specialFrame ? "bg-gradient-to-tr from-maroon-600 to-maroon-800 p-[2px]" : ""
                 )}>
                   <Avatar className="w-14 h-14 border-2 border-white shadow-sm">
                     <AvatarImage src={chat.image} className="object-cover" />
@@ -85,15 +84,15 @@ export function ChatListPage() {
                   </Avatar>
                 </div>
                 {chat.online && (
-                  <span className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm" />
+                  <span className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-md" />
                 )}
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1 mb-0.5">
+                <div className="flex items-center gap-2 mb-0.5">
                   <h3 className="font-bold text-base text-gray-900 truncate">{chat.name}</h3>
                   {chat.tag && (
-                    <span className="flex items-center gap-0.5 text-[10px] text-orange-400 bg-orange-50 px-1 rounded-full font-medium">
+                    <span className="flex items-center gap-0.5 text-[10px] text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-md font-black italic">
                       🔥 {chat.tag}
                     </span>
                   )}
@@ -103,12 +102,12 @@ export function ChatListPage() {
                 </p>
               </div>
 
-              <div className="flex flex-col items-end gap-2 shrink-0">
-                <span className="text-[10px] text-gray-300 font-medium">
+              <div className="flex flex-col items-end gap-2 shrink-0 ml-2">
+                <span className="text-[10px] text-gray-300 font-bold tracking-tighter">
                   {chat.time}
                 </span>
                 {chat.unread > 0 && (
-                  <div className="bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm">
+                  <div className="bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg shadow-red-200">
                     {chat.unread}
                   </div>
                 )}
@@ -116,8 +115,8 @@ export function ChatListPage() {
             </Link>
           ))}
 
-          <div className="flex items-center gap-3 py-4">
-            <div className="w-14 h-14 bg-yellow-400 rounded-full flex items-center justify-center shrink-0 shadow-sm">
+          <div className="flex items-center gap-4 py-6 px-2 mt-2 border-t border-gray-50 opacity-60">
+            <div className="w-14 h-14 bg-amber-400 rounded-full flex items-center justify-center shrink-0 shadow-lg shadow-amber-100">
               <Mail className="w-7 h-7 text-white" />
             </div>
             <div className="flex-1 min-w-0">
@@ -131,11 +130,8 @@ export function ChatListPage() {
       <Navbar />
       <style jsx global>{`
         .bg-maroon-800 { background-color: #800000; }
-        .bg-maroon-800\/10 { background-color: rgba(128, 0, 0, 0.1); }
-        .bg-maroon-800\/20 { background-color: rgba(128, 0, 0, 0.2); }
         .from-maroon-600 { --tw-gradient-from: #b30000; --tw-gradient-to: rgb(179 0 0 / 0); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
         .to-maroon-800 { --tw-gradient-to: #800000; }
-        .ring-maroon-200 { --tw-ring-color: rgba(128, 0, 0, 0.2); }
       `}</style>
     </div>
   )
