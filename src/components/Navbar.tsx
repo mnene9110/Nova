@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -9,7 +10,7 @@ export function Navbar() {
   const pathname = usePathname()
 
   // Don't show navbar on welcome screen or login
-  if (pathname === "/welcome" || pathname === "/login") return null
+  if (pathname === "/welcome" || pathname === "/login" || pathname === "/onboarding/fast" || pathname === "/onboarding/full") return null
 
   const navItems = [
     { icon: Home, label: "Home", href: "/discover" },
@@ -18,7 +19,7 @@ export function Navbar() {
   ]
 
   return (
-    <nav className="fixed bottom-0 w-full max-w-md bg-white border-t border-gray-100 flex justify-around items-center py-2 px-2 z-50">
+    <nav className="fixed bottom-0 w-full max-w-md bg-white border-t border-gray-50 flex justify-around items-center py-3 px-2 z-50">
       {navItems.map((item) => {
         const isActive = pathname === item.href || (item.href === "/discover" && (pathname === "/" || pathname === "/discover"))
         const Icon = item.icon
@@ -27,10 +28,16 @@ export function Navbar() {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex flex-col items-center gap-1 transition-all duration-300 relative py-2 px-4 rounded-2xl",
-              isActive ? "text-white bg-maroon-800" : "text-gray-400 hover:text-black"
+              "flex flex-col items-center gap-1 transition-all duration-300 relative py-2 px-6",
+              isActive ? "text-black" : "text-gray-400 hover:text-black"
             )}
           >
+            {/* Active Highlight Shape (trapezoid/polygon style) */}
+            {isActive && (
+              <div className="absolute inset-0 bg-[#D4F835] -z-10 rounded-[1.5rem] scale-90" 
+                   style={{ clipPath: 'polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%)' }} />
+            )}
+            
             <div className="relative">
               <Icon className={cn("w-6 h-6", isActive && "fill-current")} />
               {item.badge && (
@@ -39,16 +46,15 @@ export function Navbar() {
                 </span>
               )}
               {item.dot && (
-                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white shadow-sm" />
+                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white shadow-sm" />
               )}
             </div>
-            <span className="text-[10px] font-bold tracking-tight">{item.label}</span>
+            <span className={cn("text-[10px] font-black tracking-tight", isActive ? "text-black" : "text-gray-400")}>
+              {item.label}
+            </span>
           </Link>
         )
       })}
-      <style jsx global>{`
-        .bg-maroon-800 { background-color: #800000; }
-      `}</style>
     </nav>
   )
 }
