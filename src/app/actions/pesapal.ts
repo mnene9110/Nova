@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -5,16 +6,14 @@
  * Handles authentication and live transaction initiation.
  */
 
-const PESAPAL_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://pay.pesapal.com/v3' 
-  : 'https://pay.pesapal.com/v3'; // Hardcoded to production as requested
+const PESAPAL_BASE_URL = 'https://pay.pesapal.com/v3';
 
 async function getAuthToken() {
   const consumerKey = process.env.PESAPAL_CONSUMER_KEY;
   const consumerSecret = process.env.PESAPAL_CONSUMER_SECRET;
 
   if (!consumerKey || !consumerSecret) {
-    throw new Error('PesaPal credentials are not configured.');
+    throw new Error('PesaPal credentials are not configured in environment variables.');
   }
 
   const response = await fetch(`${PESAPAL_BASE_URL}/api/Auth/RequestToken`, {
@@ -45,7 +44,7 @@ export async function initiatePesaPalPayment(amount: number, email: string, user
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
 
     if (!ipnId) {
-      console.warn('PESAPAL_IPN_ID is missing. Transactions might not be automatically verified.');
+      return { error: 'Payment setup incomplete: PESAPAL_IPN_ID is missing.' };
     }
     
     const orderData = {
@@ -54,7 +53,7 @@ export async function initiatePesaPalPayment(amount: number, email: string, user
       amount: amount,
       description: "MatchFlow Coins Purchase",
       callback_url: `${appUrl}/coins?status=success`,
-      notification_id: ipnId || "",
+      notification_id: ipnId,
       billing_address: {
         email_address: email,
       }
