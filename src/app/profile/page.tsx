@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Navbar } from "@/components/Navbar"
@@ -40,7 +39,7 @@ export default function ProfilePage() {
 
   const coinAccountRef = useMemoFirebase(() => {
     if (!firestore || !currentUser) return null;
-    return doc(firestore, "users", currentUser.uid, "coinAccount", "default");
+    return doc(firestore, "users", currentUser.uid, "coinAccount");
   }, [firestore, currentUser])
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc(userProfileRef)
@@ -98,7 +97,6 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col min-h-svh bg-transparent pb-24">
-      {/* Header Area */}
       <header className="relative pt-12 pb-8 px-6 overflow-hidden bg-primary rounded-b-[3rem] shadow-xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl" />
         
@@ -132,7 +130,6 @@ export default function ProfilePage() {
           </Avatar>
         </div>
 
-        {/* Stats Row */}
         <div className="flex justify-between mt-6 pr-6">
           {stats.map((stat) => (
             <div key={stat.label} className="flex flex-col">
@@ -146,9 +143,7 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="px-4 mt-6 space-y-6">
-        {/* Wallet Cards */}
         <div className="grid grid-cols-2 gap-3">
           <div 
             className="bg-primary rounded-[2rem] p-5 flex items-center gap-3 shadow-lg hover:scale-[1.01] transition-transform cursor-pointer"
@@ -166,7 +161,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Recommended Games */}
         <section className="bg-white/60 backdrop-blur-md rounded-[2.5rem] p-6 space-y-4 border border-white/20">
           <div className="flex items-center justify-between px-1">
             <h2 className="font-headline font-black text-base">Recommended Games</h2>
@@ -184,7 +178,6 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Icon Grid (Action Center) */}
         <section className="bg-white/80 rounded-[2.5rem] p-6 grid grid-cols-4 gap-y-8 border border-gray-50 shadow-sm">
           {actions.map((action) => (
             <div key={action.label} className="flex flex-col items-center gap-2 group cursor-pointer">
@@ -196,7 +189,6 @@ export default function ProfilePage() {
           ))}
         </section>
 
-        {/* Other Tools */}
         <section className="space-y-6 pb-4">
           <h2 className="font-headline font-black text-base px-1">Other Tools</h2>
           <div className="grid grid-cols-4 gap-y-8">
