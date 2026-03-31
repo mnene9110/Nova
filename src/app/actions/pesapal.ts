@@ -6,9 +6,9 @@
  */
 
 const PESAPAL_BASE_URL = 'https://pay.pesapal.com/pesapalv3';
-const CONSUMER_KEY = process.env.PESAPAL_CONSUMER_KEY;
-const CONSUMER_SECRET = process.env.PESAPAL_CONSUMER_SECRET;
-const IPN_ID = process.env.PESAPAL_IPN_ID;
+const CONSUMER_KEY = process.env.PESAPAL_CONSUMER_KEY?.trim();
+const CONSUMER_SECRET = process.env.PESAPAL_CONSUMER_SECRET?.trim();
+const IPN_ID = process.env.PESAPAL_IPN_ID?.trim();
 
 /**
  * Authenticates with PesaPal Production and returns an access token.
@@ -28,11 +28,12 @@ async function getAuthToken() {
       consumer_key: CONSUMER_KEY,
       consumer_secret: CONSUMER_SECRET,
     }),
+    cache: 'no-store',
   });
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`PesaPal Auth Failed (${response.status}): ${text.slice(0, 100)}`);
+    throw new Error(`PesaPal Auth Failed (${response.status}): ${text.slice(0, 150)}`);
   }
 
   const data = await response.json();
@@ -50,7 +51,7 @@ export async function initializePesaPalTransaction(email: string, amount: number
     const token = await getAuthToken();
 
     if (!IPN_ID) {
-      return { error: 'PESAPAL_IPN_ID is required. Please register your IPN via /api/pesapal/register-ipn.' };
+      return { error: 'PESAPAL_IPN_ID is missing. Register your IPN via /api/pesapal/register-ipn.' };
     }
 
     const orderId = `MF-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -75,11 +76,12 @@ export async function initializePesaPalTransaction(email: string, amount: number
           first_name: metadata.username || 'User',
         },
       }),
+      cache: 'no-store',
     });
 
     if (!response.ok) {
       const text = await response.text();
-      return { error: `PesaPal Order Failed (${response.status}): ${text.slice(0, 100)}` };
+      return { error: `PesaPal Order Failed (${response.status}): ${text.slice(0, 150)}` };
     }
 
     const data = await response.json();
@@ -107,11 +109,12 @@ export async function getTransactionStatus(orderTrackingId: string) {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
       },
+      cache: 'no-store',
     });
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`Status check failed (${response.status}): ${text.slice(0, 100)}`);
+      throw new Error(`Status check failed (${response.status}): ${text.slice(0, 150)}`);
     }
 
     return await response.json();

@@ -12,16 +12,26 @@ const ToastProvider = ToastPrimitives.Provider
 const ToastViewport = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Viewport>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport>
->(({ className, ...props }, ref) => (
-  <ToastPrimitives.Viewport
-    ref={ref}
-    className={cn(
-      "fixed top-4 left-1/2 z-[100] flex -translate-x-1/2 flex-col-reverse p-4 w-full max-w-[90vw] md:max-w-[420px] gap-2",
-      className
-    )}
-    {...props}
-  />
-))
+>(({ className, ...props }, ref) => {
+  const [mounted, setMounted] = React.useState(false)
+  
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  return (
+    <ToastPrimitives.Viewport
+      ref={ref}
+      className={cn(
+        "fixed z-[100] flex flex-col-reverse p-4 w-full max-w-[90vw] md:max-w-[420px] gap-2 transition-all",
+        // Only apply custom positioning after mount to prevent hydration mismatch
+        mounted ? "top-4 left-1/2 -translate-x-1/2" : "top-0 right-0",
+        className
+      )}
+      {...props}
+    />
+  )
+})
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(

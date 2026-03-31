@@ -5,6 +5,8 @@ import { NextResponse } from 'next/server';
  * This should be called once to get a production IPN_ID from PesaPal.
  */
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   if (!process.env.PESAPAL_CONSUMER_KEY || !process.env.PESAPAL_CONSUMER_SECRET) {
     return NextResponse.json({ error: "Environment variables missing" }, { status: 500 });
@@ -22,14 +24,15 @@ export async function GET(request: Request) {
         "Accept": "application/json"
       },
       body: JSON.stringify({
-        consumer_key: process.env.PESAPAL_CONSUMER_KEY,
-        consumer_secret: process.env.PESAPAL_CONSUMER_SECRET,
+        consumer_key: process.env.PESAPAL_CONSUMER_KEY.trim(),
+        consumer_secret: process.env.PESAPAL_CONSUMER_SECRET.trim(),
       }),
+      cache: 'no-store',
     });
 
     if (!tokenRes.ok) {
       const err = await tokenRes.text();
-      return NextResponse.json({ error: `Auth failed: ${tokenRes.status}`, details: err }, { status: 500 });
+      return NextResponse.json({ error: `Auth failed: ${tokenRes.status}`, details: err.slice(0, 200) }, { status: 500 });
     }
 
     const { token } = await tokenRes.json();
@@ -50,6 +53,7 @@ export async function GET(request: Request) {
         url: ipnUrl,
         ipn_notification_type: "GET",
       }),
+      cache: 'no-store',
     });
 
     const data = await ipnRes.json();
