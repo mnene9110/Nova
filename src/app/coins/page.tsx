@@ -15,14 +15,14 @@ const PACKAGES = [
 
 export default function CoinsPage() {
   return (
-    <div className="flex flex-col min-h-svh pb-24 gradient-bg">
+    <div className="flex flex-col min-h-svh pb-24 bg-white">
       <header className="p-8 text-center space-y-2">
         <h1 className="text-3xl font-headline font-bold text-primary">Refill Coins</h1>
         <p className="text-muted-foreground text-sm">Keep the conversation flowing</p>
       </header>
 
       <main className="px-6 space-y-6">
-        <div className="bg-white/50 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-xl flex items-center justify-between">
+        <div className="bg-white rounded-3xl p-6 border border-border shadow-xl flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-amber-100 p-2 rounded-2xl">
               <Coins className="w-8 h-8 text-amber-500" />
@@ -39,7 +39,7 @@ export default function CoinsPage() {
           {PACKAGES.map((pkg) => {
             const Icon = pkg.icon
             return (
-              <Card key={pkg.id} className={`relative overflow-hidden transition-all hover:scale-[1.02] active:scale-95 cursor-pointer border-none shadow-lg ${pkg.featured ? 'ring-2 ring-primary' : ''}`}>
+              <Card key={pkg.id} className={`relative overflow-hidden transition-all hover:scale-[1.02] active:scale-95 cursor-pointer border shadow-lg ${pkg.featured ? 'ring-2 ring-primary border-primary' : ''}`}>
                 {pkg.featured && (
                   <div className="absolute top-0 right-0 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
                     Best Value
@@ -64,7 +64,7 @@ export default function CoinsPage() {
           })}
         </div>
 
-        <div className="bg-white/30 backdrop-blur-sm p-4 rounded-2xl border border-white/20 space-y-3">
+        <div className="bg-muted/30 p-4 rounded-2xl border border-border space-y-3">
           <h4 className="text-xs font-bold uppercase text-muted-foreground tracking-widest">Coin Usage</h4>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex items-center gap-2 text-xs">

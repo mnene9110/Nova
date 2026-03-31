@@ -35,7 +35,6 @@ export default function ChatDetailPage() {
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([])
   const [isVideoActive, setIsVideoActive] = useState(false)
   
-  // Speed-critical states from Realtime DB
   const [isOtherUserOnline, setIsOtherUserOnline] = useState(false)
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false)
   const [callStatus, setCallStatus] = useState<string | null>(null)
@@ -43,29 +42,24 @@ export default function ChatDetailPage() {
   const user = MOCK_USERS[otherUserId as keyof typeof MOCK_USERS] || MOCK_USERS["1"]
   const chatId = [currentUser?.uid, otherUserId].sort().join("_")
 
-  // Real-time Presence & Typing Indicators
   useEffect(() => {
     if (!currentUser || !otherUserId || !database) return
 
-    // Presence
     const presenceRef = ref(database, `users/${otherUserId}/presence`)
     const unsubPresence = onValue(presenceRef, (snapshot) => {
       setIsOtherUserOnline(snapshot.val()?.online || false)
     })
 
-    // Typing
     const typingRef = ref(database, `chats/${chatId}/typing/${otherUserId}`)
     const unsubTyping = onValue(typingRef, (snapshot) => {
       setIsOtherUserTyping(snapshot.val() || false)
     })
 
-    // Call status
     const callRef = ref(database, `calls/${currentUser.uid}`)
     const unsubCall = onValue(callRef, (snapshot) => {
       setCallStatus(snapshot.val()?.status || null)
     })
 
-    // Set my own typing indicator to false on disconnect
     const myTypingRef = ref(database, `chats/${chatId}/typing/${currentUser.uid}`)
     onDisconnect(myTypingRef).set(false)
 
@@ -76,7 +70,6 @@ export default function ChatDetailPage() {
     }
   }, [currentUser, otherUserId, database, chatId])
 
-  // Firestore Message History
   useEffect(() => {
     if (!chatId || !firestore) return
 
@@ -97,14 +90,9 @@ export default function ChatDetailPage() {
   const handleSendMessage = (text = inputText) => {
     if (!text.trim() || !currentUser) return
     
-    // Instant feedback: Send to Realtime DB for delivery signals (optional)
-    // but here we focus on the "what happened and must be saved" rule for messages
-    
-    // Clear typing indicator
     const myTypingRef = ref(database, `chats/${chatId}/typing/${currentUser.uid}`)
     set(myTypingRef, false)
 
-    // Save to Firestore for permanent history
     addDoc(collection(firestore, `chatSessions/${chatId}/messages`), {
       text,
       senderId: currentUser.uid,
@@ -126,7 +114,6 @@ export default function ChatDetailPage() {
   const startVideoCall = () => {
     if (!currentUser || !otherUserId) return
     
-    // RTDB for live calling system (Speed critical)
     const callRef = ref(database, `calls/${otherUserId}`)
     set(callRef, {
       callerId: currentUser.uid,
@@ -138,8 +125,7 @@ export default function ChatDetailPage() {
   }
 
   return (
-    <div className="flex flex-col h-svh bg-[#FDFCFD] relative">
-      {/* Video Call Overlay */}
+    <div className="flex flex-col h-svh bg-white relative">
       {isVideoActive && (
         <div className="absolute inset-0 z-[100] bg-black flex flex-col animate-in fade-in zoom-in duration-500">
            <div className="relative flex-1">
@@ -157,8 +143,7 @@ export default function ChatDetailPage() {
         </div>
       )}
 
-      {/* Header */}
-      <header className="px-4 py-3 border-b bg-white flex items-center justify-between sticky top-0 z-10 shadow-sm">
+      <header className="px-4 py-3 border-b bg-white flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => router.back()} className="-ml-2">
             <ChevronLeft className="w-6 h-6" />
@@ -190,15 +175,14 @@ export default function ChatDetailPage() {
         </div>
       </header>
 
-      {/* Messages */}
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-4 bg-white">
         <div className="flex flex-col gap-4">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.senderId === currentUser?.uid ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
                 msg.senderId === currentUser?.uid 
                 ? "bg-primary text-white rounded-tr-none" 
-                : "bg-white border text-foreground rounded-tl-none"
+                : "bg-muted text-foreground rounded-tl-none border"
               }`}>
                 {msg.text}
               </div>
@@ -214,7 +198,6 @@ export default function ChatDetailPage() {
         </div>
       </ScrollArea>
 
-      {/* Input & AI Tools */}
       <footer className="p-4 border-t bg-white space-y-4 pb-10">
         <div className="flex items-center gap-2">
           <Button 
@@ -236,7 +219,7 @@ export default function ChatDetailPage() {
               value={inputText}
               onChange={handleInputChange}
               placeholder="Type a message..."
-              className="rounded-full pr-12 border-muted"
+              className="rounded-full pr-12 border-muted bg-white"
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             />
             <Button 

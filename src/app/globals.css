@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -32,7 +33,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground selection:bg-primary/20;
+    @apply bg-white text-foreground selection:bg-primary/20;
   }
 }
 
@@ -41,7 +42,7 @@
 }
 
 .gradient-bg {
-  background: linear-gradient(135deg, #F0F2FF 0%, #FFFFFF 100%);
+  @apply bg-white;
 }
 
 .text-gradient {
