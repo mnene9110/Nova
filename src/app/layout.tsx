@@ -25,13 +25,6 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  icons: {
-    icon: [
-      { url: '/icon.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' }
-    ],
-    apple: '/icon-512.png',
-  },
 };
 
 export default function RootLayout({
@@ -49,6 +42,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="MatchFlow" />
+        <link rel="apple-touch-icon" href="https://picsum.photos/seed/mf192/192/192" />
       </head>
       <body className="font-body antialiased bg-slate-100 min-h-svh flex flex-col items-center">
         <FirebaseClientProvider>
