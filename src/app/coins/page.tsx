@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ChevronLeft, List, Check, Loader2, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -24,7 +24,7 @@ const COIN_PACKAGES = [
   { amount: 150000, price: 15000, label: "KES 15,000" },
 ]
 
-export default function WalletPage() {
+function WalletContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useUser()
@@ -47,7 +47,6 @@ export default function WalletPage() {
         title: "Payment Successful!",
         description: "Your coins will be added to your account shortly.",
       })
-      // In a real app, you'd trigger a cloud function or background sync here
     }
   }, [searchParams, toast])
 
@@ -174,5 +173,18 @@ export default function WalletPage() {
         </Button>
       </footer>
     </div>
+  )
+}
+
+export default function WalletPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col h-svh bg-white items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <p className="mt-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Loading Wallet...</p>
+      </div>
+    }>
+      <WalletContent />
+    </Suspense>
   )
 }
