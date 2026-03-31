@@ -1,16 +1,15 @@
-
 "use client"
 
 import { Navbar } from "@/components/Navbar"
 import { 
-  Settings as SettingsIcon, 
   ChevronRight, 
   Copy, 
   Coins, 
   ClipboardList, 
   ShieldCheck, 
   Headset, 
-  Loader2
+  Loader2,
+  Settings as SettingsIcon
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
@@ -57,17 +56,13 @@ export default function ProfilePage() {
     )
   }
 
-  const actions = [
-    { label: "Tasks", icon: ClipboardList, color: "text-primary", bg: "bg-primary/5" },
-  ]
+  const userImage = (userProfile?.profilePhotoUrls && userProfile?.profilePhotoUrls[0]) || `https://picsum.photos/seed/${currentUser?.uid}/200/200`
 
   const otherTools = [
     { label: "Certified", icon: ShieldCheck },
     { label: "Service", icon: Headset },
     { label: "Settings", icon: SettingsIcon, href: "/settings" },
   ]
-
-  const userImage = (userProfile?.profilePhotoUrls && userProfile?.profilePhotoUrls[0]) || `https://picsum.photos/seed/${currentUser?.uid}/200/200`
 
   return (
     <div className="flex flex-col min-h-svh bg-transparent pb-24">
@@ -100,36 +95,32 @@ export default function ProfilePage() {
       </header>
 
       <main className="px-4 mt-6 space-y-6">
-        <div className="grid grid-cols-1">
-          <div 
-            className="bg-primary rounded-[2rem] p-5 flex items-center gap-3 shadow-lg hover:scale-[1.01] transition-transform cursor-pointer"
-            onClick={() => router.push('/coins')}
-          >
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <Coins className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-2xl font-black text-white leading-none">
-                {isCoinsLoading ? "..." : (coinAccount?.balance || 0)}
-              </span>
-              <span className="text-[10px] text-white/60 font-black uppercase tracking-widest mt-1">Recharge</span>
-            </div>
+        <div 
+          className="bg-primary rounded-[2rem] p-5 flex items-center gap-3 shadow-lg hover:scale-[1.01] transition-transform cursor-pointer"
+          onClick={() => router.push('/coins')}
+        >
+          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+            <Coins className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-2xl font-black text-white leading-none">
+              {isCoinsLoading ? "..." : (coinAccount?.balance || 0)}
+            </span>
+            <span className="text-[10px] text-white/60 font-black uppercase tracking-widest mt-1">Recharge</span>
           </div>
         </div>
 
         <section className="bg-white/80 rounded-[2.5rem] p-6 flex justify-center border border-gray-50 shadow-sm">
-          {actions.map((action) => (
-            <div key={action.label} className="flex flex-col items-center gap-2 group cursor-pointer">
-              <div className={`w-12 h-12 ${action.bg} rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform`}>
-                <action.icon className={`w-6 h-6 ${action.color}`} />
-              </div>
-              <span className="text-[10px] font-black text-gray-500">{action.label}</span>
+          <div className="flex flex-col items-center gap-2 group cursor-pointer">
+            <div className="w-12 h-12 bg-primary/5 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+              <ClipboardList className="w-6 h-6 text-primary" />
             </div>
-          ))}
+            <span className="text-[10px] font-black text-gray-500">Tasks</span>
+          </div>
         </section>
 
         <section className="space-y-6 pb-4">
-          <h2 className="font-headline font-black text-base px-1">Other Tools</h2>
+          <h2 className="font-headline font-black text-base px-1 text-gray-900">Other Tools</h2>
           <div className="grid grid-cols-4 gap-y-8">
             {otherTools.map((tool) => (
               <div 

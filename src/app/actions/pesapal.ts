@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -54,7 +53,7 @@ export async function initiatePesaPalPayment(amount: number, email: string, user
       amount: amount,
       description: "MatchFlow Coins Purchase",
       callback_url: `${appUrl}/coins?status=success`,
-      notification_id: ipnId || "", // Attempting to proceed, but ID is usually required
+      notification_id: ipnId || "", // Attempting to proceed, but ID is usually required by PesaPal
       billing_address: {
         email_address: email,
       }

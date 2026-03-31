@@ -1,9 +1,8 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
 import { Navbar } from "@/components/Navbar"
-import { Mail, Loader2, MessageSquare, ChevronRight } from "lucide-react"
+import { Loader2, MessageSquare, ChevronRight } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
