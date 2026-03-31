@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Navbar } from "@/components/Navbar"
@@ -31,7 +30,6 @@ export default function ProfilePage() {
 
   const coinAccountRef = useMemoFirebase(() => {
     if (!firestore || !currentUser) return null;
-    // Path fixed to match standardized backend.json: /coinAccounts/{userId}
     return doc(firestore, "coinAccounts", currentUser.uid);
   }, [firestore, currentUser])
 
@@ -99,7 +97,7 @@ export default function ProfilePage() {
       <main className="px-4 mt-6 space-y-6">
         <div 
           className="bg-primary rounded-[2rem] p-5 flex items-center gap-3 shadow-lg hover:scale-[1.01] transition-transform cursor-pointer"
-          onClick={() => router.push('/coins')}
+          onClick={() => router.push('/recharge')}
         >
           <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
             <Coins className="w-6 h-6 text-white" />

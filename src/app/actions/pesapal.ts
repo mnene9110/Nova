@@ -62,7 +62,7 @@ export async function initializePesaPalTransaction(email: string, amount: number
         currency: 'KES',
         amount: amount,
         description: `Purchase of ${metadata.packageAmount} coins`,
-        callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/coins?status=success`,
+        callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/recharge/callback/pesapal`,
         notification_id: IPN_ID,
         billing_address: {
           email_address: email,
