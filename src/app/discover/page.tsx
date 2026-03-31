@@ -5,7 +5,7 @@ import { useState } from "react"
 import { Navbar } from "@/components/Navbar"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import Image from "next/image"
-import { Search, Mic, Gamepad2, CircleDollarSign, Bell, MessageCircle } from "lucide-react"
+import { Search, Mic, CircleDollarSign, Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -19,7 +19,7 @@ const MOCK_USERS = [
     name: "honey cup 🌹😘",
     coins: 20,
     distance: "13.6km",
-    status: "No",
+    status: "Online",
     image: PlaceHolderImages.find(i => i.id === 'user-1')?.imageUrl || "https://picsum.photos/seed/1/600/800"
   },
   {
@@ -27,7 +27,7 @@ const MOCK_USERS = [
     name: "Joy Michael",
     coins: 25,
     distance: ">500km",
-    status: "Never",
+    status: "Active",
     image: PlaceHolderImages.find(i => i.id === 'user-4')?.imageUrl || "https://picsum.photos/seed/4/600/800"
   },
   {
@@ -35,7 +35,7 @@ const MOCK_USERS = [
     name: "blessed 💕💸",
     coins: 23,
     distance: ">500km",
-    status: "Gemini",
+    status: "Online",
     image: PlaceHolderImages.find(i => i.id === 'user-5')?.imageUrl || "https://picsum.photos/seed/5/600/800"
   },
   {
@@ -43,7 +43,7 @@ const MOCK_USERS = [
     name: "Camilla🌸🌸",
     coins: 23,
     distance: "13.6km",
-    status: "Capricorn",
+    status: "Nearby",
     image: PlaceHolderImages.find(i => i.id === 'user-2')?.imageUrl || "https://picsum.photos/seed/2/600/800"
   }
 ]
@@ -51,11 +51,10 @@ const MOCK_USERS = [
 export default function DiscoverPage() {
   const firestore = useFirestore()
   const profilesQuery = useMemoFirebase(() => collection(firestore, 'userProfiles'), [firestore])
-  const { data: firestoreUsers, isLoading } = useCollection(profilesQuery)
+  const { data: firestoreUsers } = useCollection(profilesQuery)
   
   const [activeTab, setActiveTab] = useState("Recommend")
 
-  // Use Firestore data if available, otherwise fallback to mock
   const users = (firestoreUsers && firestoreUsers.length > 0) ? firestoreUsers.map(u => ({
     id: u.id,
     name: u.username || "Unknown",
@@ -67,133 +66,105 @@ export default function DiscoverPage() {
 
   return (
     <div className="flex flex-col min-h-svh pb-24 bg-white">
-      {/* Top Background Banner Area */}
-      <div className="bg-[#E9FF97]/40 pt-4 px-4 pb-2">
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-[#FFCF4D] rounded-2xl p-3 flex flex-col items-center justify-between aspect-square shadow-sm">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <Mic className="w-6 h-6 text-black" />
+      {/* Top Banner Area */}
+      <div className="bg-[#E9FF97]/30 pt-6 px-4 pb-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-[#FFCF4D] rounded-3xl p-4 flex flex-col items-center justify-between aspect-square shadow-sm hover:scale-[1.02] transition-transform cursor-pointer">
+            <div className="w-12 h-12 bg-white/30 rounded-full flex items-center justify-center">
+              <Mic className="w-7 h-7 text-black" />
             </div>
             <div className="text-center">
-              <p className="font-headline font-bold text-sm text-black leading-tight">Voice Chat</p>
-              <p className="text-[10px] text-black/60">Voice chat now</p>
+              <p className="font-headline font-bold text-base text-black leading-tight">Voice Chat</p>
+              <p className="text-xs text-black/60">Connect now</p>
             </div>
           </div>
-          <div className="bg-[#A0AFFF] rounded-2xl p-3 flex flex-col items-center justify-between aspect-square shadow-sm">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <Gamepad2 className="w-6 h-6 text-black" />
+          <div className="bg-[#97E797] rounded-3xl p-4 flex flex-col items-center justify-between aspect-square shadow-sm hover:scale-[1.02] transition-transform cursor-pointer">
+            <div className="w-12 h-12 bg-white/30 rounded-full flex items-center justify-center">
+              <CircleDollarSign className="w-7 h-7 text-black" />
             </div>
             <div className="text-center">
-              <p className="font-headline font-bold text-sm text-black leading-tight">Game Center</p>
-              <p className="text-[10px] text-black/60">Have fun</p>
-            </div>
-          </div>
-          <div className="bg-[#97E797] rounded-2xl p-3 flex flex-col items-center justify-between aspect-square shadow-sm">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <CircleDollarSign className="w-6 h-6 text-black" />
-            </div>
-            <div className="text-center">
-              <p className="font-headline font-bold text-sm text-black leading-tight">Tasks Center</p>
-              <p className="text-[10px] text-black/60">Earn coins</p>
+              <p className="font-headline font-bold text-base text-black leading-tight">Tasks Center</p>
+              <p className="text-xs text-black/60">Earn rewards</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Horizontal Notification Banner */}
-      <div className="px-4 py-2">
-        <div className="bg-gradient-to-r from-[#69EAFF] to-[#A297FF] rounded-2xl p-3 flex items-center justify-between text-white shadow-md">
+      <div className="px-4 py-3">
+        <div className="bg-gradient-to-r from-[#69EAFF] to-[#A297FF] rounded-2xl p-4 flex items-center justify-between text-white shadow-lg">
           <div className="flex-1 text-xs">
-            <p className="font-bold opacity-90"><span className="text-yellow-200">13:47 emeka</span> to <span className="text-blue-200">Mystery man</span></p>
-            <p className="opacity-80 leading-tight">Completed my wish list <span className="font-bold">Antique Telephonex5</span></p>
+            <p className="font-bold opacity-90"><span className="text-yellow-200">New Match</span> for <span className="text-blue-100">Explorer</span></p>
+            <p className="opacity-80 leading-tight">Someone special just joined nearby!</p>
           </div>
-          <div className="flex flex-col items-end gap-2 shrink-0">
-            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full">Locked 10s</span>
-            <Button size="sm" className="h-7 bg-[#E9FF97] hover:bg-[#D9EF87] text-black rounded-full font-bold text-[10px] px-3">
-              View TV wall
-            </Button>
-          </div>
+          <Button size="sm" className="h-8 bg-white hover:bg-gray-100 text-black rounded-full font-bold text-[10px] px-4">
+            View
+          </Button>
         </div>
       </div>
 
-      {/* Recommended / Newcomer Tabs */}
-      <div className="sticky top-0 z-20 bg-white px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          {["Recommend", "Newcomer", "Nearby"].map((tab) => (
+      {/* Tabs */}
+      <div className="sticky top-0 z-20 bg-white px-4 py-4 flex items-center justify-between border-b border-gray-50">
+        <div className="flex items-center gap-6">
+          {["Recommend", "New", "Nearby"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={cn(
-                "relative text-lg font-headline font-bold transition-all",
-                activeTab === tab ? "text-black" : "text-muted-foreground"
+                "relative text-xl font-headline font-bold transition-all",
+                activeTab === tab ? "text-black scale-110" : "text-muted-foreground/50"
               )}
             >
               {tab}
               {activeTab === tab && (
-                <div className="absolute -bottom-1 left-0 right-0 h-1.5 bg-[#E9FF97] -z-10 rounded-full" />
+                <div className="absolute -bottom-1 left-0 right-0 h-1.5 bg-[#E9FF97] -z-10 rounded-full animate-in fade-in zoom-in duration-300" />
               )}
             </button>
           ))}
         </div>
         <div className="flex items-center gap-4">
-          <div className="relative">
+          <div className="relative cursor-pointer p-1">
             <Bell className="w-6 h-6 text-black" />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
           </div>
-          <Search className="w-6 h-6 text-black" />
+          <Search className="w-6 h-6 text-black cursor-pointer p-1" />
         </div>
       </div>
 
       {/* Users Grid */}
-      <main className="px-4 grid grid-cols-2 gap-3 pb-10">
+      <main className="px-4 grid grid-cols-2 gap-4 mt-4 pb-10">
         {users.map((user) => (
-          <Link key={user.id} href={`/chat/${user.id}`} className="group relative aspect-[4/5] rounded-3xl overflow-hidden shadow-sm">
+          <Link key={user.id} href={`/chat/${user.id}`} className="group relative aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-md bg-gray-100">
             <Image
               src={user.image}
               alt={user.name}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="object-cover group-hover:scale-110 transition-transform duration-500"
+              data-ai-hint="person portrait"
             />
             {/* Hi Badge */}
-            <div className="absolute top-2 right-2 w-10 h-10 bg-[#E9FF97] rounded-2xl flex items-center justify-center font-headline font-black text-lg rotate-12 shadow-md">
-              H<span className="text-sm">i</span>
+            <div className="absolute top-3 right-3 w-11 h-11 bg-[#E9FF97] rounded-2xl flex items-center justify-center font-headline font-black text-xl rotate-12 shadow-lg group-hover:rotate-0 transition-transform">
+              H<span className="text-base">i</span>
             </div>
             
             {/* Bottom Overlay */}
-            <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/60 to-transparent flex flex-col gap-1.5">
-              <h3 className="text-white font-bold text-sm flex items-center gap-1">
-                {user.name} 👤
+            <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col gap-2">
+              <h3 className="text-white font-bold text-sm truncate flex items-center gap-1">
+                {user.name} 
+                <span className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.5)]" />
               </h3>
-              <div className="flex flex-wrap gap-1">
-                <Badge className="bg-[#00D9C0] hover:bg-[#00C9B0] text-black font-bold h-5 px-1.5 text-[10px] rounded-md gap-0.5 border-none">
-                  <div className="w-2.5 h-2.5 bg-black rounded-full flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 bg-[#FFCF4D] rounded-full" />
-                  </div>
-                  {user.coins}
+              <div className="flex flex-wrap gap-1.5">
+                <Badge className="bg-[#00D9C0] hover:bg-[#00D9C0] text-black font-bold h-5 px-2 text-[9px] rounded-lg border-none shadow-sm flex items-center gap-1">
+                   🪙 {user.coins}
                 </Badge>
-                <Badge className="bg-[#E9FF97] hover:bg-[#D9EF87] text-black font-bold h-5 px-1.5 text-[10px] rounded-md border-none">
+                <Badge className="bg-white/20 text-white font-medium h-5 px-2 text-[9px] rounded-lg border-none backdrop-blur-md">
                   {user.distance}
-                </Badge>
-                <Badge className="bg-black/60 text-white font-medium h-5 px-1.5 text-[10px] rounded-md border-none">
-                  {user.status}
                 </Badge>
               </div>
             </div>
           </Link>
         ))}
       </main>
-
-      {/* Floating Game Button */}
-      <div className="fixed bottom-24 right-4 z-30">
-        <button className="relative w-16 h-16 bg-white rounded-2xl shadow-xl flex flex-col items-center justify-center border-2 border-primary/20">
-          <div className="absolute -top-4 -right-2">
-             <div className="bg-[#A0AFFF] p-2 rounded-xl shadow-lg border-2 border-white rotate-12">
-               <Gamepad2 className="w-6 h-6 text-white" />
-             </div>
-          </div>
-          <span className="mt-4 font-bold text-xs bg-[#E9FF97] px-2 py-0.5 rounded-full">Game</span>
-        </button>
-      </div>
 
       <Navbar />
     </div>

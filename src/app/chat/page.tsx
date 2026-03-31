@@ -2,7 +2,7 @@
 "use client"
 
 import { Navbar } from "@/components/Navbar"
-import { Search, Heart, Gift, User, ArrowUpDown, Mail, Gamepad2 } from "lucide-react"
+import { Search, Heart, Gift, User, ArrowUpDown, Mail } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
@@ -21,13 +21,13 @@ const CHATS = [
   { id: "8", name: "bella", lastMsg: "heey", time: "03-31 07:39", unread: 2, image: "https://picsum.photos/seed/bella/200/200", online: false, tag: "0.2°C" },
 ]
 
-export default function ChatListPage() {
+export function ChatListPage() {
   const [activeTab, setActiveTab] = useState("Chat")
 
   return (
     <div className="flex flex-col min-h-svh pb-24 bg-white">
-      {/* Top Green Header Area */}
-      <header className="bg-[#E9FF97]/40 pt-10 pb-4 px-4 sticky top-0 z-20 backdrop-blur-sm">
+      {/* Top Header Area */}
+      <header className="bg-[#E9FF97]/40 pt-10 pb-4 px-4 sticky top-0 z-20 backdrop-blur-sm border-b border-[#E9FF97]/20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <button 
@@ -57,17 +57,11 @@ export default function ChatListPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="w-10 h-10 bg-white/40 rounded-full flex items-center justify-center">
-                <Gift className="w-5 h-5 text-black" />
-              </div>
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-bold px-1 rounded-full border border-white">New</span>
+            <div className="w-10 h-10 bg-white/40 rounded-full flex items-center justify-center">
+              <Gift className="w-5 h-5 text-black" />
             </div>
             <div className="w-10 h-10 bg-white/40 rounded-full flex items-center justify-center">
               <User className="w-5 h-5 text-black" />
-            </div>
-            <div className="w-10 h-10 bg-white/40 rounded-full flex items-center justify-center">
-              <ArrowUpDown className="w-5 h-5 text-black" />
             </div>
           </div>
         </div>
@@ -123,31 +117,21 @@ export default function ChatListPage() {
             </Link>
           ))}
 
-          {/* Special Expired Messages Item */}
           <div className="flex items-center gap-3 py-4">
             <div className="w-14 h-14 bg-yellow-400 rounded-full flex items-center justify-center shrink-0 shadow-sm">
               <Mail className="w-7 h-7 text-white" />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-base text-gray-900">Expired Messages</h3>
-              <p className="text-sm text-gray-400 font-medium">Expired Messages Record</p>
+              <p className="text-sm text-gray-400 font-medium">History of old conversations</p>
             </div>
           </div>
         </section>
       </main>
 
-      {/* Floating Game Button */}
-      <div className="fixed bottom-24 right-4 z-30">
-        <button className="relative w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-3xl shadow-xl flex flex-col items-center justify-center border-2 border-white/20 group">
-          <Gamepad2 className="w-8 h-8 text-white group-hover:scale-110 transition-transform" />
-          <span className="mt-1 font-bold text-[10px] bg-yellow-300 text-black px-2 py-0.5 rounded-full shadow-sm">Game</span>
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-md">
-            20
-          </span>
-        </button>
-      </div>
-
       <Navbar />
     </div>
   )
 }
+
+export default ChatListPage;
