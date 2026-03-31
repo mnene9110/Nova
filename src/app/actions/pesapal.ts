@@ -1,125 +1,14 @@
 'use server';
 
 /**
- * @fileOverview Server actions for PesaPal V3 Production integration.
- * Handles authentication and transaction initialization using live endpoints.
+ * @fileOverview Deprecated PesaPal integration.
+ * Payment logic has been migrated to Paystack.
  */
 
-const PESAPAL_BASE_URL = 'https://pay.pesapal.com/pesapalv3';
-const CONSUMER_KEY = process.env.PESAPAL_CONSUMER_KEY?.trim();
-const CONSUMER_SECRET = process.env.PESAPAL_CONSUMER_SECRET?.trim();
-const IPN_ID = process.env.PESAPAL_IPN_ID?.trim();
-
-/**
- * Authenticates with PesaPal Production and returns an access token.
- */
-async function getAuthToken() {
-  if (!CONSUMER_KEY || !CONSUMER_SECRET) {
-    throw new Error('PesaPal Consumer Key or Secret is missing in Environment Variables.');
-  }
-
-  const response = await fetch(`${PESAPAL_BASE_URL}/api/Auth/RequestToken`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({
-      consumer_key: CONSUMER_KEY,
-      consumer_secret: CONSUMER_SECRET,
-    }),
-    cache: 'no-store',
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`PesaPal Auth Failed (${response.status}): ${text.slice(0, 150)}`);
-  }
-
-  const data = await response.json();
-  if (!data.token) {
-    throw new Error(data.message || 'Failed to retrieve token from PesaPal.');
-  }
-  return data.token;
+export async function initializePesaPalTransaction() {
+  return { error: 'PesaPal integration is no longer active. Please use Paystack.' };
 }
 
-/**
- * Initializes a transaction with PesaPal Production.
- */
-export async function initializePesaPalTransaction(email: string, amount: number, metadata: any) {
-  try {
-    const token = await getAuthToken();
-
-    if (!IPN_ID) {
-      return { error: 'PESAPAL_IPN_ID is missing. Register your IPN via /api/pesapal/register-ipn.' };
-    }
-
-    const orderId = `MF-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-    const response = await fetch(`${PESAPAL_BASE_URL}/api/Transactions/SubmitOrderRequest`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        id: orderId,
-        currency: 'KES',
-        amount: amount,
-        description: `Purchase of ${metadata.packageAmount} coins`,
-        callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/recharge/callback/pesapal`,
-        notification_id: IPN_ID,
-        billing_address: {
-          email_address: email,
-          phone_number: metadata.phone || '',
-          first_name: metadata.username || 'User',
-        },
-      }),
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      return { error: `PesaPal Order Failed (${response.status}): ${text.slice(0, 150)}` };
-    }
-
-    const data = await response.json();
-
-    if (data.redirect_url) {
-      return { redirect_url: data.redirect_url, orderTrackingId: data.order_tracking_id };
-    }
-
-    return { error: data.message || 'Failed to initialize PesaPal order.' };
-  } catch (error: any) {
-    console.error('PesaPal Production Initialization Error:', error);
-    return { error: error.message || 'An internal error occurred.' };
-  }
-}
-
-/**
- * Checks transaction status in Production.
- */
-export async function getTransactionStatus(orderTrackingId: string) {
-  try {
-    const token = await getAuthToken();
-    const response = await fetch(`${PESAPAL_BASE_URL}/api/Transactions/GetTransactionStatus?orderTrackingId=${orderTrackingId}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Status check failed (${response.status}): ${text.slice(0, 150)}`);
-    }
-
-    return await response.json();
-  } catch (error: any) {
-    console.error('PesaPal Production Status Error:', error);
-    return { error: error.message || 'Failed to verify transaction status.' };
-  }
+export async function getTransactionStatus() {
+  return { error: 'PesaPal integration is no longer active.' };
 }

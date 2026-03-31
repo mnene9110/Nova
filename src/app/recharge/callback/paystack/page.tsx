@@ -1,0 +1,99 @@
+"use client"
+
+import { useEffect, useRef, use, Suspense } from "react"
+import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
+import { useFirebase, useUser, useMemoFirebase } from "@/firebase"
+import { doc, runTransaction } from "firebase/firestore"
+import { verifyPaystackTransaction } from "@/app/actions/paystack"
+import { useToast } from "@/hooks/use-toast"
+
+function PaystackCallbackContent({ searchParams }: { searchParams: Promise<any> }) {
+  const params = use(searchParams)
+  const router = useRouter()
+  const { user: currentUser } = useUser()
+  const { firestore } = useFirebase()
+  const { toast } = useToast()
+  const processedRef = useRef(false)
+
+  const reference = params.reference
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!firestore || !currentUser) return null;
+    return doc(firestore, "coinAccounts", currentUser.uid);
+  }, [firestore, currentUser]);
+
+  useEffect(() => {
+    if (!reference) {
+      router.replace("/recharge");
+      return;
+    }
+
+    if (!currentUser || !firestore || !userDocRef || processedRef.current) return;
+
+    const handleVerification = async () => {
+      processedRef.current = true;
+      
+      try {
+        const result = await verifyPaystackTransaction(reference);
+        
+        if (result.status === true && result.data.status === 'success') {
+          const amountInSubunits = result.data.amount;
+          const metadata = result.data.metadata;
+          const coinsToGained = metadata?.packageAmount || (amountInSubunits / 10); // Simple fallback
+
+          await runTransaction(firestore, async (transaction) => {
+            const userDoc = await transaction.get(userDocRef);
+            if (!userDoc.exists()) throw new Error("Account not found");
+            
+            const currentBalance = userDoc.data().balance || 0;
+            const newBalance = currentBalance + coinsToGained;
+            
+            transaction.update(userDocRef, {
+              balance: newBalance,
+              updatedAt: new Date().toISOString()
+            });
+          });
+
+          toast({ title: "Success", description: "Payment verified successfully!" });
+          router.replace("/recharge?status=success");
+        } else {
+          toast({ variant: "destructive", title: "Failed", description: result.data?.gateway_response || "Transaction not successful." });
+          router.replace("/recharge?status=error");
+        }
+      } catch (error) {
+        console.error("Verification error:", error);
+        router.replace("/recharge?status=error");
+      }
+    };
+
+    handleVerification();
+  }, [reference, currentUser, firestore, userDocRef, router, toast]);
+
+  return (
+    <div className="min-h-svh bg-slate-50 flex flex-col items-center justify-center p-8 text-center">
+      <div className="relative mb-8">
+        <div className="w-24 h-24 bg-primary rounded-[2rem] flex items-center justify-center animate-pulse">
+          <Loader2 className="w-12 h-12 text-white animate-spin" />
+        </div>
+        <div className="absolute -inset-4 bg-primary/10 rounded-full blur-3xl -z-10" />
+      </div>
+      <h2 className="text-2xl font-black font-headline text-gray-900 mb-2">Verifying Payment</h2>
+      <p className="text-sm font-medium text-gray-400 uppercase tracking-widest max-w-[200px]">
+        Please don't close this window...
+      </p>
+    </div>
+  )
+}
+
+export default function PaystackCallbackPage({ searchParams }: { searchParams: Promise<any> }) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-svh flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    }>
+      <PaystackCallbackContent searchParams={searchParams} />
+    </Suspense>
+  )
+}

@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -22,10 +21,11 @@ export async function initializePaystackTransaction(email: string, amount: numbe
       },
       body: JSON.stringify({
         email,
-        amount: amount * 100, // Paystack expects amount in subunits (e.g., kobo or cents)
-        callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/coins?status=success`,
+        amount: amount * 100, // Paystack expects amount in subunits
+        callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/recharge/callback/paystack`,
         metadata,
       }),
+      cache: 'no-store',
     });
 
     const data = await response.json();
@@ -52,6 +52,7 @@ export async function verifyPaystackTransaction(reference: string) {
       headers: {
         Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
       },
+      cache: 'no-store',
     });
 
     const data = await response.json();

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense, useRef } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ChevronLeft, List, Check, Loader2, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,18 +9,18 @@ import { useDoc, useFirestore, useUser, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
-import { initializePesaPalTransaction } from "@/app/actions/pesapal"
+import { initializePaystackTransaction } from "@/app/actions/paystack"
 
 const COIN_PACKAGES = [
-  { amount: 500, price: 50, label: "KES 50" },
-  { amount: 1000, price: 100, label: "KES 100" },
-  { amount: 2000, price: 200, label: "KES 200" },
-  { amount: 5000, price: 500, label: "KES 500" },
-  { amount: 10000, price: 1000, label: "KES 1,000" },
-  { amount: 20000, price: 2000, label: "KES 2,000" },
-  { amount: 50000, price: 5000, label: "KES 5,000" },
-  { amount: 100000, price: 10000, label: "KES 10,000" },
-  { amount: 150000, price: 15000, label: "KES 15,000" },
+  { amount: 500, price: 50, label: "50" },
+  { amount: 1000, price: 100, label: "100" },
+  { amount: 2000, price: 200, label: "200" },
+  { amount: 5000, price: 500, label: "500" },
+  { amount: 10000, price: 1000, label: "1,000" },
+  { amount: 20000, price: 2000, label: "2,000" },
+  { amount: 50000, price: 5000, label: "5,000" },
+  { amount: 100000, price: 10000, label: "10,000" },
+  { amount: 150000, price: 15000, label: "15,000" },
 ]
 
 function RechargeContent() {
@@ -33,7 +33,6 @@ function RechargeContent() {
   const [selectedPackage, setSelectedPackage] = useState(COIN_PACKAGES[1])
   const [isProcessing, setIsProcessing] = useState(false)
   
-  // Mount Reset: Ensure processing state is cleared when returning to app
   useEffect(() => {
     setIsProcessing(false);
   }, []);
@@ -46,10 +45,17 @@ function RechargeContent() {
   const { data: coinAccount, isLoading } = useDoc(coinAccountRef)
 
   useEffect(() => {
-    if (searchParams?.get('status') === 'success') {
+    const status = searchParams?.get('status')
+    if (status === 'success') {
       toast({
-        title: "Order Submitted",
-        description: "PesaPal is processing your payment. Your balance will update soon.",
+        title: "Payment Successful",
+        description: "Your balance has been updated.",
+      })
+    } else if (status === 'error') {
+      toast({
+        variant: "destructive",
+        title: "Payment Failed",
+        description: "Something went wrong with your transaction.",
       })
     }
   }, [searchParams, toast])
@@ -61,7 +67,7 @@ function RechargeContent() {
     
     const email = user.email || `guest_${user.uid.slice(0, 8)}@matchflow.app`
     
-    const result = await initializePesaPalTransaction(email, selectedPackage.price, {
+    const result = await initializePaystackTransaction(email, selectedPackage.price, {
       userId: user.uid,
       packageAmount: selectedPackage.amount,
       username: user.displayName || 'User'
@@ -77,8 +83,8 @@ function RechargeContent() {
       return
     }
 
-    if (result.redirect_url) {
-      window.location.href = result.redirect_url
+    if (result.authorization_url) {
+      window.location.href = result.authorization_url
     }
   }
 
@@ -154,7 +160,7 @@ function RechargeContent() {
       <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-6 bg-white/80 backdrop-blur-md border-t border-gray-100 z-50 flex flex-col gap-4">
         <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
           <ShieldCheck className="w-3 h-3 text-green-500" />
-          Secure payment by PesaPal
+          Secure payment by Paystack
         </div>
         <Button 
           className="w-full h-16 rounded-full bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-2xl active:scale-95 transition-all"
