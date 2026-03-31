@@ -38,8 +38,10 @@ export default function FastOnboardingPage() {
       email: null,
       gender,
       location: country,
+      profilePhotoUrls: [`https://picsum.photos/seed/${user.uid}/600/800`],
       createdAt: new Date().toISOString(),
-      lastActiveAt: new Date().toISOString()
+      lastActiveAt: new Date().toISOString(),
+      interests: ["Nature", "Travel"]
     }
 
     setDocumentNonBlocking(userProfileRef, profileData, { merge: true })
@@ -59,13 +61,13 @@ export default function FastOnboardingPage() {
 
   return (
     <div className="flex flex-col h-svh bg-white p-8">
-      <div className="mt-12 space-y-8">
+      <div className="mt-12 space-y-8 flex-1 flex flex-col">
         <header className="space-y-2">
           <h1 className="text-3xl font-bold text-primary font-headline">Fast Setup</h1>
           <p className="text-muted-foreground">Quickly set your basic info to start matching.</p>
         </header>
 
-        <div className="space-y-6">
+        <div className="space-y-6 flex-1">
           <div className="space-y-3">
             <Label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">I am a</Label>
             <RadioGroup onValueChange={setGender} className="flex gap-4">
@@ -96,7 +98,7 @@ export default function FastOnboardingPage() {
         </div>
 
         <Button 
-          className="w-full h-16 rounded-full bg-primary text-white text-xl font-bold mt-auto"
+          className="w-full h-16 rounded-full bg-primary text-white text-xl font-bold mb-8 shadow-xl shadow-primary/20 active:scale-95 transition-transform"
           disabled={!gender || !country}
           onClick={handleConfirm}
         >

@@ -6,8 +6,9 @@ import { Coins, Zap, Check, Star, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { useDoc, useFirestore, useUser, useMemoFirebase } from "@/firebase"
-import { doc } from "firebase/firestore"
+import { useDoc, useFirestore, useUser, useMemoFirebase, updateDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase"
+import { doc, collection } from "firebase/firestore"
+import { useToast } from "@/hooks/use-toast"
 
 const PACKAGES = [
   { id: 1, amount: 100, price: "$4.99", label: "Starter Pack", icon: Zap },
@@ -18,6 +19,7 @@ const PACKAGES = [
 export default function CoinsPage() {
   const { user } = useUser()
   const firestore = useFirestore()
+  const { toast } = useToast()
   
   const coinAccountRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -25,6 +27,32 @@ export default function CoinsPage() {
   }, [firestore, user])
   
   const { data: coinAccount, isLoading } = useDoc(coinAccountRef)
+
+  const handlePurchase = (amount: number, price: string) => {
+    if (!coinAccountRef || !coinAccount || !user) return;
+
+    const newBalance = (coinAccount.balance || 0) + amount;
+    
+    // Update balance
+    updateDocumentNonBlocking(coinAccountRef, {
+      balance: newBalance,
+      updatedAt: new Date().toISOString()
+    });
+
+    // Log transaction
+    const transactionsRef = collection(firestore, "users", user.uid, "coinAccount", "default", "transactions");
+    addDocumentNonBlocking(transactionsRef, {
+      type: 'purchase',
+      amount: amount,
+      transactionDate: new Date().toISOString(),
+      description: `Purchased ${amount} coins for ${price}`
+    });
+
+    toast({
+      title: "Purchase Successful",
+      description: `You've added ${amount} coins to your account.`,
+    });
+  }
 
   return (
     <div className="flex flex-col min-h-svh pb-24 bg-white">
@@ -55,7 +83,11 @@ export default function CoinsPage() {
           {PACKAGES.map((pkg) => {
             const Icon = pkg.icon
             return (
-              <Card key={pkg.id} className={`relative overflow-hidden transition-all hover:scale-[1.02] active:scale-95 cursor-pointer border shadow-lg ${pkg.featured ? 'ring-2 ring-primary border-primary' : ''}`}>
+              <Card 
+                key={pkg.id} 
+                className={`relative overflow-hidden transition-all hover:scale-[1.02] active:scale-95 cursor-pointer border shadow-lg ${pkg.featured ? 'ring-2 ring-primary border-primary' : ''}`}
+                onClick={() => handlePurchase(pkg.amount, pkg.price)}
+              >
                 {pkg.featured && (
                   <div className="absolute top-0 right-0 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
                     Best Value

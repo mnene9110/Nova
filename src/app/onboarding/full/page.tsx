@@ -45,11 +45,24 @@ export default function FullOnboardingPage() {
       gender,
       preferredGenders: lookingFor === "both" ? ["male", "female"] : [lookingFor],
       location: country,
+      profilePhotoUrls: [`https://picsum.photos/seed/${user.uid}/600/800`],
       createdAt: new Date().toISOString(),
-      lastActiveAt: new Date().toISOString()
+      lastActiveAt: new Date().toISOString(),
+      interests: ["Nature", "Water sports", "Adventure"]
     }
 
     setDocumentNonBlocking(userProfileRef, profileData, { merge: true })
+    
+    // Initialize coin account
+    const coinAccountRef = doc(firestore, "users", user.uid, "coinAccount", "default")
+    setDocumentNonBlocking(coinAccountRef, {
+      id: "default",
+      userId: user.uid,
+      balance: 100,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }, { merge: true })
+
     router.push("/discover")
   }
 
@@ -130,7 +143,7 @@ export default function FullOnboardingPage() {
         </div>
 
         <Button 
-          className="w-full h-16 rounded-full bg-primary text-white text-xl font-bold"
+          className="w-full h-16 rounded-full bg-primary text-white text-xl font-bold shadow-xl shadow-primary/20 active:scale-95 transition-transform"
           disabled={!name || !dob || !gender || !country || !lookingFor}
           onClick={handleSave}
         >
