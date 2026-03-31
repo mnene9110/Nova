@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -14,31 +15,32 @@ export default function LoginPage() {
   const auth = useAuth()
   const { user } = useUser()
 
-  // Redirect to discover if already logged in
   useEffect(() => {
-    if (user) {
-      router.push("/discover")
+    if (user && !user.isAnonymous) {
+      // Check if user has a profile or just signed up
+      // For simplicity, we redirect to onboarding if they just signed up
+      // In a real app, you'd check Firestore first
     }
   }, [user, router])
 
   const handleSignIn = () => {
     if (email && password) {
       initiateEmailSignIn(auth, email, password)
+      router.push("/discover")
     }
   }
 
   const handleSignUp = () => {
     if (email && password) {
       initiateEmailSignUp(auth, email, password)
+      router.push("/onboarding/full")
     }
   }
 
   return (
     <div className="flex flex-col h-svh bg-white relative overflow-hidden">
-      {/* Status Bar simulation */}
       <div className="h-10 bg-[#7E8EF1] w-full shrink-0" />
 
-      {/* Back Button */}
       <header className="absolute top-12 left-2 z-10">
         <Button 
           variant="ghost" 
@@ -51,7 +53,6 @@ export default function LoginPage() {
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center px-8 w-full max-w-sm mx-auto space-y-10">
-        {/* Logo Section */}
         <div className="text-center space-y-2">
           <h1 className="text-5xl font-logo text-[#7E8EF1]">MatchFlow</h1>
           <p className="text-muted-foreground text-lg font-medium opacity-60">
@@ -59,7 +60,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Input Section */}
         <div className="w-full space-y-6">
           <div className="space-y-2">
             <label className="text-xs font-bold text-muted-foreground/30 ml-1 uppercase tracking-widest">
@@ -94,7 +94,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="w-full space-y-4 pt-4">
           <Button 
             className="w-full h-16 rounded-full bg-[#7E8EF1] hover:bg-[#6C7DE0] text-white text-xl font-bold shadow-lg shadow-[#7E8EF1]/20 transition-all active:scale-95"
@@ -112,7 +111,6 @@ export default function LoginPage() {
           </Button>
         </div>
 
-        {/* Legal Footer */}
         <footer className="pt-4">
           <p className="text-[13px] text-muted-foreground/50 text-center leading-relaxed max-w-[280px]">
             By signing in, you agree to our <span className="underline cursor-pointer">Terms of Service</span> and <span className="underline cursor-pointer">Privacy Policy</span>.
