@@ -8,8 +8,11 @@ import { cn } from "@/lib/utils"
 export function Navbar() {
   const pathname = usePathname()
 
-  // Don't show navbar on welcome screen or login
+  // Don't show navbar on welcome screen, login, or onboarding
   if (pathname === "/welcome" || pathname === "/login" || pathname === "/onboarding/fast" || pathname === "/onboarding/full") return null
+  
+  // Also hide on detail pages if they are meant to be immersive (e.g., chat detail or profile detail)
+  if (pathname.startsWith("/chat/") || (pathname.startsWith("/profile/") && pathname !== "/profile")) return null
 
   const navItems = [
     { icon: Home, label: "Home", href: "/discover" },
@@ -31,9 +34,9 @@ export function Navbar() {
               isActive ? "text-white" : "text-gray-400 hover:text-primary"
             )}
           >
-            {/* Active Highlight Shape */}
+            {/* Active Highlight Shape - Using Maroon (Primary) */}
             {isActive && (
-              <div className="absolute inset-0 bg-primary -z-10 rounded-[1.5rem] scale-90" 
+              <div className="absolute inset-0 bg-primary -z-10 rounded-[1.5rem] scale-90 shadow-lg shadow-primary/20" 
                    style={{ clipPath: 'polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%)' }} />
             )}
             

@@ -63,21 +63,21 @@ export default function DiscoverPage() {
       {/* Top Banner Area */}
       <div className="pt-8 px-4 pb-6">
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-[#FFCF4D] rounded-[2.5rem] p-6 flex items-center gap-4 shadow-xl hover:scale-[1.02] transition-transform cursor-pointer h-32">
-            <div className="w-14 h-14 bg-white/40 rounded-full flex items-center justify-center shrink-0">
-              <Mic className="w-7 h-7 text-black" />
+          <div className="bg-[#FFCF4D] rounded-[2.5rem] p-7 flex items-center gap-4 shadow-xl hover:scale-[1.02] transition-transform cursor-pointer h-36">
+            <div className="w-16 h-16 bg-white/40 rounded-full flex items-center justify-center shrink-0">
+              <Mic className="w-8 h-8 text-black" />
             </div>
             <div>
-              <p className="font-headline font-black text-lg text-black leading-tight">Voice Chat</p>
+              <p className="font-headline font-black text-xl text-black leading-tight">Voice Chat</p>
               <p className="text-xs text-black/60 font-medium">Connect now</p>
             </div>
           </div>
-          <div className="bg-primary/90 rounded-[2.5rem] p-6 flex items-center gap-4 shadow-xl hover:scale-[1.02] transition-transform cursor-pointer h-32 backdrop-blur-md">
-            <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center shrink-0 border border-white/10">
-              <CircleDollarSign className="w-7 h-7 text-white" />
+          <div className="bg-primary/90 rounded-[2.5rem] p-7 flex items-center gap-4 shadow-xl hover:scale-[1.02] transition-transform cursor-pointer h-36 backdrop-blur-md">
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center shrink-0 border border-white/10">
+              <CircleDollarSign className="w-8 h-8 text-white" />
             </div>
             <div>
-              <p className="font-headline font-black text-lg text-white leading-tight">Tasks</p>
+              <p className="font-headline font-black text-xl text-white leading-tight">Tasks</p>
               <p className="text-xs text-white/60 font-medium">Earn rewards</p>
             </div>
           </div>
@@ -87,7 +87,7 @@ export default function DiscoverPage() {
       {/* Users Grid */}
       <main className="px-4 grid grid-cols-2 gap-4 mt-2 pb-10 flex-1">
         {users.map((user) => (
-          <Link key={user.id} href={`/chat/${user.id}`} className="group relative aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl bg-gray-100 border-4 border-white/10">
+          <Link key={user.id} href={`/profile/${user.id}`} className="group relative aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl bg-gray-100 border-4 border-white/10">
             <Image
               src={user.image}
               alt={user.name}
@@ -107,7 +107,7 @@ export default function DiscoverPage() {
                 <span className="w-2.5 h-2.5 bg-green-400 rounded-full shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
               </h3>
               <div className="flex flex-wrap gap-2">
-                <Badge className="bg-[#00D9C0] hover:bg-[#00D9C0] text-black font-black h-6 px-3 text-[10px] rounded-lg border-none flex items-center gap-1 shadow-sm">
+                <Badge className="bg-primary/90 hover:bg-primary text-white font-black h-6 px-3 text-[10px] rounded-lg border-none flex items-center gap-1 shadow-sm">
                    🪙 {user.coins}
                 </Badge>
                 <Badge className="bg-white/10 text-white font-medium h-6 px-3 text-[10px] rounded-lg border-none backdrop-blur-md">
