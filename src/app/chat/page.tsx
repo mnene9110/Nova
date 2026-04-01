@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { MessageSquare, ChevronRight } from "lucide-react"
+import { MessageSquare, ChevronRight, CheckCircle } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
 import { useFirebase, useUser, useCollection, useMemoFirebase } from "@/firebase"
@@ -49,6 +49,7 @@ function ChatSessionItem({ session }: { session: any }) {
     ? (otherUserData?.isSupport ? "Customer Support" : (otherUserData?.username || "User")) 
     : ""
   const image = (otherUserData?.profilePhotoUrls && otherUserData.profilePhotoUrls[0]) || ""
+  const isVerified = !!otherUserData?.isVerified
 
   return (
     <Link 
@@ -70,12 +71,15 @@ function ChatSessionItem({ session }: { session: any }) {
 
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-baseline mb-0">
-          <h3 className={cn(
-            "font-bold text-sm truncate font-headline min-h-[1.25rem]",
-            name === "User logged out" ? "text-gray-400 font-medium italic" : "text-gray-900"
-          )}>
-            {isDataLoaded ? name : ""}
-          </h3>
+          <div className="flex items-center gap-1 truncate">
+            <h3 className={cn(
+              "font-bold text-sm truncate font-headline min-h-[1.25rem]",
+              name === "User logged out" ? "text-gray-400 font-medium italic" : "text-gray-900"
+            )}>
+              {isDataLoaded ? name : ""}
+            </h3>
+            {isVerified && <CheckCircle className="w-3 h-3 text-blue-500 fill-blue-500/10 shrink-0" />}
+          </div>
           {session.timestamp && (
             <span className="text-[9px] font-bold text-gray-400">
               {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -149,10 +153,13 @@ export default function ChatListPage() {
       <main className="flex-1 px-3 bg-white rounded-t-[2.5rem] shadow-2xl pt-6">
         <section className="space-y-1">
           {filteredSessions.length > 0 ? (
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 pb-10">
               {filteredSessions.map((session) => (
                 <ChatSessionItem key={session.otherUserId} session={session} />
               ))}
+              <div className="py-8 flex justify-center">
+                 <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.2em]">No more chats</p>
+              </div>
             </div>
           ) : hasFetched ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-400 font-medium gap-4">
@@ -160,7 +167,7 @@ export default function ChatListPage() {
                 <MessageSquare className="w-8 h-8 text-gray-200" />
               </div>
               <div className="text-center space-y-1">
-                <p className="text-xs font-bold text-gray-900">No chats yet</p>
+                <p className="text-xs font-bold text-gray-900">No more chats</p>
               </div>
             </div>
           ) : null}

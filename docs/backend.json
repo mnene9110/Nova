@@ -70,6 +70,10 @@
           "type": "number",
           "description": "The current virtual coin balance of the user."
         },
+        "isVerified": {
+          "type": "boolean",
+          "description": "Whether the user's identity has been verified via AI face comparison."
+        },
         "isAdmin": {
           "type": "boolean",
           "description": "Whether the user has administrative privileges."
@@ -187,7 +191,7 @@
         "definition": {
           "entityName": "CoinTransaction",
           "schema": {
-            "$ref": "#/backend/entities/CoinTransaction"
+            "$ref": "#/backend/backend/entities/CoinTransaction"
           },
           "description": "Records individual coin transactions for a user.",
           "params": [

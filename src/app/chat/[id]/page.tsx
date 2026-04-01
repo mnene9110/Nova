@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useMemo, Suspense } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { ChevronLeft, Video, Send, Phone, Loader2, Gift, PhoneOff, Ban } from "lucide-react"
+import { ChevronLeft, Video, Send, Phone, Loader2, Gift, PhoneOff, Ban, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -409,6 +409,7 @@ function ChatDetailContent() {
 
   const otherUserImage = (otherUser?.profilePhotoUrls && otherUser.profilePhotoUrls[0]) || `https://picsum.photos/seed/${otherUserId}/200/200`
   const otherUserName = isOtherUserSupport ? "Customer Support" : (otherUser?.username || "User")
+  const isOtherUserVerified = !!otherUser?.isVerified
 
   const presenceText = useMemo(() => {
     if (presence.online) return "Online";
@@ -441,7 +442,10 @@ function ChatDetailContent() {
               </Avatar>
             </div>
             <div className="text-center space-y-4">
-              <h2 className="text-4xl font-black font-headline tracking-tight text-white">{otherUserName}</h2>
+              <div className="flex items-center justify-center gap-2">
+                <h2 className="text-4xl font-black font-headline tracking-tight text-white">{otherUserName}</h2>
+                {isOtherUserVerified && <CheckCircle className="w-8 h-8 text-blue-400 fill-blue-400/20" />}
+              </div>
               <div className="px-4 py-1.5 bg-white/5 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-2 mx-auto w-fit">
                 {callType === 'video' ? <Video className="w-4 h-4 text-primary" /> : <Phone className="w-4 h-4 text-primary" />}
                 <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] animate-pulse">
@@ -482,9 +486,12 @@ function ChatDetailContent() {
         >
           <Avatar className="w-9 h-9 border border-gray-100 shadow-sm"><AvatarImage src={otherUserImage} className="object-cover" /><AvatarFallback>{otherUserName[0] || '?'}</AvatarFallback></Avatar>
           <div className="flex flex-col text-center">
-            <h3 className={cn("font-bold text-[13px] leading-none mb-1 h-3.5", otherUserName === "User logged out" ? "text-gray-400 font-medium italic" : "text-gray-900")}>
-              {otherUserName}
-            </h3>
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <h3 className={cn("font-bold text-[13px] leading-none h-3.5", otherUserName === "User logged out" ? "text-gray-400 font-medium italic" : "text-gray-900")}>
+                {otherUserName}
+              </h3>
+              {isOtherUserVerified && <CheckCircle className="w-3 h-3 text-blue-500 fill-blue-500/10" />}
+            </div>
             <span className={cn(
               "text-[9px] font-black uppercase tracking-widest", 
               presence.online ? "text-green-500" : "text-gray-400"

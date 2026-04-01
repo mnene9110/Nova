@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
-import { Sparkles, ClipboardList, RotateCcw, Globe, Loader2 } from "lucide-react"
+import { Sparkles, ClipboardList, RotateCcw, Globe, Loader2, CheckCircle } from "lucide-react"
 import { useFirebase, useUser } from "@/firebase"
 import { collection, query, limit, getDocs, startAfter, orderBy, DocumentData, QueryDocumentSnapshot, where } from "firebase/firestore"
 import { ref, onValue } from "firebase/database"
@@ -51,11 +51,10 @@ export default function DiscoverPage() {
     async function fetchInitialUsers() {
       setIsInitialLoading(true)
       try {
-        // We filter out support agents from the discovery list
         const q = query(
           collection(firestore, 'userProfiles'), 
           orderBy('createdAt', 'desc'),
-          limit(20) // Fetch slightly more to account for potential filtered users
+          limit(20)
         )
         
         const snap = await getDocs(q)
@@ -121,6 +120,7 @@ export default function DiscoverPage() {
     name: u.username || "Match",
     location: u.location || "Kenya",
     isOnline: !!presenceData[u.id],
+    isVerified: !!u.isVerified,
     image: (u.profilePhotoUrls && u.profilePhotoUrls[0]) || `https://picsum.photos/seed/${u.id}/400/600`
   }))
 
@@ -196,7 +196,10 @@ export default function DiscoverPage() {
 
             <div className="absolute inset-x-0 bottom-0 p-4 z-10 pointer-events-none">
               <div className="flex items-center gap-1.5 mb-1.5">
-                <h3 className="text-white font-black text-xs">{user.name}</h3>
+                <div className="flex items-center gap-1">
+                  <h3 className="text-white font-black text-xs truncate max-w-[80px]">{user.name}</h3>
+                  {user.isVerified && <CheckCircle className="w-3 h-3 text-blue-400 fill-blue-400/20" />}
+                </div>
                 <div className={cn("w-1.5 h-1.5 rounded-full", user.isOnline ? "bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]" : "bg-gray-400")} />
               </div>
               <div className="flex items-center gap-1 opacity-80">
@@ -214,7 +217,7 @@ export default function DiscoverPage() {
         {!isInitialLoading && displayUsers.length === 0 && (
           <div className="col-span-2 flex flex-col items-center justify-center py-20 text-center opacity-40">
             <Globe className="w-12 h-12 text-white mb-4" />
-            <p className="text-[10px] font-black text-white uppercase tracking-[0.2em]">No profiles found</p>
+            <p className="text-[10px] font-black text-white uppercase tracking-[0.2em]">No more users to show</p>
           </div>
         )}
 
@@ -228,6 +231,12 @@ export default function DiscoverPage() {
             >
               {isLoadingMore ? <Loader2 className="w-4 h-4 animate-spin" /> : "Load More"}
             </Button>
+          </div>
+        )}
+
+        {!hasMore && !isInitialLoading && displayUsers.length > 0 && (
+          <div className="col-span-2 flex justify-center py-8">
+             <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">No more users to show</p>
           </div>
         )}
       </main>

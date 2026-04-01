@@ -17,7 +17,8 @@ import {
   UserX,
   Copy,
   Headset,
-  Lock
+  Lock,
+  CheckCircle
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -150,6 +151,7 @@ export default function ProfileDetailPage() {
   ]
 
   const userImage = (userProfile.profilePhotoUrls && userProfile.profilePhotoUrls[0]) || `https://picsum.photos/seed/${userProfile.id}/600/800`
+  const isVerified = !!userProfile.isVerified
 
   // Admins and Support cannot be blocked or reported
   const isProtected = userProfile.isAdmin === true || userProfile.isSupport === true;
@@ -207,7 +209,10 @@ export default function ProfileDetailPage() {
       <div className="flex-1 bg-white rounded-t-[3rem] -mt-16 relative z-20 px-6 pt-8 pb-32">
         <div className="space-y-6">
           <div className="space-y-1">
-            <h1 className="text-3xl font-black font-headline text-gray-900 leading-tight">{userProfile.username}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-3xl font-black font-headline text-gray-900 leading-tight">{userProfile.username}</h1>
+              {isVerified && <CheckCircle className="w-6 h-6 text-blue-500 fill-blue-500/10" />}
+            </div>
             <button 
               onClick={copyId}
               className="flex items-center gap-2 text-xs font-bold text-green-500 active:scale-95 transition-transform"
@@ -229,6 +234,12 @@ export default function ProfileDetailPage() {
               <div className="px-3 py-1 bg-blue-500/10 rounded-full inline-flex items-center gap-1.5 border border-blue-500/20">
                 <Headset className="w-3 h-3 text-blue-500" />
                 <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Support</span>
+              </div>
+            )}
+            {isVerified && (
+              <div className="px-3 py-1 bg-blue-500/10 rounded-full inline-flex items-center gap-1.5 border border-blue-500/20">
+                <ShieldCheck className="w-3 h-3 text-blue-500" />
+                <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Verified Identity</span>
               </div>
             )}
           </div>

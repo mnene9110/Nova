@@ -11,11 +11,12 @@ import {
   ShieldCheck,
   Settings as SettingsIcon,
   ShieldAlert,
-  Loader2
+  Loader2,
+  CheckCircle
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
-import { useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase"
+import { useUser, useDoc, useFirestore, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase"
 import { doc, collection, query, where, getDocs, limit } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,7 @@ export default function ProfilePage() {
   const firestore = useFirestore()
   const { toast } = useToast()
   const [isFindingSupport, setIsFindingSupport] = useState(false)
+  const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false)
 
   const userRef = useMemoFirebase(() => {
     if (!firestore || !currentUser) return null;
@@ -44,6 +46,34 @@ export default function ProfilePage() {
         title: "Copied!",
         description: "User ID copied.",
       });
+    }
+  }
+
+  const handleUpdateAvatar = async () => {
+    if (!currentUser || !firestore || isUpdatingAvatar) return
+    setIsUpdatingAvatar(true)
+    
+    try {
+      // Simulate changing avatar by picking a new seed for picsum
+      const newSeed = Math.floor(Math.random() * 1000)
+      const newUrl = `https://picsum.photos/seed/${newSeed}/600/800`
+      
+      const userDocRef = doc(firestore, "userProfiles", currentUser.uid)
+      await updateDocumentNonBlocking(userDocRef, {
+        profilePhotoUrls: [newUrl],
+        // Reset verification when avatar changes
+        isVerified: false,
+        updatedAt: new Date().toISOString()
+      })
+      
+      toast({
+        title: "Avatar Updated",
+        description: "Verification status has been reset. Please verify again to regain trust.",
+      })
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Could not update avatar." })
+    } finally {
+      setIsUpdatingAvatar(false)
     }
   }
 
@@ -78,27 +108,40 @@ export default function ProfilePage() {
 
   const userImage = (userProfile?.profilePhotoUrls && userProfile?.profilePhotoUrls[0]) || ""
   const darkMaroon = "bg-[#5A1010]";
+  const isVerified = !!userProfile?.isVerified
 
   return (
     <div className="flex flex-col min-h-svh bg-transparent text-gray-900 pb-24 transition-opacity duration-300">
       <header className="flex flex-col items-center pt-12 pb-8 px-6">
         <div className="relative mb-6">
-          <Avatar className="w-28 h-28 shadow-lg bg-gray-50">
+          <Avatar className="w-28 h-28 shadow-lg bg-gray-50 ring-4 ring-white/20">
             {userImage && <AvatarImage src={userImage} className="object-cover" />}
             <AvatarFallback className="bg-primary text-white font-black text-2xl">
               {userProfile?.username?.[0] || ''}
             </AvatarFallback>
           </Avatar>
           {!isLoading && (
-            <button className="absolute bottom-1 right-1 w-8 h-8 bg-primary rounded-full flex items-center justify-center border-4 border-white shadow-lg active:scale-90 transition-transform">
-              <Pencil className="w-3.5 h-3.5 text-white" />
+            <button 
+              onClick={handleUpdateAvatar}
+              disabled={isUpdatingAvatar}
+              className="absolute bottom-1 right-1 w-8 h-8 bg-primary rounded-full flex items-center justify-center border-4 border-white shadow-lg active:scale-90 transition-transform disabled:opacity-50"
+            >
+              {isUpdatingAvatar ? <Loader2 className="w-3 h-3 animate-spin text-white" /> : <Pencil className="w-3.5 h-3.5 text-white" />}
             </button>
+          )}
+          {isVerified && (
+            <div className="absolute -top-1 -right-1 bg-white rounded-full p-1 shadow-sm">
+               <CheckCircle className="w-6 h-6 text-blue-500 fill-blue-500/10" />
+            </div>
           )}
         </div>
 
-        <h1 className="text-2xl font-black mb-3 tracking-tight h-8 min-w-[120px] text-center">
-          {userProfile?.username || ""}
-        </h1>
+        <div className="flex items-center gap-2 mb-3">
+          <h1 className="text-2xl font-black tracking-tight text-center">
+            {userProfile?.username || ""}
+          </h1>
+          {isVerified && <CheckCircle className="w-5 h-5 text-blue-500 fill-blue-500/10" />}
+        </div>
 
         {displayNumericId && (
           <button 
@@ -153,19 +196,29 @@ export default function ProfilePage() {
 
         <div className="flex flex-col gap-2.5 pt-2">
           <button 
+            onClick={() => router.push('/profile/verify')}
+            className="w-full h-14 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-between px-6 active:bg-white/60 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <ShieldCheck className={cn("w-4 h-4", isVerified ? "text-blue-500" : "text-gray-400")} />
+              <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px]">
+                {isVerified ? "Identity Verified" : "Verify Identity"}
+              </span>
+            </div>
+            {isVerified ? (
+              <CheckCircle className="w-4 h-4 text-blue-500" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-gray-300" />
+            )}
+          </button>
+
+          <button 
             onClick={handleContactSupport}
             disabled={isFindingSupport}
             className="w-full h-14 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-center gap-3 active:bg-white/60 transition-all disabled:opacity-50"
           >
             {isFindingSupport ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : <Headset className="w-4 h-4 text-primary" />}
             <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px]">Customer Support</span>
-          </button>
-
-          <button className="w-full h-14 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-center gap-3 active:bg-white/60 transition-all">
-            <div className="flex items-center gap-3">
-              <ShieldCheck className="w-4 h-4 text-green-500" />
-              <span className="text-gray-600 font-black uppercase tracking-[0.1em] text-[10px]">Verify Identity</span>
-            </div>
           </button>
           
           <button 
