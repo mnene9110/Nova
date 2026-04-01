@@ -71,7 +71,7 @@ export default function ProfileDetailPage() {
         <div className="space-y-6">
           <div className="space-y-1">
             <h1 className="text-3xl font-black font-headline text-gray-900 leading-tight">{userProfile.username}</h1>
-            <p className="text-xs font-bold text-gray-400">ID: {userProfile.numericId || '...'}</p>
+            <p className="text-xs font-bold text-green-500">ID: {userProfile.numericId || '...'}</p>
           </div>
           <p className="text-sm text-gray-500 font-medium leading-relaxed">{userProfile.bio || "No biography provided."}</p>
           <div className="pt-8 border-t border-gray-50">

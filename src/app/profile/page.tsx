@@ -82,8 +82,8 @@ export default function ProfilePage() {
           onClick={copyId}
           className="flex items-center gap-2 px-5 py-2 bg-white/40 backdrop-blur-md border border-white/30 rounded-full active:bg-white/60 transition-colors"
         >
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">ID: {displayNumericId}</span>
-          <Copy className="w-3 h-3 text-gray-300" />
+          <span className="text-[10px] font-bold text-green-500 uppercase tracking-[0.2em]">ID: {displayNumericId}</span>
+          <Copy className="w-3 h-3 text-green-500/50" />
         </button>
       </header>
 
