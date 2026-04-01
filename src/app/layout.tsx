@@ -45,6 +45,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="MatchFlow" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
       </head>
       <body className="font-body antialiased">
         <FirebaseClientProvider>
@@ -60,7 +62,7 @@ export default function RootLayout({
           {`
             if ('serviceWorker' in navigator) {
               window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(
+                navigator.worker.register('/sw.js').then(
                   function(registration) {
                     console.log('Service Worker registration successful with scope: ', registration.scope);
                   },
