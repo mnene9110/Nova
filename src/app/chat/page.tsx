@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
@@ -11,7 +12,7 @@ import { cn } from "@/lib/utils"
 
 /**
  * @fileOverview Chat list screen. 
- * Navbar is now persistent in layout.tsx to prevent blinking.
+ * Optimized to remove "Loading..." glitches.
  */
 
 function ChatSessionItem({ session }: { session: any }) {
@@ -163,7 +164,13 @@ export default function ChatListPage() {
                 <p className="text-xs font-bold text-gray-900">No chats yet</p>
               </div>
             </div>
-          ) : null}
+          ) : (
+            <div className="flex flex-col gap-4 py-4 animate-pulse px-3">
+               {[1,2,3,4,5].map(i => (
+                 <div key={i} className="h-14 bg-gray-50 rounded-2xl w-full" />
+               ))}
+            </div>
+          )}
         </section>
       </main>
     </div>

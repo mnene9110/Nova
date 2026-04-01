@@ -32,7 +32,10 @@ service cloud.firestore {
       }
 
       match /blockedUsers/{blockedId} {
-        allow read, write: if isOwner(userId);
+        // The owner of the list can read/write.
+        // A user being blocked can read their own specific block status document to check if they are blocked.
+        allow read: if isOwner(userId) || isOwner(blockedId);
+        allow write: if isOwner(userId);
       }
     }
 

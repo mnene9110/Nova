@@ -427,10 +427,9 @@ export default function ChatDetailPage() {
     } finally { setIsSending(false) }
   }
 
-  if (isOtherUserLoading) return <div className="flex items-center justify-center h-svh bg-white" />
-  if (!otherUser) return <div className="p-10 text-center bg-white h-svh flex items-center justify-center"><Button onClick={() => router.push('/discover')}>Back</Button></div>
-
-  const otherUserImage = (otherUser.profilePhotoUrls && otherUser.profilePhotoUrls[0]) || `https://picsum.photos/seed/${otherUser.id}/200/200`
+  // Header and layout should be stable even while user is loading
+  const otherUserImage = (otherUser?.profilePhotoUrls && otherUser.profilePhotoUrls[0]) || `https://picsum.photos/seed/${otherUserId}/200/200`
+  const otherUserName = otherUser?.username || "..."
 
   return (
     <div className="flex flex-col h-svh bg-white relative overflow-hidden text-gray-900">
@@ -450,11 +449,11 @@ export default function ChatDetailPage() {
               <div className="absolute -inset-8 bg-primary/20 rounded-full animate-ping opacity-20" />
               <Avatar className="w-44 h-44 border-[10px] border-white/5 shadow-2xl">
                 <AvatarImage src={otherUserImage} className="object-cover" />
-                <AvatarFallback className="text-5xl bg-zinc-800">{otherUser.username?.[0]}</AvatarFallback>
+                <AvatarFallback className="text-5xl bg-zinc-800">{otherUserName[0]}</AvatarFallback>
               </Avatar>
             </div>
             <div className="text-center space-y-4">
-              <h2 className="text-4xl font-black font-headline tracking-tight text-white">{otherUser.username}</h2>
+              <h2 className="text-4xl font-black font-headline tracking-tight text-white">{otherUserName}</h2>
               <div className="px-4 py-1.5 bg-white/5 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-2 mx-auto w-fit">
                 {callType === 'video' ? <Video className="w-4 h-4 text-primary" /> : <Phone className="w-4 h-4 text-primary" />}
                 <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] animate-pulse">
@@ -491,9 +490,9 @@ export default function ChatDetailPage() {
       <header className="px-5 pt-8 pb-4 bg-white flex items-center justify-between sticky top-0 z-10 border-b border-gray-50">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10 rounded-full bg-gray-50 text-gray-500"><ChevronLeft className="w-5 h-5" /></Button>
         <div className="flex items-center gap-3 cursor-pointer active:opacity-70 transition-opacity flex-1 justify-center mr-10" onClick={() => router.push(`/profile/${otherUserId}`)}>
-          <Avatar className="w-9 h-9 border border-gray-100 shadow-sm"><AvatarImage src={otherUserImage} className="object-cover" /><AvatarFallback>{otherUser.username?.[0]}</AvatarFallback></Avatar>
+          <Avatar className="w-9 h-9 border border-gray-100 shadow-sm"><AvatarImage src={otherUserImage} className="object-cover" /><AvatarFallback>{otherUserName[0]}</AvatarFallback></Avatar>
           <div className="flex flex-col text-center">
-            <h3 className="font-bold text-[13px] text-gray-900 leading-none mb-1">{otherUser.username}</h3>
+            <h3 className="font-bold text-[13px] text-gray-900 leading-none mb-1 h-3.5">{otherUserName}</h3>
             <span className={cn("text-[9px] font-black uppercase tracking-widest", presence.online ? "text-green-500" : "text-gray-400")}>{presence.online ? "Online" : "Offline"}</span>
           </div>
         </div>

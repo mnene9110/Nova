@@ -1,3 +1,4 @@
+
 "use client"
 
 import { 
@@ -20,7 +21,7 @@ import { cn } from "@/lib/utils"
 
 /**
  * @fileOverview Profile screen (Me).
- * Navbar is now persistent in layout.tsx. Loading state handles internal content shift.
+ * Optimized to remove "Loading..." text glitching.
  */
 export default function ProfilePage() {
   const router = useRouter()
@@ -68,8 +69,8 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <h1 className="text-2xl font-black mb-3 tracking-tight">
-          {isLoading ? "Loading..." : (userProfile?.username || "Guest User")}
+        <h1 className="text-2xl font-black mb-3 tracking-tight h-8">
+          {userProfile?.username || (isLoading ? "\u00A0" : "Guest User")}
         </h1>
 
         <button 
@@ -92,7 +93,7 @@ export default function ProfilePage() {
               <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.15em]">Wallet Balance</span>
             </div>
             <span className="text-2xl font-black text-gray-900">
-              {isLoading ? "..." : (userProfile?.coinBalance || 0).toLocaleString()}
+              {isLoading ? "0" : (userProfile?.coinBalance || 0).toLocaleString()}
             </span>
           </div>
           
