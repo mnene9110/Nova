@@ -30,7 +30,6 @@ function ChatDetailContent() {
   
   const scrollRef = useRef<HTMLDivElement>(null)
   const zegoContainerRef = useRef<HTMLDivElement>(null)
-  const localVideoRef = useRef<HTMLVideoElement>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
   const ringtoneRef = useRef<HTMLAudioElement | null>(null)
   const zegoInitializingRef = useRef(false)
@@ -94,12 +93,6 @@ function ChatDetailContent() {
       return () => clearTimeout(timer);
     }
   }, [initialMsg, currentUser, otherUserId, database, !!otherUser]);
-
-  useEffect(() => {
-    if ((callStatus === 'calling' || callStatus === 'ringing') && callType === 'video' && localVideoRef.current && localStreamRef.current) {
-      localVideoRef.current.srcObject = localStreamRef.current;
-    }
-  }, [callStatus, callType]);
 
   useEffect(() => {
     if (!database || !currentUser || !otherUserId) return
@@ -193,6 +186,8 @@ function ChatDetailContent() {
   const initiateZegoCall = async (roomID: string) => {
     if (!ZegoUIKitPrebuilt || !currentUser || !zegoContainerRef.current || zegoInitializingRef.current) return;
     zegoInitializingRef.current = true;
+    
+    // MIC/CAMERA TURN ON ONLY WHEN CONNECTED (Joining)
     if (!localStreamRef.current) {
       try {
         localStreamRef.current = await navigator.mediaDevices.getUserMedia({
@@ -200,10 +195,12 @@ function ChatDetailContent() {
           audio: true
         });
       } catch (error) {
+        console.error("Media permission error", error);
         handleEndCall();
         return;
       }
     }
+
     const { appID, serverSecret } = await getZegoConfig();
     if (!appID || !serverSecret) { handleEndCall(); return; }
     try {
@@ -288,15 +285,8 @@ function ChatDetailContent() {
       return;
     }
 
-    try {
-      localStreamRef.current = await navigator.mediaDevices.getUserMedia({
-        video: type === 'video',
-        audio: true
-      });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Camera Error", description: "Please allow camera access to start a call." });
-      return;
-    }
+    // WE DO NOT START MEDIA HERE. We only signal the call.
+    // Hardware is activated in initiateZegoCall after status is 'accepted'.
 
     try {
       const callDocRef = doc(firestore, "calls", chatId);
@@ -447,11 +437,8 @@ function ChatDetailContent() {
       {(callStatus === 'calling' || callStatus === 'incoming') && (
         <div className="absolute inset-0 z-[300] bg-zinc-950 flex flex-col items-center justify-between py-24 px-8 text-white animate-in fade-in duration-500">
           <div className="absolute inset-0 z-0">
-             {callType === 'video' ? (
-                <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover opacity-60 grayscale-[0.2]" />
-             ) : (
-                <div className="w-full h-full bg-zinc-900" />
-             )}
+             {/* No hardware camera during calling screen per request */}
+             <div className="w-full h-full bg-zinc-900" />
              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-zinc-950/60" />
           </div>
           <div className="relative z-10 flex flex-col items-center gap-10 mt-12 w-full">
