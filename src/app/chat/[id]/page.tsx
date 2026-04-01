@@ -59,8 +59,15 @@ function ChatDetailContent() {
   const theirBlockRef = useMemoFirebase(() => currentUser && otherUserId ? doc(firestore, "userProfiles", otherUserId, "blockedUsers", currentUser.uid) : null, [firestore, currentUser, otherUserId])
   const { data: theyBlockedMe } = useDoc(theirBlockRef)
 
-  const isOtherUserSupport = otherUser?.isSupport === true
-  const isBlocked = !isOtherUserSupport && (!!iBlockedThem || !!theyBlockedMe)
+  const presenceText = useMemo(() => {
+    if (presence.online) return "Online";
+    if (!presence.lastSeen) return "Offline";
+    const date = new Date(presence.lastSeen);
+    const now = new Date();
+    const diffInDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+    if (diffInDays > 2) return "Offline";
+    return `Last seen ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  }, [presence]);
 
   useEffect(() => {
     setMounted(true)
@@ -77,7 +84,6 @@ function ChatDetailContent() {
     }
   }, []);
 
-  // Handle initial auto-message
   useEffect(() => {
     if (initialMsg && currentUser && otherUserId && database && otherUser && !isSending) {
       const timer = setTimeout(() => {
@@ -236,7 +242,7 @@ function ChatDetailContent() {
   };
 
   useEffect(() => {
-    if (!firestore || !chatId || !currentUser || isBlocked) return
+    if (!firestore || !chatId || !currentUser || !otherUser || (otherUser.isSupport && !currentUserProfile?.isAdmin)) return
     const callDocRef = doc(firestore, "calls", chatId);
     const unsubscribe = onSnapshot(callDocRef, (snap) => {
       const data = snap.data()
@@ -260,12 +266,11 @@ function ChatDetailContent() {
       }
     });
     return () => unsubscribe();
-  }, [firestore, chatId, currentUser, callStatus, callType, isBlocked]);
+  }, [firestore, chatId, currentUser, callStatus, callType, !!otherUser]);
 
   const handleInitiateCall = async (type: 'video' | 'audio') => {
-    if (!firestore || !chatId || !currentUser || !currentUserProfile || isBlocked || isOtherUserSupport || !otherUser) return
+    if (!firestore || !chatId || !currentUser || !currentUserProfile || !otherUser) return
 
-    // 1. Check coin balance BEFORE doing anything else
     const costPerMin = type === 'video' ? 160 : 80;
     const isFree = currentUserProfile.isAdmin || 
                    currentUserProfile.isSupport || 
@@ -283,7 +288,6 @@ function ChatDetailContent() {
       return;
     }
 
-    // 2. Only if balance is okay, request media permissions
     try {
       localStreamRef.current = await navigator.mediaDevices.getUserMedia({
         video: type === 'video',
@@ -294,7 +298,6 @@ function ChatDetailContent() {
       return;
     }
 
-    // 3. Initiate call in firestore
     try {
       const callDocRef = doc(firestore, "calls", chatId);
       await setDoc(callDocRef, { 
@@ -354,8 +357,8 @@ function ChatDetailContent() {
 
   const handleSendMessage = async (textOverride?: string) => {
     const textToUse = textOverride || inputText;
-    if (!textToUse.trim() || !currentUser || !chatId || !database || !otherUserId || !otherUser || !currentUserProfile || isSending || isBlocked) return
-    setIsSending(true)
+    if (!textToUse.trim() || !currentUser || !chatId || !database || !otherUserId || !otherUser || !currentUserProfile || isSending) return
+    
     const senderGender = currentUserProfile.gender?.toLowerCase() || 'male';
     const receiverGender = otherUser.gender?.toLowerCase() || 'female';
     let isFree = currentUserProfile.isAdmin || 
@@ -365,6 +368,8 @@ function ChatDetailContent() {
                  otherUser.isCoinseller ||
                  (senderGender === 'female' && receiverGender === 'male');
     const messageCost = isFree ? 0 : 15;
+    
+    setIsSending(true)
     try {
       if (messageCost > 0) {
         await runTransaction(firestore, async (transaction) => {
@@ -431,19 +436,11 @@ function ChatDetailContent() {
     )
   }
 
+  const isOtherUserSupport = otherUser?.isSupport === true
+  const isBlocked = !isOtherUserSupport && (!!iBlockedThem || !!theyBlockedMe)
   const otherUserImage = (otherUser?.profilePhotoUrls && otherUser.profilePhotoUrls[0]) || `https://picsum.photos/seed/${otherUserId}/200/200`
   const otherUserName = isOtherUserSupport ? "Customer Support" : (otherUser?.username || "User")
   const isOtherUserVerified = !!otherUser?.isVerified
-
-  const presenceText = useMemo(() => {
-    if (presence.online) return "Online";
-    if (!presence.lastSeen) return "Offline";
-    const date = new Date(presence.lastSeen);
-    const now = new Date();
-    const diffInDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
-    if (diffInDays > 2) return "Offline";
-    return `Last seen ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-  }, [presence]);
 
   return (
     <div className="flex flex-col h-svh bg-white relative overflow-hidden text-gray-900">
