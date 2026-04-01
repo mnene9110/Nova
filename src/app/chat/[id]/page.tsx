@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ChevronLeft, Video, Send, Phone, Loader2, MoreVertical, Gift, X, Check, Mic, MicOff, VideoOff, PhoneOff } from "lucide-react"
+import { ChevronLeft, Video, Send, Phone, Loader2, MoreVertical, Gift, PhoneOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -39,6 +39,7 @@ export default function ChatDetailPage() {
   const otherUserRef = useMemoFirebase(() => otherUserId ? doc(firestore, "userProfiles", otherUserId) : null, [firestore, otherUserId])
   const { data: otherUser, isLoading: isOtherUserLoading } = useDoc(otherUserRef)
 
+  // Load Zego Library
   useEffect(() => {
     if (typeof window !== "undefined") {
       import('@zegocloud/zego-uikit-prebuilt').then((module) => {
@@ -49,7 +50,7 @@ export default function ChatDetailPage() {
 
   const stopAllMedia = () => {
     if (zegoInstance) {
-      try { zegoInstance.destroy(); } catch (e) {}
+      try { zegoInstance.destroy(); } catch (e) { console.error("Zego destroy error", e); }
       setZegoInstance(null);
     }
   };
@@ -58,23 +59,44 @@ export default function ChatDetailPage() {
 
   const initiateZegoCall = async (roomID: string) => {
     if (!ZegoUIKitPrebuilt || !currentUser || !zegoContainerRef.current) return;
+    
     const { appID, serverSecret } = await getZegoConfig();
     if (!appID || !serverSecret) {
-      toast({ variant: "destructive", title: "Config Missing" });
+      toast({ variant: "destructive", title: "Config Error", description: "ZegoCloud configuration is missing." });
       handleEndCall();
       return;
     }
-    const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, currentUser.uid, currentUser.displayName || `User_${currentUser.uid.slice(0, 5)}`);
-    const zp = ZegoUIKitPrebuilt.create(kitToken);
-    setZegoInstance(zp);
-    zp.joinRoom({
-      container: zegoContainerRef.current,
-      mode: ZegoUIKitPrebuilt.OneONoneCall,
-      showPreJoinView: false,
-      turnOnMicrophoneWhenJoining: true,
-      turnOnCameraWhenJoining: callType === 'video',
-      onLeaveRoom: () => handleEndCall(),
-    });
+
+    try {
+      const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+        appID, 
+        serverSecret, 
+        roomID, 
+        currentUser.uid, 
+        currentUser.displayName || `User_${currentUser.uid.slice(0, 5)}`
+      );
+
+      const zp = ZegoUIKitPrebuilt.create(kitToken);
+      setZegoInstance(zp);
+
+      zp.joinRoom({
+        container: zegoContainerRef.current,
+        mode: ZegoUIKitPrebuilt.OneONoneCall,
+        showPreJoinView: false,
+        turnOnMicrophoneWhenJoining: true,
+        turnOnCameraWhenJoining: callType === 'video',
+        showScreenSharingButton: false,
+        showMyCameraToggleButton: callType === 'video',
+        showAudioVideoSettingsButton: true,
+        onLeaveRoom: () => {
+          handleEndCall();
+        },
+      });
+    } catch (error) {
+      console.error("Zego join error:", error);
+      toast({ variant: "destructive", title: "Call Error", description: "Failed to join the call room." });
+      handleEndCall();
+    }
   };
 
   useEffect(() => {
@@ -82,11 +104,17 @@ export default function ChatDetailPage() {
     const callRef = ref(database, `calls/${chatId}`)
     return onValue(callRef, (snap) => {
       const data = snap.val()
+      
       if (!data) {
-        if (callStatus !== 'idle') { stopAllMedia(); setCallStatus('idle'); }
+        if (callStatus !== 'idle') { 
+          stopAllMedia(); 
+          setCallStatus('idle'); 
+        }
         return
       }
+
       setCallType(data.callType || 'video')
+      
       if (data.status === 'ringing') {
         if (data.callerId === currentUser.uid) {
           setCallStatus('calling')
@@ -94,10 +122,13 @@ export default function ChatDetailPage() {
           setCallStatus('incoming')
         }
       } else if (data.status === 'accepted') {
-        setCallStatus('ongoing')
-        initiateZegoCall(chatId);
+        if (callStatus !== 'ongoing') {
+          setCallStatus('ongoing')
+          initiateZegoCall(chatId);
+        }
       } else if (data.status === 'declined' || data.status === 'ended') {
-        stopAllMedia(); setCallStatus('idle');
+        stopAllMedia(); 
+        setCallStatus('idle');
       }
     })
   }, [database, chatId, currentUser, callStatus, callType]);
@@ -176,9 +207,15 @@ export default function ChatDetailPage() {
     <div className="flex flex-col h-svh bg-white relative overflow-hidden text-gray-900">
       
       {/* ZEGO Container for Calls */}
-      <div ref={zegoContainerRef} className={cn("absolute inset-0 z-[200] bg-black", callStatus === 'ongoing' ? 'block' : 'hidden')} />
+      <div 
+        ref={zegoContainerRef} 
+        className={cn(
+          "absolute inset-0 z-[200] bg-black transition-opacity duration-300", 
+          callStatus === 'ongoing' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        )} 
+      />
 
-      {/* CALL UI OVERLAYS */}
+      {/* CALL UI OVERLAYS (Ringing/Incoming) */}
       {(callStatus === 'calling' || callStatus === 'incoming') && (
         <div className="absolute inset-0 z-[300] bg-black flex flex-col items-center justify-between py-24 px-8 text-white">
           <div className="flex flex-col items-center gap-6 mt-10">
