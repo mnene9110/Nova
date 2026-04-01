@@ -5,7 +5,7 @@ import { FirebaseClientProvider } from "@/firebase"
 import Script from 'next/script';
 
 export const viewport: Viewport = {
-  themeColor: '#B36666',
+  themeColor: '#B36666', // Pale maroon to match top of screens
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -46,10 +46,13 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <FirebaseClientProvider>
+          {/* Global Top Loader */}
+          <div className="top-loader">
+            <div className="top-loader-bar"></div>
+          </div>
+          
           <div className="app-container">
-            <div className="app-content">
-              {children}
-            </div>
+            {children}
           </div>
         </FirebaseClientProvider>
         <Toaster />
