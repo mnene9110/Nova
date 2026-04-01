@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ChevronLeft, Video, Send, Phone, Loader2, MoreVertical, Gift, PhoneOff } from "lucide-react"
+import { ChevronLeft, Video, Send, Phone, Loader2, MoreVertical, Gift, PhoneOff, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -13,6 +13,7 @@ import { doc } from "firebase/firestore"
 import { ref, push, onValue, serverTimestamp as rtdbTimestamp, update, set, remove } from "firebase/database"
 import { cn } from "@/lib/utils"
 import { getZegoConfig } from "@/app/actions/zego"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 let ZegoUIKitPrebuilt: any = null;
 
@@ -26,6 +27,7 @@ export default function ChatDetailPage() {
   
   const scrollRef = useRef<HTMLDivElement>(null)
   const zegoContainerRef = useRef<HTMLDivElement>(null)
+  const localStreamRef = useRef<MediaStream | null>(null)
   
   const [inputText, setInputText] = useState("")
   const [callStatus, setCallStatus] = useState<'idle' | 'ringing' | 'calling' | 'ongoing' | 'incoming'>('idle')
@@ -33,6 +35,7 @@ export default function ChatDetailPage() {
   const [zegoInstance, setZegoInstance] = useState<any>(null)
   const [messages, setMessages] = useState<any[]>([])
   const [presence, setPresence] = useState<{ online: boolean; lastSeen?: number }>({ online: false })
+  const [hasPermissionError, setHasPermissionError] = useState(false)
   
   const chatId = currentUser && otherUserId ? [currentUser.uid, otherUserId].sort().join("_") : ""
   const otherUserRef = useMemoFirebase(() => otherUserId ? doc(firestore, "userProfiles", otherUserId) : null, [firestore, otherUserId])
@@ -47,6 +50,15 @@ export default function ChatDetailPage() {
   }, []);
 
   const stopAllMedia = () => {
+    // Stop local media tracks to ensure camera/mic are disabled
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(track => {
+        track.stop();
+        console.log(`Stopped track: ${track.kind}`);
+      });
+      localStreamRef.current = null;
+    }
+
     if (zegoInstance) {
       try { 
         zegoInstance.destroy(); 
@@ -57,11 +69,33 @@ export default function ChatDetailPage() {
     }
   };
 
-  useEffect(() => { return () => stopAllMedia(); }, []);
+  useEffect(() => { 
+    return () => stopAllMedia(); 
+  }, []);
 
   const initiateZegoCall = async (roomID: string) => {
     if (!ZegoUIKitPrebuilt || !currentUser || !zegoContainerRef.current) return;
     
+    // Explicitly request camera and microphone permissions before joining
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: callType === 'video',
+        audio: true
+      });
+      localStreamRef.current = stream;
+      setHasPermissionError(false);
+    } catch (error) {
+      console.error('Error accessing media devices:', error);
+      setHasPermissionError(true);
+      toast({
+        variant: 'destructive',
+        title: 'Call Access Denied',
+        description: `Please enable ${callType === 'video' ? 'camera and ' : ''}microphone permissions in your browser settings to continue.`,
+      });
+      handleEndCall();
+      return;
+    }
+
     const { appID, serverSecret } = await getZegoConfig();
     if (!appID || !serverSecret) {
       toast({ variant: "destructive", title: "Config Error", description: "ZegoCloud configuration is missing." });
@@ -86,32 +120,23 @@ export default function ChatDetailPage() {
         scenario: {
           mode: ZegoUIKitPrebuilt.OneONoneCall,
         },
-        // DEFAULT STATES
         turnOnMicrophoneWhenJoining: true,
         turnOnCameraWhenJoining: callType === 'video',
-        
-        // BUTTON CONTROLS
         showMyCameraToggleButton: callType === 'video',
         showMyMicrophoneToggleButton: true,
         showAudioVideoSettingsButton: true,
         showScreenSharingButton: false,
         showTextChat: false,
         showUserList: false,
-        
-        // CALL CONTROL
         showLeaveRoomConfirmDialog: true,
         showOnlyAudioUser: true,
-        
-        // UI DISPLAY
         maxUsers: 2,
         layout: "Auto",
-
-        // CALLBACKS
         onJoinRoom: () => {
-          console.log("Joined room");
+          console.log("Joined Zego room");
         },
         onLeaveRoom: () => {
-          console.log("Left room");
+          console.log("Left Zego room");
           handleEndCall();
         },
       });
@@ -179,6 +204,7 @@ export default function ChatDetailPage() {
     if (!database || !chatId) return
     remove(ref(database, `calls/${chatId}`))
     setCallStatus('idle')
+    stopAllMedia();
   }
 
   const handleEndCall = () => {
@@ -255,6 +281,16 @@ export default function ChatDetailPage() {
                 {callStatus === 'calling' ? `Calling (${callType})...` : `Incoming ${callType} call...`}
               </p>
             </div>
+            
+            {hasPermissionError && (
+              <Alert variant="destructive" className="mt-4 bg-red-900/50 border-red-500 text-white">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Permission Required</AlertTitle>
+                <AlertDescription>
+                  Please allow camera and microphone access to start the call.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
 
           <div className="flex items-center gap-12 mb-10">
@@ -301,7 +337,7 @@ export default function ChatDetailPage() {
             <AvatarImage src={otherUserImage} className="object-cover" />
             <AvatarFallback>{otherUser.username?.[0]}</AvatarFallback>
           </Avatar>
-          <div className="flex flex-col">
+          <div className="flex flex-col text-center">
             <h3 className="font-bold text-[13px] text-gray-900 leading-none mb-1">{otherUser.username}</h3>
             <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">
               {presence.online ? 'Online' : 'Offline'}
