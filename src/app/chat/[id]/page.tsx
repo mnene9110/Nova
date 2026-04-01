@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ChevronLeft, Video, Send, Phone, Loader2 } from "lucide-react"
+import { ChevronLeft, Video, Send, Phone, Loader2, MoreVertical, Gift } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -151,52 +151,110 @@ export default function ChatDetailPage() {
 
   return (
     <div className="flex flex-col h-svh bg-black relative overflow-hidden text-white">
-      <header className="px-2 py-1.5 bg-black/80 backdrop-blur-md flex items-center justify-between sticky top-0 z-10 border-b border-white/5">
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8 rounded-full text-white"><ChevronLeft className="w-5 h-5" /></Button>
-          <div className="flex items-center gap-2">
-            <Avatar className="w-7 h-7">
-              <AvatarImage src={otherUserImage} className="object-cover" />
-              <AvatarFallback>{otherUser.username?.[0]}</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <h3 className="font-bold text-[11px] leading-none">{otherUser.username}</h3>
-              <span className="text-[7px] text-white/40 font-black uppercase tracking-tight">{presence.online ? 'Online' : 'Offline'}</span>
-            </div>
+      {/* ZEGO Container for Calls */}
+      <div ref={zegoContainerRef} className={cn("absolute inset-0 z-[100] bg-black", callStatus === 'ongoing' ? 'block' : 'hidden')} />
+
+      {/* Header Redesigned */}
+      <header className="px-6 pt-10 pb-4 bg-black flex items-center justify-between sticky top-0 z-10 border-none">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => router.back()} 
+          className="h-12 w-12 rounded-full bg-white/5 text-white/60 hover:bg-white/10"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </Button>
+
+        <div className="flex items-center gap-3">
+          <Avatar className="w-11 h-11 border border-white/10">
+            <AvatarImage src={otherUserImage} className="object-cover" />
+            <AvatarFallback>{otherUser.username?.[0]}</AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <h3 className="font-bold text-sm text-white">{otherUser.username}</h3>
+            <span className="text-[10px] font-black text-green-500 uppercase tracking-widest">
+              {presence.online ? 'Online' : 'Offline'}
+            </span>
           </div>
         </div>
-        <div className="flex items-center gap-0.5">
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-white/40" onClick={() => handleInitiateCall('audio')}><Phone className="w-3.5 h-3.5" /></Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-white/40" onClick={() => handleInitiateCall('video')}><Video className="w-3.5 h-3.5" /></Button>
-        </div>
+
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-12 w-12 rounded-full bg-white/5 text-white/60 hover:bg-white/10"
+        >
+          <MoreVertical className="w-5 h-5" />
+        </Button>
       </header>
 
-      <ScrollArea className="flex-1 px-3 py-2 bg-black">
-        <div className="flex flex-col gap-2.5">
+      {/* Messages Area */}
+      <ScrollArea className="flex-1 px-4 py-2">
+        <div className="flex flex-col gap-3">
           {messages.map((msg) => {
             const isMe = msg.senderId === currentUser?.uid
             return (
-              <div key={msg.id} className={cn("flex w-full animate-in fade-in", isMe ? "justify-end" : "justify-start")}>
-                <div className={cn("max-w-[80%] px-3 py-1.5 text-[11px] relative shadow-sm", isMe ? "bg-primary text-white rounded-xl rounded-tr-none" : "bg-white/5 text-white rounded-xl rounded-tl-none border border-white/5")}>
-                  <p className="leading-relaxed whitespace-pre-wrap">{msg.messageText}</p>
+              <div key={msg.id} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
+                <div className={cn(
+                  "max-w-[75%] px-4 py-2 text-[13px] font-medium leading-relaxed",
+                  isMe ? "bg-primary text-white rounded-[2rem] rounded-tr-none" : "bg-white/10 text-white rounded-[2rem] rounded-tl-none"
+                )}>
+                  <p className="whitespace-pre-wrap">{msg.messageText}</p>
                 </div>
               </div>
             )
           })}
-          <div ref={scrollRef} className="h-1.5" />
+          <div ref={scrollRef} className="h-4" />
         </div>
       </ScrollArea>
 
-      <footer className="p-2 bg-black border-t border-white/5">
-        <div className="flex items-center gap-2">
+      {/* Footer Redesigned */}
+      <footer className="px-6 py-6 pb-10 space-y-4 bg-black">
+        {/* Input Bar */}
+        <div className="relative group">
           <Input 
             value={inputText} 
             onChange={(e) => setInputText(e.target.value)} 
-            placeholder="Message..." 
-            className="rounded-full h-8.5 bg-white/5 border-none px-4 text-[11px] text-white placeholder:text-white/20" 
+            placeholder="Flow A Message..." 
+            className="rounded-[3rem] h-14 bg-white/5 border-none px-6 text-[13px] text-white placeholder:text-white/20 focus-visible:ring-0" 
             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} 
           />
-          <Button size="icon" className={cn("rounded-full w-8.5 h-8.5 transition-all", inputText.trim() ? "bg-primary" : "bg-white/5 text-white/20")} onClick={() => handleSendMessage()} disabled={!inputText.trim()}><Send className="w-3.5 h-3.5 rotate-45" /></Button>
+          <Button 
+            size="icon" 
+            className={cn(
+              "absolute right-2 top-1/2 -translate-y-1/2 rounded-full w-10 h-10 transition-all",
+              inputText.trim() ? "bg-primary" : "bg-white/10 text-white/20"
+            )} 
+            onClick={() => handleSendMessage()} 
+            disabled={!inputText.trim()}
+          >
+            <Send className="w-4 h-4 rotate-45" />
+          </Button>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-3 gap-3">
+          <button 
+            onClick={() => handleInitiateCall('audio')}
+            className="flex flex-col items-center justify-center gap-1 bg-white/5 h-20 rounded-[2rem] border border-white/5 active:bg-white/10 transition-all"
+          >
+            <Phone className="w-5 h-5 text-white/60" />
+            <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Voice</span>
+          </button>
+
+          <button 
+            onClick={() => handleInitiateCall('video')}
+            className="flex flex-col items-center justify-center gap-1 bg-white/5 h-20 rounded-[2rem] border border-white/5 active:bg-white/10 transition-all"
+          >
+            <Video className="w-5 h-5 text-white/60" />
+            <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Video</span>
+          </button>
+
+          <button 
+            className="flex flex-col items-center justify-center gap-1 bg-white/5 h-20 rounded-[2rem] border border-white/5 active:bg-white/10 transition-all"
+          >
+            <Gift className="w-5 h-5 text-primary" />
+            <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Gift</span>
+          </button>
         </div>
       </footer>
     </div>
