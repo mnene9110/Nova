@@ -1,17 +1,29 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
-import { Mail, Lock, ChevronLeft, Loader2 } from "lucide-react"
+import { Mail, Lock, ChevronLeft, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
 import { useAuth, useUser, initiateEmailSignIn, initiateEmailSignUp } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isPending, setIsPending] = useState(false)
+  const [showLimitDialog, setShowLimitDialog] = useState(false)
+  
   const router = useRouter()
   const auth = useAuth()
   const { user } = useUser()
@@ -28,6 +40,26 @@ export default function LoginPage() {
     }
   }, [user, router])
 
+  const checkAccountLimit = () => {
+    if (typeof window === 'undefined') return false;
+    const uids = JSON.parse(localStorage.getItem('mf_device_uids') || '[]');
+    if (uids.length >= 2) {
+      localStorage.setItem('mf_suspicious', 'true');
+      return true;
+    }
+    return false;
+  }
+
+  const trackUid = (uid: string) => {
+    if (typeof window !== 'undefined') {
+      const uids = JSON.parse(localStorage.getItem('mf_device_uids') || '[]');
+      if (!uids.includes(uid)) {
+        uids.push(uid);
+        localStorage.setItem('mf_device_uids', JSON.stringify(uids));
+      }
+    }
+  }
+
   const handleSignIn = () => {
     if (!email || !password) {
       toast({
@@ -40,6 +72,9 @@ export default function LoginPage() {
 
     setIsPending(true)
     initiateEmailSignIn(auth, email, password)
+      .then((cred) => {
+        trackUid(cred.user.uid);
+      })
       .catch((error: any) => {
         setIsPending(false)
         toast({
@@ -60,8 +95,16 @@ export default function LoginPage() {
       return
     }
 
+    if (checkAccountLimit()) {
+      setShowLimitDialog(true);
+      return;
+    }
+
     setIsPending(true)
     initiateEmailSignUp(auth, email, password)
+      .then((cred) => {
+        trackUid(cred.user.uid);
+      })
       .catch((error: any) => {
         setIsPending(false)
         if (error.code === 'auth/email-already-in-use') {
@@ -156,10 +199,27 @@ export default function LoginPage() {
 
         <footer className="pt-4">
           <p className="text-[13px] text-gray-400 text-center leading-relaxed max-w-[280px]">
-            By signing in, you agree to our <span className="underline cursor-pointer">Terms of Service</span> and <span className="underline cursor-pointer">Privacy Policy</span>.
+            By signing in, you agree to our <span className="underline cursor-pointer">Terms of Service</span> and <span className="underline decoration-gray-200 cursor-pointer">Privacy Policy</span>.
           </p>
         </footer>
       </main>
+
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent className="rounded-[2.5rem] bg-white border-none shadow-2xl p-8 max-w-[90%] mx-auto">
+          <AlertDialogHeader className="flex flex-col items-center gap-4">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center">
+              <AlertCircle className="w-8 h-8 text-red-500" />
+            </div>
+            <AlertDialogTitle className="text-xl font-black font-headline text-gray-900 text-center">Limit Reached</AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-gray-500 font-medium">
+              You have reached the max limit account of account creation on this device.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6">
+            <AlertDialogAction className="w-full h-14 rounded-full bg-zinc-900 text-white font-black">Understood</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

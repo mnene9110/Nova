@@ -43,7 +43,7 @@ export default function FullOnboardingPage() {
       email: user.email,
       dateOfBirth: dob,
       gender,
-      preferredGenders: lookingFor === "both" ? ["male", "female"] : [lookingFor],
+      relationshipGoal: lookingFor,
       location: country,
       profilePhotoUrls: [`https://picsum.photos/seed/${user.uid}/600/800`],
       createdAt: new Date().toISOString(),
@@ -107,16 +107,16 @@ export default function FullOnboardingPage() {
             <Label className="text-xs font-bold uppercase text-muted-foreground/60">Looking for</Label>
             <RadioGroup onValueChange={setLookingFor} className="flex flex-col gap-2">
               <div className="flex items-center space-x-2 bg-secondary/50 px-4 py-3 rounded-xl">
-                <RadioGroupItem value="female" id="look_woman" />
-                <Label htmlFor="look_woman">Women</Label>
+                <RadioGroupItem value="long-term" id="goal_long" />
+                <Label htmlFor="goal_long">Long term</Label>
               </div>
               <div className="flex items-center space-x-2 bg-secondary/50 px-4 py-3 rounded-xl">
-                <RadioGroupItem value="male" id="look_man" />
-                <Label htmlFor="look_man">Men</Label>
+                <RadioGroupItem value="casual" id="goal_casual" />
+                <Label htmlFor="goal_casual">Casual</Label>
               </div>
               <div className="flex items-center space-x-2 bg-secondary/50 px-4 py-3 rounded-xl">
-                <RadioGroupItem value="both" id="look_both" />
-                <Label htmlFor="look_both">Both</Label>
+                <RadioGroupItem value="friendship" id="goal_friend" />
+                <Label htmlFor="goal_friend">Friendship</Label>
               </div>
             </RadioGroup>
           </div>
