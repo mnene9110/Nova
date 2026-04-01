@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef } from "react"
@@ -119,26 +118,26 @@ export default function EditProfilePage() {
     }
   }
 
-  if (isLoading) return <div className="flex h-svh items-center justify-center bg-white"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+  if (isLoading) return <div className="flex h-svh items-center justify-center bg-transparent"><Loader2 className="w-8 h-8 animate-spin text-white" /></div>
 
   return (
-    <div className="flex flex-col min-h-svh bg-white text-gray-900 pb-20">
-      <header className="px-4 py-6 flex items-center sticky top-0 bg-white z-10 border-b border-gray-50">
+    <div className="flex flex-col min-h-svh bg-transparent text-gray-900 pb-32">
+      <header className="px-4 py-6 flex items-center sticky top-0 bg-transparent z-10">
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={() => router.back()} 
-          className="text-gray-900 h-10 w-10 bg-gray-50 rounded-full"
+          className="text-gray-900 h-10 w-10 bg-white/20 backdrop-blur-md rounded-full"
         >
           <ChevronLeft className="w-6 h-6" />
         </Button>
-        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase">Edit Profile</h1>
+        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-white drop-shadow-sm">Edit Profile</h1>
       </header>
 
-      <main className="p-6 space-y-8">
+      <main className="flex-1 p-6 space-y-8 overflow-y-auto">
         <section className="flex flex-col items-center">
           <div className="relative">
-            <Avatar className="w-32 h-32 shadow-xl ring-4 ring-gray-50">
+            <Avatar className="w-32 h-32 shadow-xl ring-4 ring-white/20">
               <AvatarImage src={previewImage || ""} className="object-cover" />
               <AvatarFallback className="bg-primary text-white text-3xl font-black">
                 {formData.username?.[0] || <User className="w-12 h-12" />}
@@ -158,16 +157,16 @@ export default function EditProfilePage() {
               onChange={handleFileChange}
             />
           </div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mt-4">Change Profile Photo</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 mt-4">Change Profile Photo</p>
         </section>
 
-        <section className="space-y-6">
+        <section className="space-y-6 bg-white/40 backdrop-blur-xl p-6 rounded-[2.5rem] border border-white/40 shadow-sm">
           <div className="space-y-2">
             <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Full Name</Label>
             <Input 
               value={formData.username}
               onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-              className="h-14 rounded-2xl bg-gray-50 border-gray-100 text-sm font-bold"
+              className="h-14 rounded-2xl bg-white/60 border-none text-sm font-bold shadow-sm"
               placeholder="Your name"
             />
           </div>
@@ -178,7 +177,7 @@ export default function EditProfilePage() {
               type="date"
               value={formData.dateOfBirth}
               onChange={(e) => setFormData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
-              className="h-14 rounded-2xl bg-gray-50 border-gray-100 text-sm font-bold"
+              className="h-14 rounded-2xl bg-white/60 border-none text-sm font-bold shadow-sm"
             />
           </div>
 
@@ -188,7 +187,7 @@ export default function EditProfilePage() {
               value={formData.location} 
               onValueChange={(val) => setFormData(prev => ({ ...prev, location: val }))}
             >
-              <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-gray-100 text-sm font-bold">
+              <SelectTrigger className="h-14 rounded-2xl bg-white/60 border-none text-sm font-bold shadow-sm">
                 <SelectValue placeholder="Select Country" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl">
@@ -203,7 +202,7 @@ export default function EditProfilePage() {
               value={formData.relationshipGoal} 
               onValueChange={(val) => setFormData(prev => ({ ...prev, relationshipGoal: val }))}
             >
-              <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-gray-100 text-sm font-bold">
+              <SelectTrigger className="h-14 rounded-2xl bg-white/60 border-none text-sm font-bold shadow-sm">
                 <SelectValue placeholder="What are you looking for?" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl">
@@ -217,7 +216,7 @@ export default function EditProfilePage() {
             <Input 
               value={formData.education}
               onChange={(e) => setFormData(prev => ({ ...prev, education: e.target.value }))}
-              className="h-14 rounded-2xl bg-gray-50 border-gray-100 text-sm font-bold"
+              className="h-14 rounded-2xl bg-white/60 border-none text-sm font-bold shadow-sm"
               placeholder="e.g. Bachelor's Degree"
             />
           </div>
@@ -228,7 +227,7 @@ export default function EditProfilePage() {
               value={formData.horoscope} 
               onValueChange={(val) => setFormData(prev => ({ ...prev, horoscope: val }))}
             >
-              <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-gray-100 text-sm font-bold">
+              <SelectTrigger className="h-14 rounded-2xl bg-white/60 border-none text-sm font-bold shadow-sm">
                 <SelectValue placeholder="Your zodiac sign" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl">
@@ -237,16 +236,18 @@ export default function EditProfilePage() {
             </Select>
           </div>
         </section>
+      </main>
 
+      <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-6 bg-white/80 backdrop-blur-xl border-t border-gray-100 z-50">
         <Button 
           onClick={handleSave}
           disabled={isSaving}
-          className="w-full h-16 rounded-full bg-primary text-white font-black text-lg gap-3 shadow-xl active:scale-95 transition-all mt-4"
+          className="w-full h-16 rounded-full bg-primary text-white font-black text-lg gap-3 shadow-xl active:scale-95 transition-all"
         >
           {isSaving ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
           Save Changes
         </Button>
-      </main>
+      </footer>
     </div>
   )
 }
