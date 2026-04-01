@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 232 47% 20%;
-    --card: 0 0% 100%;
-    --card-foreground: 232 47% 20%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 232 47% 20%;
-    --primary: 0 100% 25%; /* Maroon-like primary */
+    --background: 20 14% 4%;
+    --foreground: 0 0% 100%;
+    --card: 20 14% 6%;
+    --card-foreground: 0 0% 100%;
+    --popover: 20 14% 4%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 24 100% 50%; /* Vibrant Orange */
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 100% 25%;
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 74 94% 62%; /* Lime accent */
-    --accent-foreground: 0 0% 0%;
+    --secondary: 20 10% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 20 10% 15%;
+    --muted-foreground: 20 10% 60%;
+    --accent: 24 100% 50%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 100% 25%;
-    --radius: 1.25rem;
+    --border: 20 10% 15%;
+    --input: 20 10% 15%;
+    --ring: 24 100% 50%;
+    --radius: 1.5rem;
   }
 }
 
@@ -32,67 +32,27 @@
     @apply border-border;
   }
   body {
-    @apply bg-white text-foreground selection:bg-primary/20;
+    @apply bg-background text-foreground selection:bg-primary/20 antialiased;
   }
 }
 
-/* Base App Container */
 .app-container {
-  @apply relative min-h-svh w-full max-w-md mx-auto shadow-2xl overflow-hidden flex flex-col bg-white;
-}
-
-/* MatchFlow Branding Watermark */
-.with-watermark::before {
-  content: 'MatchFlow';
-  position: absolute;
-  top: 15%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-10deg);
-  font-size: 3.5rem;
-  font-weight: 400;
-  color: rgba(128, 0, 0, 0.05);
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 0;
-  font-family: 'Pacifico', cursive;
-  letter-spacing: -0.02em;
-}
-
-/* Immersive Gradient for Discover/Profile */
-.bg-immersive {
-  background: linear-gradient(180deg, #800000 0%, #ffffff 40%);
-}
-
-/* Moving Mesh Gradient Utility */
-@keyframes gradient-flow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.bg-moving-gradient {
-  background: linear-gradient(-45deg, #800000, #4a0000, #FFF9C4, #F0E68C);
-  background-size: 400% 400%;
-  animation: gradient-flow 15s ease infinite;
-}
-
-.app-content {
-  @apply relative z-10 flex flex-col flex-1;
-}
-
-@font-face {
-  font-family: 'Pacifico';
-  src: url('https://fonts.gstatic.com/s/pacifico/v22/FwZY7WnLUMnv47W7-ohS.woff2') format('woff2');
+  @apply relative min-h-svh w-full max-w-md mx-auto shadow-2xl overflow-hidden flex flex-col bg-background;
 }
 
 .font-logo {
   font-family: 'Pacifico', cursive !important;
 }
 
-h1, h2, h3 {
-  @apply font-headline;
-}
-
 .font-headline {
   font-family: 'Space Grotesk', sans-serif;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
