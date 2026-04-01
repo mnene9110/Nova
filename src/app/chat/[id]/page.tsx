@@ -29,6 +29,7 @@ export default function ChatDetailPage() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const zegoContainerRef = useRef<HTMLDivElement>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
+  const ringtoneRef = useRef<HTMLAudioElement | null>(null)
   
   const [inputText, setInputText] = useState("")
   const [isSending, setIsSending] = useState(false)
@@ -61,6 +62,9 @@ export default function ChatDetailPage() {
       import('@zegocloud/zego-uikit-prebuilt').then((module) => {
         ZegoUIKitPrebuilt = module.ZegoUIKitPrebuilt;
       });
+      // Initialize ringtone audio
+      ringtoneRef.current = new Audio("/ringtone.mp3");
+      ringtoneRef.current.loop = true;
     }
   }, []);
 
@@ -82,7 +86,21 @@ export default function ChatDetailPage() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const stopRingtone = () => {
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
+    }
+  };
+
+  const playRingtone = () => {
+    if (ringtoneRef.current) {
+      ringtoneRef.current.play().catch(e => console.log("Audio play deferred", e));
+    }
+  };
+
   const stopAllMedia = () => {
+    stopRingtone();
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => {
         track.stop();
@@ -147,7 +165,7 @@ export default function ChatDetailPage() {
 
       zp.joinRoom({
         container: zegoContainerRef.current,
-        showPreJoinView: false, // Skip "Join Room" screen
+        showPreJoinView: false,
         turnOnMicrophoneWhenJoining: true,
         turnOnCameraWhenJoining: callType === 'video',
         showMyCameraToggleButton: callType === 'video',
@@ -199,12 +217,14 @@ export default function ChatDetailPage() {
       setCallType(data.callType || 'video')
       
       if (data.status === 'ringing') {
+        playRingtone();
         if (data.callerId === currentUser.uid) {
           setCallStatus('calling')
         } else {
           setCallStatus('incoming')
         }
       } else if (data.status === 'accepted') {
+        stopRingtone();
         if (callStatus !== 'ongoing') {
           setCallStatus('ongoing')
           initiateZegoCall(chatId);
