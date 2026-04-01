@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -11,6 +10,10 @@ import { ref, onValue } from "firebase/database"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 
+/**
+ * @fileOverview Discovery screen for finding matches.
+ * Optimized to remove layout shifts and loading "blinks" by maintaining a consistent background.
+ */
 export default function DiscoverPage() {
   const [activeTab, setActiveTab] = useState<'recommend' | 'nearby'>('recommend')
   const { firestore, database } = useFirebase()
@@ -55,7 +58,6 @@ export default function DiscoverPage() {
     : users;
 
   const darkMaroon = "bg-[#5A1010]";
-  const isLoading = isProfilesLoading || isBlockedLoading
 
   return (
     <div className="flex flex-col min-h-svh pb-32 bg-transparent">
@@ -104,7 +106,7 @@ export default function DiscoverPage() {
       </div>
 
       <main className="px-4 grid grid-cols-2 gap-3 pb-8">
-        {!isLoading && displayUsers.map((user) => (
+        {displayUsers.map((user) => (
           <div key={user.id} className="group relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden bg-white/20 shadow-md transition-transform active:scale-95">
             <div onClick={() => router.push(`/profile/${user.id}`)} className="absolute inset-0 z-0">
               <Image src={user.image} alt={user.name} fill className="object-cover transition-transform group-hover:scale-110 duration-700" />

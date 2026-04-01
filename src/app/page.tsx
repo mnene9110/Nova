@@ -1,29 +1,29 @@
-
 "use client"
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/firebase"
 
+/**
+ * @fileOverview Root entry point that handles initial routing.
+ * Optimized to prevent "blinking" by matching the global background theme.
+ */
 export default function Home() {
   const { user, isUserLoading } = useUser()
   const router = useRouter()
 
   useEffect(() => {
-    // Wait for the auth state to be determined
     if (!isUserLoading) {
       if (user) {
-        // User is already logged in, skip welcome and go to discover
         router.replace("/discover")
       } else {
-        // No user found, take them to the welcome entry point
         router.replace("/welcome")
       }
     }
   }, [user, isUserLoading, router])
 
-  // Show a blank screen during the routing decision to prevent flickering
+  // Use the app's theme background to prevent a white/black flash during transition
   return (
-    <div className="flex h-svh bg-white" />
+    <div className="flex h-svh w-full bg-[#B36666]" />
   )
 }

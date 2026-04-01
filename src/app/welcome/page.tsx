@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -7,6 +6,10 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { useAuth, useUser, initiateAnonymousSignIn } from "@/firebase"
 
+/**
+ * @fileOverview Welcome screen for unauthenticated users.
+ * Optimized for instant feel by matching app theme and minimizing loading UI.
+ */
 export default function WelcomePage() {
   const router = useRouter()
   const auth = useAuth()
@@ -36,10 +39,10 @@ export default function WelcomePage() {
       })
   }
 
-  // Prevent any UI from showing if the user is already logged in or state is loading
-  if (isUserLoading || isLoggingIn || user) {
+  // Minimize visual shifts during login transition
+  if (isUserLoading || user) {
     return (
-      <div className="flex h-svh bg-white" />
+      <div className="flex h-svh w-full bg-[#B36666]" />
     )
   }
 
@@ -71,6 +74,7 @@ export default function WelcomePage() {
             variant="ghost"
             className="w-full h-14 rounded-full bg-white/40 text-gray-900 border border-white/30 hover:bg-white/60 text-base font-black gap-3 transition-all active:scale-95 backdrop-blur-md"
             onClick={handleFastLogin}
+            disabled={isLoggingIn}
           >
             <Zap className="w-5 h-5 fill-current text-primary" />
             Fast Login

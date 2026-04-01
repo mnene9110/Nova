@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
@@ -11,6 +10,11 @@ import { useFirebase, useUser, useCollection, useMemoFirebase } from "@/firebase
 import { ref, onValue } from "firebase/database"
 import { doc, getDoc, collection } from "firebase/firestore"
 import { cn } from "@/lib/utils"
+
+/**
+ * @fileOverview Chat list screen. 
+ * Optimized to remove full-page loading states to prevent "blinking" during navigation.
+ */
 
 function ChatSessionItem({ session }: { session: any }) {
   const { firestore, database } = useFirebase()
@@ -146,17 +150,13 @@ export default function ChatListPage() {
 
       <main className="flex-1 px-3 bg-white rounded-t-[2.5rem] shadow-2xl pt-6">
         <section className="space-y-1">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-              {/* Spinner hidden for cleaner transition */}
-            </div>
-          ) : filteredSessions.length > 0 ? (
+          {filteredSessions.length > 0 ? (
             <div className="flex flex-col gap-1">
               {filteredSessions.map((session) => (
                 <ChatSessionItem key={session.otherUserId} session={session} />
               ))}
             </div>
-          ) : (
+          ) : !isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-400 font-medium gap-4">
               <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center border border-gray-100">
                 <MessageSquare className="w-8 h-8 text-gray-200" />
@@ -165,7 +165,7 @@ export default function ChatListPage() {
                 <p className="text-xs font-bold text-gray-900">No chats yet</p>
               </div>
             </div>
-          )}
+          ) : null}
         </section>
       </main>
 
