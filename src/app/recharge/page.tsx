@@ -182,7 +182,7 @@ function RechargeContent() {
 
 export default function RechargePage() {
   return (
-    <Suspense fallback={<div className="flex h-svh items-center justify-center bg-white"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+    <Suspense fallback={<div className="flex h-svh items-center justify-center bg-transparent" />}>
       <RechargeContent />
     </Suspense>
   )

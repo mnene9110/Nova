@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -77,7 +78,7 @@ export default function DiscoverPage() {
       </div>
 
       {/* Sticky Tab Switcher */}
-      <div className="sticky top-0 z-30 px-4 py-6 bg-white/20 backdrop-blur-xl">
+      <div className="sticky top-0 z-30 px-4 py-6 bg-transparent">
         <div className="flex items-center gap-3">
           <div className="flex-1 h-14 bg-white/40 backdrop-blur-md border border-white/30 rounded-full p-1 flex items-center shadow-lg shadow-black/5">
             <button 

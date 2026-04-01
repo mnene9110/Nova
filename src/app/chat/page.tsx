@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { Navbar } from "@/components/Navbar"
-import { Loader2, MessageSquare, ChevronRight } from "lucide-react"
+import { MessageSquare, ChevronRight } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -121,8 +121,6 @@ export default function ChatListPage() {
     })
   }, [database, currentUser])
 
-  // ASYMMETRICAL BLOCKING: I only hide people I have blocked from my chat list.
-  // People who blocked me will still see the chat session in their list (restricted when opened).
   const blockedIds = new Set(blockedUsers?.map(b => b.id) || [])
   const filteredSessions = sessions.filter(s => !blockedIds.has(s.otherUserId))
 
@@ -143,8 +141,7 @@ export default function ChatListPage() {
         <section className="space-y-1">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Syncing...</p>
+              {/* Spinner hidden for cleaner transition */}
             </div>
           ) : filteredSessions.length > 0 ? (
             <div className="flex flex-col gap-1">
