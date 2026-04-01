@@ -42,7 +42,8 @@ export function Navbar() {
     "/onboarding/full",
     "/recharge",
     "/settings",
-    "/admin"
+    "/admin",
+    "/support"
   ]
   
   const shouldHide = 
