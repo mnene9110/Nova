@@ -34,8 +34,8 @@ function ChatDetailContent() {
   const localStreamRef = useRef<MediaStream | null>(null)
   const ringtoneRef = useRef<HTMLAudioElement | null>(null)
   const zegoInitializingRef = useRef(false)
-  const [mounted, setMounted] = useState(false)
   
+  const [mounted, setMounted] = useState(false)
   const [inputText, setInputText] = useState("")
   const [isSending, setIsSending] = useState(false)
   const [callStatus, setCallStatus] = useState<'idle' | 'ringing' | 'calling' | 'incoming' | 'ongoing'>('idle')
@@ -58,7 +58,7 @@ function ChatDetailContent() {
   const { data: iBlockedThem } = useDoc(myBlockRef)
 
   const theirBlockRef = useMemoFirebase(() => currentUser && otherUserId ? doc(firestore, "userProfiles", otherUserId, "blockedUsers", currentUser.uid) : null, [firestore, currentUser, otherUserId])
-  const { data: theyBlockedMe } = useDoc(theirBlockMe)
+  const { data: theyBlockedMe } = useDoc(theirBlockRef)
 
   const presenceText = useMemo(() => {
     if (presence.online) return "Online";
@@ -220,7 +220,7 @@ function ChatDetailContent() {
       zp.joinRoom({
         container: zegoContainerRef.current,
         showPreJoinView: false,
-        turnOnMicrophoneWhenJoining: true, // Mic is added now that status is 'accepted'
+        turnOnMicrophoneWhenJoining: true, // Activated only when call is accepted
         turnOnCameraWhenJoining: callType === 'video',
         showMyCameraToggleButton: false,
         showMyMicrophoneToggleButton: false,
@@ -256,9 +256,6 @@ function ChatDetailContent() {
       }
       setCallType(data.callType || 'video')
       
-      // If we are incoming video call, we might also want to show preview?
-      // For now, only the caller sees their preview during ringing.
-      
       if (data.status === 'ringing') {
         playRingtone();
         setCallStatus(data.callerId === currentUser.uid ? 'calling' : 'incoming')
@@ -293,7 +290,7 @@ function ChatDetailContent() {
       return;
     }
 
-    // ACTIVATE CAMERA FOR VIDEO CALL PREVIEW
+    // ACTIVATE CAMERA FOR VIDEO CALL PREVIEW (MIC OFF)
     if (type === 'video') {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
@@ -321,10 +318,6 @@ function ChatDetailContent() {
 
   const handleAcceptCall = async () => {
     if (!firestore || !chatId) return
-    
-    // For incoming video calls, user might want to see their camera before answering too?
-    // User request focused on "When I call a user".
-    
     const callDocRef = doc(firestore, "calls", chatId);
     await updateDoc(callDocRef, { status: 'accepted' });
   }
@@ -454,15 +447,14 @@ function ChatDetailContent() {
     <div className="flex flex-col h-svh bg-white relative overflow-hidden text-gray-900">
       {(callStatus === 'calling' || callStatus === 'incoming') && (
         <div className="absolute inset-0 z-[300] bg-zinc-950 flex flex-col items-center justify-between py-24 px-8 text-white animate-in fade-in duration-500">
-          <div className="absolute inset-0 z-0">
-             {/* Show camera preview for video call initiation */}
+          <div className="absolute inset-0 z-0 overflow-hidden">
              {callType === 'video' && localPreviewStream ? (
                <video 
                  ref={previewVideoRef} 
                  autoPlay 
                  muted 
                  playsInline 
-                 className="w-full h-full object-cover scale-x-[-1] opacity-40" 
+                 className="w-full h-full object-cover scale-x-[-1] opacity-40 blur-[2px]" 
                />
              ) : (
                <div className="w-full h-full bg-zinc-900" />
