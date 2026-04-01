@@ -105,11 +105,11 @@ export default function SettingsPage() {
             <AlertDialogContent className="rounded-[2.5rem] max-w-[85%] md:max-w-sm bg-white border-none shadow-2xl">
               <AlertDialogHeader>
                 <AlertDialogTitle className="font-headline font-black text-xl text-gray-900 text-center">Sign Out?</AlertDialogTitle>
-                <AlertDialogHeader className="text-gray-400 font-medium text-xs leading-relaxed text-center">
+                <AlertDialogDescription className="text-gray-400 font-medium text-xs leading-relaxed text-center">
                   {isGuest 
                     ? "You are currently in Guest Mode. We recommend binding an email to never lose your coins and profile access." 
                     : "Are you sure you want to sign out of your account?"}
-                </AlertDialogHeader>
+                </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter className="flex flex-col gap-2 mt-6">
                 <AlertDialogAction 
@@ -136,7 +136,12 @@ export default function SettingsPage() {
             <span className="w-px h-2 bg-gray-100" />
             <span className="cursor-pointer hover:text-primary transition-colors">Terms</span>
             <span className="w-px h-2 bg-gray-100" />
-            <span className="cursor-pointer hover:text-red-500 transition-colors">Delete Account</span>
+            <span 
+              onClick={() => router.push('/settings/delete-account')}
+              className="cursor-pointer hover:text-red-500 transition-colors"
+            >
+              Delete Account
+            </span>
           </div>
         </div>
       </footer>
