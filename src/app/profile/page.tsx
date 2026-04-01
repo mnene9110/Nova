@@ -93,7 +93,7 @@ export default function ProfilePage() {
   const isVerified = !!userProfile?.isVerified
 
   return (
-    <div className="flex flex-col min-h-svh bg-transparent text-gray-900 overflow-y-auto pb-32 transition-opacity duration-300">
+    <div className="flex flex-col h-svh w-full bg-transparent text-gray-900 overflow-y-auto scroll-smooth transition-opacity duration-300">
       <header className="flex flex-col items-center pt-12 pb-8 px-6 shrink-0 relative">
         <div className="absolute top-12 right-6">
           <Button 
@@ -146,7 +146,7 @@ export default function ProfilePage() {
         )}
       </header>
 
-      <main className="px-6 space-y-6">
+      <main className="flex-1 px-6 space-y-6 pb-44">
         {/* Wallet Section */}
         <div className="bg-white/40 backdrop-blur-md border border-white/40 rounded-[2.5rem] p-6 flex flex-col gap-5 shadow-sm">
           <div className="flex flex-col gap-2 text-center items-center">
