@@ -40,7 +40,9 @@ function PesaPalCallbackContent({ searchParams }: { searchParams: Promise<any> }
         // PesaPal status 1 is Completed/Success
         if (result.status_code === 1 || result.payment_status_description === 'Completed') {
           const amount = result.amount;
-          const coinsToGain = amount * 10;
+          // Pricing logic: 1000 coins for 120 KES (~8.33 coins per KES)
+          // We calculate this based on the paid amount to ensure accuracy
+          const coinsToGain = Math.round((amount / 120) * 1000);
 
           await runTransaction(firestore, async (transaction) => {
             // IDEMPOTENCY CHECK: Ensure this orderTrackingId hasn't been credited yet
@@ -71,9 +73,9 @@ function PesaPalCallbackContent({ searchParams }: { searchParams: Promise<any> }
               id: txRef.id,
               type: "recharge",
               amount: coinsToGain,
-              orderTrackingId: orderTrackingId, // Store ID for future checks
+              orderTrackingId: orderTrackingId,
               transactionDate: new Date().toISOString(),
-              description: `Coin Recharge via PesaPal (Ref: ${orderTrackingId})`
+              description: `Coin Recharge via PesaPal (${coinsToGain} coins)`
             });
           });
 

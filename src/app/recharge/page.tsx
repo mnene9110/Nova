@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
@@ -12,15 +11,15 @@ import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
 const COIN_PACKAGES = [
-  { amount: 500, price: 50, label: "50" },
-  { amount: 1000, price: 100, label: "100" },
-  { amount: 2000, price: 200, label: "200" },
-  { amount: 5000, price: 500, label: "500" },
-  { amount: 10000, price: 1000, label: "1,000" },
-  { amount: 20000, price: 2000, label: "2,000" },
-  { amount: 50000, price: 5000, label: "5,000" },
-  { amount: 100000, price: 10000, label: "10,000" },
-  { amount: 150000, price: 15000, label: "15,000" },
+  { amount: 500, price: 60, label: "60" },
+  { amount: 1000, price: 120, label: "120" },
+  { amount: 2000, price: 240, label: "240" },
+  { amount: 5000, price: 600, label: "600" },
+  { amount: 10000, price: 1200, label: "1,200" },
+  { amount: 20000, price: 2400, label: "2,400" },
+  { amount: 50000, price: 6000, label: "6,000" },
+  { amount: 100000, price: 12000, label: "12,000" },
+  { amount: 150000, price: 18000, label: "18,000" },
 ]
 
 function RechargeContent() {
@@ -57,7 +56,6 @@ function RechargeContent() {
 
   const handleNext = () => {
     if (!selectedPackage) return;
-    // Navigate to payment method selection screen
     router.push(`/recharge/payment-method?amount=${selectedPackage.amount}&price=${selectedPackage.price}`)
   }
 
@@ -126,7 +124,7 @@ function RechargeContent() {
                     <p className={cn("text-sm font-black transition-colors", isSelected ? "text-primary" : "text-gray-900")}>
                       {pkg.amount.toLocaleString()}
                     </p>
-                    <p className="text-[9px] font-bold text-gray-400">{pkg.label}</p>
+                    <p className="text-[9px] font-bold text-gray-400">{pkg.label} KES</p>
                   </div>
                   {isSelected && (
                     <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow-lg">
@@ -146,7 +144,7 @@ function RechargeContent() {
           onClick={handleNext}
           disabled={isLoading || !selectedPackage}
         >
-          Pay {selectedPackage ? `${selectedPackage.label}` : ""}
+          Pay {selectedPackage ? `${selectedPackage.price} KES` : ""}
         </Button>
       </footer>
     </div>

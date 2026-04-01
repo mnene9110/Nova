@@ -2,7 +2,7 @@
 
 import { useState, use, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { CreditCard, Users, Zap, Loader2, ShieldCheck, MessageCircle, ChevronLeft } from "lucide-react"
+import { Users, Zap, Loader2, ShieldCheck, MessageCircle, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useFirebase, useUser, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, query, where } from "firebase/firestore"
