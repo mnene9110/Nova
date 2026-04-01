@@ -62,7 +62,6 @@ export default function ChatDetailPage() {
       import('@zegocloud/zego-uikit-prebuilt').then((module) => {
         ZegoUIKitPrebuilt = module.ZegoUIKitPrebuilt;
       });
-      // Initialize ringtone audio
       ringtoneRef.current = new Audio("/ringtone.mp3");
       ringtoneRef.current.loop = true;
     }
@@ -135,18 +134,12 @@ export default function ChatDetailPage() {
     } catch (error) {
       console.error('Error accessing media devices:', error);
       setHasPermissionError(true);
-      toast({
-        variant: 'destructive',
-        title: 'Call Access Denied',
-        description: `Please enable ${callType === 'video' ? 'camera and ' : ''}microphone permissions in your browser settings to continue.`,
-      });
       handleEndCall();
       return;
     }
 
     const { appID, serverSecret } = await getZegoConfig();
     if (!appID || !serverSecret) {
-      toast({ variant: "destructive", title: "Config Error", description: "ZegoCloud configuration is missing." });
       handleEndCall();
       return;
     }
@@ -189,13 +182,11 @@ export default function ChatDetailPage() {
           console.log("Joined Zego room automatically");
         },
         onLeaveRoom: () => {
-          console.log("Left Zego room");
           handleEndCall();
         },
       });
     } catch (error) {
       console.error("Zego join error:", error);
-      toast({ variant: "destructive", title: "Call Error", description: "Failed to join the call room." });
       handleEndCall();
     }
   };
@@ -355,51 +346,42 @@ export default function ChatDetailPage() {
 
   return (
     <div className="flex flex-col h-svh bg-white relative overflow-hidden text-gray-900">
-      {/* Zego Container with overlay counter */}
-      <div 
-        ref={zegoContainerRef} 
-        className={cn(
-          "absolute inset-0 z-[200] bg-black transition-opacity duration-300", 
-          callStatus === 'ongoing' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        )} 
-      >
-        {callStatus === 'ongoing' && (
-          <div className="absolute top-10 left-1/2 -translate-x-1/2 z-[210] px-4 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/20">
-            <span className="text-white font-black text-xs tracking-widest">{formatDuration(callDuration)}</span>
-          </div>
-        )}
-      </div>
-
+      {/* Call Screen UI Overlay */}
       {(callStatus === 'calling' || callStatus === 'incoming') && (
-        <div className="absolute inset-0 z-[300] bg-zinc-950 flex flex-col items-center justify-between py-24 px-8 text-white">
-          <div className="flex flex-col items-center gap-8 mt-12 w-full">
+        <div className="absolute inset-0 z-[300] bg-zinc-950 flex flex-col items-center justify-between py-24 px-8 text-white animate-in fade-in duration-500">
+          <div className="flex flex-col items-center gap-10 mt-12 w-full">
             <div className="relative">
+              {/* Pulsing rings for ambient call feel */}
               <div className="absolute -inset-8 bg-primary/20 rounded-full animate-ping opacity-20" />
               <div className="absolute -inset-16 bg-primary/10 rounded-full animate-pulse opacity-10" />
-              <Avatar className="w-40 h-40 border-8 border-white/5 shadow-2xl relative z-10">
+              <Avatar className="w-44 h-44 border-[10px] border-white/5 shadow-[0_0_60px_rgba(179,102,102,0.3)] relative z-10 transition-transform duration-1000">
                 <AvatarImage src={otherUserImage} className="object-cover" />
-                <AvatarFallback className="text-4xl">{otherUser.username?.[0]}</AvatarFallback>
+                <AvatarFallback className="text-5xl bg-zinc-900">{otherUser.username?.[0]}</AvatarFallback>
               </Avatar>
             </div>
 
-            <div className="text-center space-y-3">
-              <h2 className="text-3xl font-black font-headline tracking-tight">{otherUser.username}</h2>
-              <div className="flex items-center justify-center gap-2">
-                {callType === 'video' ? <Video className="w-4 h-4 text-primary" /> : <Phone className="w-4 h-4 text-primary" />}
-                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] animate-pulse">
-                  {callStatus === 'calling' ? 'Calling...' : `Incoming ${callType} call`}
-                </p>
+            <div className="text-center space-y-4">
+              <h2 className="text-4xl font-black font-headline tracking-tight text-white">{otherUser.username}</h2>
+              <div className="flex items-center justify-center gap-3">
+                <div className="px-4 py-1.5 bg-white/5 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-2">
+                  {callType === 'video' ? <Video className="w-4 h-4 text-primary" /> : <Phone className="w-4 h-4 text-primary" />}
+                  <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] animate-pulse">
+                    {callStatus === 'calling' ? 'Calling...' : `Incoming ${callType} call`}
+                  </p>
+                </div>
               </div>
             </div>
             
             {hasPermissionError && (
-              <Alert variant="destructive" className="mt-8 bg-red-900/40 border-red-500/50 text-white rounded-[2rem] max-w-xs">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle className="text-xs font-black uppercase">Permission Required</AlertTitle>
-                <AlertDescription className="text-[10px] font-medium opacity-80">
-                  Enable camera and microphone to connect.
-                </AlertDescription>
-              </Alert>
+              <div className="mt-8 bg-red-500/10 border border-red-500/20 px-6 py-4 rounded-[2rem] max-w-xs text-center space-y-2 backdrop-blur-xl">
+                <div className="flex items-center justify-center gap-2 text-red-500">
+                   <AlertCircle className="h-4 w-4" />
+                   <span className="text-xs font-black uppercase tracking-widest">Permission Denied</span>
+                </div>
+                <p className="text-[10px] font-medium text-white/60 leading-relaxed">
+                  Please enable camera and microphone in settings to connect.
+                </p>
+              </div>
             )}
           </div>
 
@@ -409,36 +391,54 @@ export default function ChatDetailPage() {
                 <div className="flex flex-col items-center gap-4">
                   <button 
                     onClick={handleDeclineCall}
-                    className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center shadow-2xl shadow-red-500/40 active:scale-90 transition-all hover:bg-red-600"
+                    className="w-24 h-24 rounded-full bg-red-500/90 flex items-center justify-center shadow-[0_20px_40px_rgba(239,68,68,0.3)] active:scale-90 transition-all hover:bg-red-500 group"
                   >
-                    <PhoneOff className="w-8 h-8 text-white" />
+                    <PhoneOff className="w-10 h-10 text-white group-hover:rotate-12 transition-transform" />
                   </button>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Decline</span>
+                  <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white/30">Decline</span>
                 </div>
                 <div className="flex flex-col items-center gap-4">
                   <button 
                     onClick={handleAcceptCall}
-                    className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center shadow-2xl shadow-green-500/40 active:scale-90 transition-all hover:bg-green-600 animate-bounce"
+                    className="w-24 h-24 rounded-full bg-green-500/90 flex items-center justify-center shadow-[0_20px_40px_rgba(34,197,94,0.3)] active:scale-90 transition-all hover:bg-green-500 group animate-bounce"
                   >
-                    <Phone className="w-8 h-8 text-white" />
+                    <Phone className="w-10 h-10 text-white group-hover:-rotate-12 transition-transform" />
                   </button>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Accept</span>
+                  <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white/30">Accept</span>
                 </div>
               </>
             ) : (
               <div className="flex flex-col items-center gap-4">
                 <button 
                   onClick={handleEndCall}
-                  className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center shadow-2xl shadow-red-500/40 active:scale-90 transition-all hover:bg-red-600"
+                  className="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center border border-white/10 shadow-2xl active:scale-90 transition-all hover:bg-red-500 group"
                 >
-                  <PhoneOff className="w-8 h-8 text-white" />
+                  <PhoneOff className="w-10 h-10 text-white/80 group-hover:text-white transition-colors" />
                 </button>
-                <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Cancel</span>
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white/30">Cancel</span>
               </div>
             )}
           </div>
         </div>
       )}
+
+      {/* Zego Container with overlay counter */}
+      <div 
+        ref={zegoContainerRef} 
+        className={cn(
+          "absolute inset-0 z-[200] bg-black transition-opacity duration-700", 
+          callStatus === 'ongoing' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        )} 
+      >
+        {callStatus === 'ongoing' && (
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[210] px-5 py-2 bg-black/40 backdrop-blur-xl rounded-full border border-white/20 shadow-2xl">
+            <div className="flex items-center gap-3">
+               <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+               <span className="text-white font-black text-sm tracking-[0.2em]">{formatDuration(callDuration)}</span>
+            </div>
+          </div>
+        )}
+      </div>
 
       <header className="px-5 pt-8 pb-4 bg-white flex items-center justify-between sticky top-0 z-10 border-b border-gray-50">
         <Button 
