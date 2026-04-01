@@ -4,7 +4,7 @@ import { useEffect, useRef, use, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { useFirebase, useUser, useMemoFirebase } from "@/firebase"
-import { doc, runTransaction, collection } from "firebase/firestore"
+import { doc, runTransaction, collection, getDocs, query, where } from "firebase/firestore"
 import { getPesaPalTransactionStatus } from "@/app/actions/pesapal"
 import { useToast } from "@/hooks/use-toast"
 
@@ -39,12 +39,22 @@ function PesaPalCallbackContent({ searchParams }: { searchParams: Promise<any> }
         
         // PesaPal status 1 is Completed/Success
         if (result.status_code === 1 || result.payment_status_description === 'Completed') {
-          // PesaPal order details
           const amount = result.amount;
-          // Calculate coins (assuming 1 KES = 10 coins as per package logic)
           const coinsToGain = amount * 10;
 
           await runTransaction(firestore, async (transaction) => {
+            // IDEMPOTENCY CHECK: Ensure this orderTrackingId hasn't been credited yet
+            const txQuery = query(
+              collection(userProfileDocRef, "transactions"), 
+              where("orderTrackingId", "==", orderTrackingId)
+            );
+            const existingTx = await getDocs(txQuery);
+            
+            if (!existingTx.empty) {
+              console.log("Transaction already processed, skipping credit.");
+              return;
+            }
+
             const userDoc = await transaction.get(userProfileDocRef);
             if (!userDoc.exists()) throw new Error("Profile not found");
             
@@ -61,15 +71,16 @@ function PesaPalCallbackContent({ searchParams }: { searchParams: Promise<any> }
               id: txRef.id,
               type: "recharge",
               amount: coinsToGain,
+              orderTrackingId: orderTrackingId, // Store ID for future checks
               transactionDate: new Date().toISOString(),
               description: `Coin Recharge via PesaPal (Ref: ${orderTrackingId})`
             });
           });
 
-          toast({ title: "Success", description: "PesaPal payment verified successfully!" });
+          toast({ title: "Success", description: "Payment confirmed. Balance updated." });
           router.replace("/recharge?status=success");
         } else {
-          toast({ variant: "destructive", title: "Pending/Failed", description: "Transaction is not completed yet." });
+          toast({ variant: "destructive", title: "Pending/Failed", description: "Transaction is not completed." });
           router.replace("/recharge?status=error");
         }
       } catch (error) {
@@ -89,9 +100,9 @@ function PesaPalCallbackContent({ searchParams }: { searchParams: Promise<any> }
         </div>
         <div className="absolute -inset-4 bg-blue-500/10 rounded-full blur-3xl -z-10" />
       </div>
-      <h2 className="text-2xl font-black font-headline text-gray-900 mb-2">Verifying PesaPal Payment</h2>
+      <h2 className="text-2xl font-black font-headline text-gray-900 mb-2">Verifying Payment</h2>
       <p className="text-sm font-medium text-gray-400 uppercase tracking-widest max-w-[200px]">
-        Please wait while we confirm your transaction...
+        Finalizing your coins...
       </p>
     </div>
   )

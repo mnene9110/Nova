@@ -6,7 +6,6 @@ import { CreditCard, Users, Zap, Loader2, ShieldCheck, MessageCircle, ChevronLef
 import { Button } from "@/components/ui/button"
 import { useFirebase, useUser, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, query, where } from "firebase/firestore"
-import { initializePaystackTransaction } from "@/app/actions/paystack"
 import { initializePesaPalTransaction } from "@/app/actions/pesapal"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
@@ -30,28 +29,6 @@ function PaymentMethodContent() {
   }, [firestore])
 
   const { data: coinsellers, isLoading: isSellersLoading } = useCollection(coinsellersQuery)
-
-  const handlePaystack = async () => {
-    if (!user || !amount || !price) return
-    setIsProcessing('paystack')
-    
-    const email = user.email || `guest_${user.uid.slice(0, 8)}@matchflow.app`
-    const result = await initializePaystackTransaction(email, price, {
-      userId: user.uid,
-      packageAmount: amount,
-      username: user.displayName || 'User'
-    })
-
-    if (result.error) {
-      setIsProcessing(null)
-      toast({ variant: "destructive", title: "Error", description: result.error })
-      return
-    }
-
-    if (result.authorization_url) {
-      window.location.href = result.authorization_url
-    }
-  }
 
   const handlePesapal = async () => {
     if (!user || !amount || !price) return
@@ -105,25 +82,8 @@ function PaymentMethodContent() {
         </section>
 
         <section className="space-y-4">
-          <h3 className="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em] ml-2">Digital Payments</h3>
+          <h3 className="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em] ml-2">Digital Gateway</h3>
           
-          <button 
-            onClick={handlePaystack}
-            disabled={!!isProcessing}
-            className="w-full flex items-center justify-between p-5 bg-white/60 backdrop-blur-md border border-white rounded-[2rem] transition-all active:scale-[0.98] group shadow-sm hover:bg-white disabled:opacity-50"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/5">
-                {isProcessing === 'paystack' ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : <CreditCard className="w-6 h-6 text-primary" />}
-              </div>
-              <div className="flex flex-col items-start">
-                <span className="text-[13px] font-bold text-gray-900">Paystack Checkout</span>
-                <span className="text-[9px] font-black uppercase text-green-500 tracking-widest mt-1">Instant Activation</span>
-              </div>
-            </div>
-            <Zap className="w-4 h-4 text-amber-400 fill-current opacity-30 group-hover:opacity-100 transition-opacity" />
-          </button>
-
           <button 
             onClick={handlePesapal}
             disabled={!!isProcessing}
@@ -138,6 +98,7 @@ function PaymentMethodContent() {
                 <span className="text-[9px] font-black uppercase text-blue-400 tracking-widest mt-1">Live Payments</span>
               </div>
             </div>
+            <Zap className="w-4 h-4 text-amber-400 fill-current opacity-30 group-hover:opacity-100 transition-opacity" />
           </button>
         </section>
 
