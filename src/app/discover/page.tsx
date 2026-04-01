@@ -50,32 +50,32 @@ export default function DiscoverPage() {
     : users;
 
   return (
-    <div className="flex flex-col min-h-svh pb-24 bg-background">
-      {/* Top Feature Cards - Slightly smaller padding */}
+    <div className="flex flex-col min-h-svh pb-24 bg-white">
+      {/* Top Feature Cards */}
       <div className="pt-4 px-4 grid grid-cols-2 gap-3">
-        <button className="flex flex-col items-center justify-center gap-2 bg-primary rounded-[2rem] py-6 shadow-[0_0_15px_rgba(255,107,0,0.2)] group active:scale-95 transition-all">
+        <button className="flex flex-col items-center justify-center gap-2 bg-primary rounded-[2rem] py-6 shadow-xl group active:scale-95 transition-all">
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <span className="text-white font-black text-[9px] tracking-[0.1em] uppercase">Mystery Note</span>
         </button>
 
-        <button className="flex flex-col items-center justify-center gap-2 bg-card border border-white/5 rounded-[2rem] py-6 group active:scale-95 transition-all">
-          <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+        <button className="flex flex-col items-center justify-center gap-2 bg-white border border-gray-100 rounded-[2rem] py-6 group active:scale-95 transition-all">
+          <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
             <ClipboardList className="w-5 h-5 text-primary" />
           </div>
-          <span className="text-muted-foreground font-black text-[9px] tracking-[0.1em] uppercase">Task Center</span>
+          <span className="text-gray-400 font-black text-[9px] tracking-[0.1em] uppercase">Task Center</span>
         </button>
       </div>
 
-      {/* Tab Switcher & Refresh - Slightly smaller heights */}
+      {/* Tab Switcher & Refresh */}
       <div className="px-4 py-6 flex items-center gap-3">
-        <div className="flex-1 h-14 bg-card border border-white/5 rounded-full p-1 flex items-center">
+        <div className="flex-1 h-14 bg-gray-50 border border-gray-100 rounded-full p-1 flex items-center">
           <button 
             onClick={() => setActiveTab('recommend')}
             className={cn(
               "flex-1 h-full rounded-full text-[9px] font-black uppercase tracking-[0.15em] transition-all",
-              activeTab === 'recommend' ? "bg-primary text-white" : "text-muted-foreground"
+              activeTab === 'recommend' ? "bg-primary text-white" : "text-gray-400"
             )}
           >
             Recommend
@@ -84,14 +84,14 @@ export default function DiscoverPage() {
             onClick={() => setActiveTab('nearby')}
             className={cn(
               "flex-1 h-full rounded-full text-[9px] font-black uppercase tracking-[0.15em] transition-all",
-              activeTab === 'nearby' ? "bg-primary text-white" : "text-muted-foreground"
+              activeTab === 'nearby' ? "bg-primary text-white" : "text-gray-400"
             )}
           >
             Nearby
           </button>
         </div>
-        <button className="w-14 h-14 rounded-full bg-card border border-white/5 flex items-center justify-center active:rotate-180 transition-all duration-500">
-          <RotateCcw className="w-4 h-4 text-muted-foreground" />
+        <button className="w-14 h-14 rounded-full bg-white border border-gray-100 flex items-center justify-center active:rotate-180 transition-all duration-500 shadow-sm">
+          <RotateCcw className="w-4 h-4 text-gray-400" />
         </button>
       </div>
 
@@ -101,16 +101,16 @@ export default function DiscoverPage() {
           <div className="col-span-2 flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
         ) : (
           displayUsers.map((user) => (
-            <div key={user.id} className="group relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden bg-card border border-white/5 shadow-lg transition-transform active:scale-95">
+            <div key={user.id} className="group relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden bg-gray-100 shadow-md transition-transform active:scale-95">
               <div onClick={() => router.push(`/profile/${user.id}`)} className="absolute inset-0 z-0">
                 <Image src={user.image} alt={user.name} fill className="object-cover transition-transform group-hover:scale-110 duration-700" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
               </div>
 
               {/* Chat Button Overlay */}
               <button 
                 onClick={(e) => { e.stopPropagation(); router.push(`/chat/${user.id}`); }}
-                className="absolute top-3 right-3 h-8 px-4 bg-black/40 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center z-10"
+                className="absolute top-3 right-3 h-8 px-4 bg-white/20 backdrop-blur-md border border-white/30 rounded-full flex items-center justify-center z-10"
               >
                 <span className="text-[8px] font-black text-white uppercase tracking-[0.1em]">Chat</span>
               </button>
@@ -119,9 +119,9 @@ export default function DiscoverPage() {
               <div className="absolute inset-x-0 bottom-0 p-4 z-10">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <h3 className="text-white font-black text-xs">{user.name}</h3>
-                  <div className={cn("w-1.5 h-1.5 rounded-full", user.isOnline ? "bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]" : "bg-gray-500")} />
+                  <div className={cn("w-1.5 h-1.5 rounded-full", user.isOnline ? "bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]" : "bg-gray-400")} />
                 </div>
-                <div className="flex items-center gap-1 opacity-60">
+                <div className="flex items-center gap-1 opacity-80">
                   <Globe className="w-2.5 h-2.5 text-primary" />
                   <span className="text-[8px] font-bold text-white uppercase tracking-wider">{user.location}</span>
                 </div>
