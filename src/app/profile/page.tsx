@@ -19,7 +19,7 @@ import {
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
-import { useUser, useDoc, useFirestore, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase"
+import { useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase"
 import { doc, collection, query, where, getDocs, limit } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
@@ -32,7 +32,6 @@ export default function ProfilePage() {
   const firestore = useFirestore()
   const { toast } = useToast()
   const [isFindingSupport, setIsFindingSupport] = useState(false)
-  const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false)
 
   const userRef = useMemoFirebase(() => {
     if (!firestore || !currentUser) return null;
@@ -57,32 +56,6 @@ export default function ProfilePage() {
         title: "Copied!",
         description: "User ID copied.",
       });
-    }
-  }
-
-  const handleUpdateAvatar = async () => {
-    if (!currentUser || !firestore || isUpdatingAvatar) return
-    setIsUpdatingAvatar(true)
-    
-    try {
-      const newSeed = Math.floor(Math.random() * 1000)
-      const newUrl = `https://picsum.photos/seed/${newSeed}/600/800`
-      
-      const userDocRef = doc(firestore, "userProfiles", currentUser.uid)
-      await updateDocumentNonBlocking(userDocRef, {
-        profilePhotoUrls: [newUrl],
-        isVerified: false,
-        updatedAt: new Date().toISOString()
-      })
-      
-      toast({
-        title: "Avatar Updated",
-        description: "Verification status has been reset. Please verify again to regain trust.",
-      })
-    } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Could not update avatar." })
-    } finally {
-      setIsUpdatingAvatar(false)
     }
   }
 
@@ -131,11 +104,10 @@ export default function ProfilePage() {
           </Avatar>
           {!isLoading && (
             <button 
-              onClick={handleUpdateAvatar}
-              disabled={isUpdatingAvatar}
-              className="absolute bottom-1 right-1 w-8 h-8 bg-primary rounded-full flex items-center justify-center border-4 border-white shadow-lg active:scale-90 transition-transform disabled:opacity-50"
+              onClick={() => router.push('/profile/edit')}
+              className="absolute bottom-1 right-1 w-8 h-8 bg-primary rounded-full flex items-center justify-center border-4 border-white shadow-lg active:scale-90 transition-transform"
             >
-              {isUpdatingAvatar ? <Loader2 className="w-3 h-3 animate-spin text-white" /> : <Pencil className="w-3.5 h-3.5 text-white" />}
+              <Pencil className="w-3.5 h-3.5 text-white" />
             </button>
           )}
           {isVerified && (

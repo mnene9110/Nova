@@ -52,6 +52,18 @@
           "type": "string",
           "description": "The user's general location for proximity matching."
         },
+        "relationshipGoal": {
+          "type": "string",
+          "description": "What the user is looking for (e.g., Casual, Long-term)."
+        },
+        "education": {
+          "type": "string",
+          "description": "The user's level of education."
+        },
+        "horoscope": {
+          "type": "string",
+          "description": "The user's zodiac sign."
+        },
         "interests": {
           "type": "array",
           "description": "A list of interests and hobbies of the user.",
