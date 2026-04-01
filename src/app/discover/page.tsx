@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
@@ -131,8 +130,8 @@ export default function DiscoverPage() {
   const darkMaroon = "bg-[#5A1010]";
 
   return (
-    <div className="flex flex-col min-h-svh pb-32 bg-transparent">
-      <div className="pt-4 px-4 grid grid-cols-2 gap-3">
+    <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32">
+      <div className="pt-4 px-4 grid grid-cols-2 gap-3 shrink-0">
         <button className={cn("flex flex-col items-center justify-center gap-2 rounded-[2rem] py-6 shadow-xl group active:scale-95 transition-all", darkMaroon)}>
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-white" />
@@ -148,7 +147,7 @@ export default function DiscoverPage() {
         </button>
       </div>
 
-      <div className="sticky top-0 z-30 px-4 py-6 bg-transparent">
+      <div className="sticky top-0 z-30 px-4 py-6 bg-transparent shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex-1 h-14 bg-white/40 backdrop-blur-md border border-white/30 rounded-full p-1 flex items-center shadow-lg shadow-black/5">
             <button 
@@ -176,7 +175,7 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      <main className="px-4 grid grid-cols-2 gap-3 pb-8">
+      <main className="px-4 grid grid-cols-2 gap-3 pb-8 flex-1">
         {displayUsers.map((user) => (
           <div key={user.id} className="group relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden bg-white/20 shadow-md transition-transform active:scale-95" onClick={() => router.push(`/profile/${user.id}`)}>
             <div className="absolute inset-0 z-0">

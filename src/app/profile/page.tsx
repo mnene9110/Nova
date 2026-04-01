@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -93,8 +92,8 @@ export default function ProfilePage() {
   const isVerified = !!userProfile?.isVerified
 
   return (
-    <div className="flex flex-col min-h-svh bg-transparent text-gray-900 pb-24 transition-opacity duration-300">
-      <header className="flex flex-col items-center pt-12 pb-8 px-6">
+    <div className="flex flex-col min-h-svh bg-transparent text-gray-900 overflow-y-auto pb-32 transition-opacity duration-300">
+      <header className="flex flex-col items-center pt-12 pb-8 px-6 shrink-0">
         <div className="relative mb-6">
           <Avatar className="w-28 h-28 shadow-lg bg-gray-50 ring-4 ring-white/20">
             {userImage && <AvatarImage src={userImage} className="object-cover" />}
@@ -135,17 +134,18 @@ export default function ProfilePage() {
         )}
       </header>
 
-      <main className="px-6 space-y-3">
+      <main className="px-6 space-y-6">
+        {/* Wallet Section */}
         <div className="bg-white/40 backdrop-blur-md border border-white/40 rounded-[2.5rem] p-6 flex flex-col gap-5 shadow-sm">
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 text-center items-center">
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
                 <Coins className="w-3 h-3 text-primary" />
               </div>
               <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.15em]">Wallet Balance</span>
             </div>
-            <span className="text-2xl font-black text-gray-900">
-              {userProfile?.coinBalance?.toLocaleString() || "0"}
+            <span className="text-4xl font-black text-gray-900 font-headline">
+              {isLoading ? "..." : (userProfile?.coinBalance || 0).toLocaleString()}
             </span>
           </div>
           
@@ -157,9 +157,10 @@ export default function ProfilePage() {
           </Button>
         </div>
 
-        {/* Support Specific Features */}
-        {!isLoading && userProfile?.isSupport && (
-          <div className="pt-2">
+        {/* Action Buttons Section */}
+        <div className="flex flex-col gap-3">
+          {/* Support Specific Features */}
+          {!isLoading && userProfile?.isSupport && (
             <button 
               onClick={() => router.push('/support/reports')}
               className="w-full h-16 rounded-[2rem] bg-zinc-900 border border-zinc-800 flex items-center px-6 gap-4 active:scale-[0.98] transition-all shadow-xl relative"
@@ -176,12 +177,10 @@ export default function ProfilePage() {
               )}
               <ChevronRight className="w-5 h-5 text-zinc-700" />
             </button>
-          </div>
-        )}
+          )}
 
-        {/* Coinseller Specific Features */}
-        {!isLoading && userProfile?.isCoinseller && (
-          <div className="pt-2">
+          {/* Coinseller Specific Features */}
+          {!isLoading && userProfile?.isCoinseller && (
             <button 
               onClick={() => router.push('/coinseller/award')}
               className="w-full h-16 rounded-[2rem] bg-amber-500/10 border border-amber-500/20 flex items-center px-6 gap-4 active:scale-[0.98] transition-all shadow-sm"
@@ -195,75 +194,82 @@ export default function ProfilePage() {
               </div>
               <ChevronRight className="w-5 h-5 text-amber-500/40" />
             </button>
-          </div>
-        )}
+          )}
 
-        {/* Admin Specific Features */}
-        {!isLoading && userProfile?.isAdmin && (
-          <div className="pt-2 space-y-3">
-             <button 
-              onClick={() => router.push('/admin/award')}
-              className="w-full h-16 rounded-[2rem] bg-primary/10 border border-primary/20 flex items-center px-6 gap-4 active:scale-[0.98] transition-all shadow-sm"
-            >
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-1 text-left">
-                <span className="text-primary font-black uppercase tracking-[0.1em] text-[10px] block">Admin Coin Grant</span>
-                <span className="text-primary/60 text-[11px] font-bold">Unlimited granting</span>
-              </div>
-              <ChevronRight className="w-5 h-5 text-primary/40" />
-            </button>
+          {/* Admin Specific Features */}
+          {!isLoading && userProfile?.isAdmin && (
+            <>
+               <button 
+                onClick={() => router.push('/admin/award')}
+                className="w-full h-16 rounded-[2rem] bg-primary/10 border border-primary/20 flex items-center px-6 gap-4 active:scale-[0.98] transition-all shadow-sm"
+              >
+                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 text-left">
+                  <span className="text-primary font-black uppercase tracking-[0.1em] text-[10px] block">Admin Coin Grant</span>
+                  <span className="text-primary/60 text-[11px] font-bold">Unlimited granting</span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-primary/40" />
+              </button>
 
-            <button 
-              onClick={() => router.push('/admin/roles')}
-              className="w-full h-16 rounded-[2rem] bg-zinc-900 border border-zinc-800 flex items-center px-6 gap-4 active:scale-[0.98] transition-all shadow-xl"
-            >
-              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                <ShieldAlert className="w-5 h-5 text-primary" />
-              </div>
-              <div className="flex-1 text-left">
-                <span className="text-white font-black uppercase tracking-[0.1em] text-[10px] block">Admin Panel</span>
-                <span className="text-zinc-500 text-[11px] font-bold">Manage Roles & Privileges</span>
-              </div>
-              <ChevronRight className="w-5 h-5 text-zinc-700" />
-            </button>
-          </div>
-        )}
+              <button 
+                onClick={() => router.push('/admin/roles')}
+                className="w-full h-16 rounded-[2rem] bg-zinc-900 border border-zinc-800 flex items-center px-6 gap-4 active:scale-[0.98] transition-all shadow-xl"
+              >
+                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                  <ShieldAlert className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 text-left">
+                  <span className="text-white font-black uppercase tracking-[0.1em] text-[10px] block">Admin Panel</span>
+                  <span className="text-zinc-500 text-[11px] font-bold">Manage Roles & Privileges</span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-zinc-700" />
+              </button>
+            </>
+          )}
 
-        <div className="flex flex-col gap-2.5 pt-2">
+          {/* General Buttons */}
           <button 
             onClick={() => router.push('/profile/verify')}
-            className="w-full h-14 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-between px-6 active:bg-white/60 transition-all"
+            className="w-full h-16 rounded-[2rem] bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-between px-6 active:bg-white/60 transition-all shadow-sm"
           >
-            <div className="flex items-center gap-3">
-              <ShieldCheck className={cn("w-4 h-4", isVerified ? "text-blue-500" : "text-gray-400")} />
+            <div className="flex items-center gap-4">
+              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center bg-white/50", isVerified ? "text-blue-500" : "text-gray-400")}>
+                <ShieldCheck className="w-5 h-5" />
+              </div>
               <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px]">
                 {isVerified ? "Identity Verified" : "Verify Identity"}
               </span>
             </div>
             {isVerified ? (
-              <CheckCircle className="w-4 h-4 text-blue-500" />
+              <CheckCircle className="w-5 h-5 text-blue-500" />
             ) : (
-              <ChevronRight className="w-4 h-4 text-gray-300" />
+              <ChevronRight className="w-5 h-5 text-gray-300" />
             )}
           </button>
 
           <button 
             onClick={handleContactSupport}
             disabled={isFindingSupport}
-            className="w-full h-14 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-center gap-3 active:bg-white/60 transition-all disabled:opacity-50"
+            className="w-full h-16 rounded-[2rem] bg-white/40 backdrop-blur-md border border-white/30 flex items-center px-6 gap-4 active:bg-white/60 transition-all shadow-sm disabled:opacity-50"
           >
-            {isFindingSupport ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : <Headset className="w-4 h-4 text-primary" />}
-            <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px]">Customer Support</span>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/10">
+              {isFindingSupport ? <Loader2 className="w-5 h-5 animate-spin text-primary" /> : <Headset className="w-5 h-5 text-primary" />}
+            </div>
+            <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px] flex-1 text-left">Customer Support</span>
+            <ChevronRight className="w-5 h-5 text-gray-300" />
           </button>
           
           <button 
             onClick={() => router.push('/settings')}
-            className="w-full h-14 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-center gap-3 active:bg-white/60 transition-all"
+            className="w-full h-16 rounded-[2rem] bg-white/40 backdrop-blur-md border border-white/30 flex items-center px-6 gap-4 active:bg-white/60 transition-all shadow-sm"
           >
-            <SettingsIcon className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-400 font-black uppercase tracking-[0.1em] text-[10px]">Settings</span>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100">
+              <SettingsIcon className="w-5 h-5 text-gray-400" />
+            </div>
+            <span className="text-gray-400 font-black uppercase tracking-[0.1em] text-[10px] flex-1 text-left">Settings</span>
+            <ChevronRight className="w-5 h-5 text-gray-200" />
           </button>
         </div>
       </main>

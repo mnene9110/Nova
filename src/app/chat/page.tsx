@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
@@ -140,8 +139,8 @@ export default function ChatListPage() {
   const filteredSessions = sessions.filter(s => !blockedIds.has(s.otherUserId))
 
   return (
-    <div className="flex flex-col min-h-svh pb-20 bg-transparent">
-      <header className="bg-transparent pt-8 pb-4 px-6 sticky top-0 z-20">
+    <div className="flex flex-col h-svh pb-20 bg-transparent overflow-y-auto">
+      <header className="bg-transparent pt-8 pb-4 px-6 sticky top-0 z-20 shrink-0">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-logo text-white relative flex items-center gap-2">
             Chats
