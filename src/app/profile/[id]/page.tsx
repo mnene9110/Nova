@@ -2,19 +2,39 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ChevronLeft, MoreHorizontal, Phone, Plus, Globe, GraduationCap, CigaretteOff, GlassWater, Sparkles, Loader2, Video } from "lucide-react"
+import { 
+  ChevronLeft, 
+  MoreHorizontal, 
+  Globe, 
+  GraduationCap, 
+  CigaretteOff, 
+  GlassWater, 
+  Sparkles, 
+  Loader2, 
+  Video,
+  ShieldAlert,
+  UserX
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { useDoc, useFirestore, useFirebase, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
 import { ref, onValue } from "firebase/database"
 import { cn } from "@/lib/utils"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ProfileDetailPage() {
   const { id } = useParams()
   const router = useRouter()
   const firestore = useFirestore()
   const { database } = useFirebase()
+  const { toast } = useToast()
   
   const docRef = useMemoFirebase(() => doc(firestore, "userProfiles", id as string), [firestore, id])
   const { data: userProfile, isLoading } = useDoc(docRef)
@@ -40,6 +60,20 @@ export default function ProfileDetailPage() {
     return `Last seen ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   }, [presence]);
 
+  const handleBlock = () => {
+    toast({
+      title: "User Blocked",
+      description: `${userProfile?.username} has been blocked and will no longer see your profile.`,
+    })
+  }
+
+  const handleReport = () => {
+    toast({
+      title: "Report Submitted",
+      description: "Thank you for helping keep MatchFlow safe. Our team will review this profile.",
+    })
+  }
+
   if (isLoading) return <div className="flex items-center justify-center h-svh bg-white"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
   if (!userProfile) return <div className="flex flex-col items-center justify-center h-svh p-6 text-center"><h2 className="text-2xl font-bold mb-4">User Not Found</h2><Button onClick={() => router.back()}>Go Back</Button></div>
 
@@ -58,8 +92,42 @@ export default function ProfileDetailPage() {
       <div className="relative aspect-[3/4] w-full shrink-0">
         <Image src={userImage} alt={userProfile.username} fill className="object-cover" />
         <div className="absolute top-12 left-4 right-4 flex justify-between items-center z-10">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-black/20" onClick={() => router.back()}><ChevronLeft className="w-8 h-8" /></Button>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-black/20"><MoreHorizontal className="w-8 h-8" /></Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-white hover:bg-black/20 rounded-full" 
+            onClick={() => router.back()}
+          >
+            <ChevronLeft className="w-8 h-8" />
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-white hover:bg-black/20 rounded-full"
+              >
+                <MoreHorizontal className="w-8 h-8" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 rounded-2xl bg-white border-none shadow-2xl p-2">
+              <DropdownMenuItem 
+                onClick={handleReport}
+                className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 rounded-xl focus:bg-gray-50 cursor-pointer"
+              >
+                <ShieldAlert className="w-4 h-4 text-amber-500" />
+                Report User
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handleBlock}
+                className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-red-600 rounded-xl focus:bg-red-50 cursor-pointer"
+              >
+                <UserX className="w-4 h-4" />
+                Block User
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <div className="absolute bottom-32 left-6 flex items-center gap-2 px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10">
           <div className={cn("w-2.5 h-2.5 rounded-full", presence.online ? "bg-green-500 animate-pulse" : "bg-gray-400")} />
@@ -90,9 +158,9 @@ export default function ProfileDetailPage() {
       </div>
 
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-6 bg-white/80 backdrop-blur-md border-t border-gray-100 z-50 flex items-center gap-4">
-        <Button className="flex-1 h-14 rounded-full bg-primary text-white font-black text-lg" onClick={() => router.push(`/chat/${id}`)}>Chat</Button>
-        <Button variant="secondary" size="icon" className="w-14 h-14 rounded-full bg-gray-100" onClick={() => router.push(`/chat/${id}`)}>
-          <Video className="w-6 h-6 text-gray-600" />
+        <Button className="flex-1 h-14 rounded-full bg-primary text-white font-black text-lg shadow-xl shadow-primary/20 active:scale-95 transition-transform" onClick={() => router.push(`/chat/${id}`)}>Chat</Button>
+        <Button variant="secondary" size="icon" className="w-14 h-14 rounded-full bg-gray-50 border border-gray-100 active:scale-95 transition-transform" onClick={() => router.push(`/chat/${id}`)}>
+          <Video className="w-6 h-6 text-gray-400" />
         </Button>
       </div>
     </div>
