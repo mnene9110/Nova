@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -14,7 +15,7 @@ export default function WelcomePage() {
 
   useEffect(() => {
     if (user) {
-      router.push("/discover")
+      router.replace("/discover")
     }
   }, [user, router])
 
@@ -35,11 +36,10 @@ export default function WelcomePage() {
       })
   }
 
-  if (isUserLoading || isLoggingIn) {
+  // Prevent any UI from showing if the user is already logged in or state is loading
+  if (isUserLoading || isLoggingIn || user) {
     return (
-      <div className="flex flex-col h-svh bg-white items-center justify-center transition-opacity duration-300 opacity-0">
-        {/* Intentionally blank to prevent flashing loaders */}
-      </div>
+      <div className="flex h-svh bg-white" />
     )
   }
 
@@ -63,6 +63,7 @@ export default function WelcomePage() {
             className="w-full h-14 rounded-full bg-primary text-white hover:bg-primary/90 text-base font-black gap-3 shadow-xl transition-all active:scale-95"
             onClick={() => router.push("/login")}
           >
+            <circle cx="12" cy="12" r="10" className="hidden" />
             <Mail className="w-5 h-5" />
             Continue with Email
           </Button>
