@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ChevronLeft, Video, Send, Phone, Loader2, MoreVertical, Gift, PhoneOff, AlertCircle, Ban } from "lucide-react"
+import { ChevronLeft, Video, Send, Phone, Loader2, MoreVertical, Gift, PhoneOff, AlertCircle, Ban, Mic, MicOff, VideoOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -38,6 +38,7 @@ export default function ChatDetailPage() {
   const [messages, setMessages] = useState<any[]>([])
   const [presence, setPresence] = useState<{ online: boolean; lastSeen?: number }>({ online: false })
   const [hasPermissionError, setHasPermissionError] = useState(false)
+  const [callDuration, setCallDuration] = useState(0)
   
   const chatId = currentUser && otherUserId ? [currentUser.uid, otherUserId].sort().join("_") : ""
   
@@ -47,7 +48,6 @@ export default function ChatDetailPage() {
   const currentUserProfileRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser])
   const { data: currentUserProfile } = useDoc(currentUserProfileRef)
 
-  // Block logic
   const myBlockRef = useMemoFirebase(() => currentUser && otherUserId ? doc(firestore, "userProfiles", currentUser.uid, "blockedUsers", otherUserId) : null, [firestore, currentUser, otherUserId])
   const { data: iBlockedThem } = useDoc(myBlockRef)
 
@@ -63,6 +63,24 @@ export default function ChatDetailPage() {
       });
     }
   }, []);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (callStatus === 'ongoing') {
+      interval = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setCallDuration(0);
+    }
+    return () => clearInterval(interval);
+  }, [callStatus]);
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const stopAllMedia = () => {
     if (localStreamRef.current) {
@@ -129,6 +147,7 @@ export default function ChatDetailPage() {
 
       zp.joinRoom({
         container: zegoContainerRef.current,
+        showPreJoinView: false, // Skip "Join Room" screen
         turnOnMicrophoneWhenJoining: true,
         turnOnCameraWhenJoining: callType === 'video',
         showMyCameraToggleButton: callType === 'video',
@@ -149,7 +168,7 @@ export default function ChatDetailPage() {
         showLeaveRoomConfirmDialog: true,
         showOnlyAudioUser: true,
         onJoinRoom: () => {
-          console.log("Joined Zego room");
+          console.log("Joined Zego room automatically");
         },
         onLeaveRoom: () => {
           console.log("Left Zego room");
@@ -316,65 +335,86 @@ export default function ChatDetailPage() {
 
   return (
     <div className="flex flex-col h-svh bg-white relative overflow-hidden text-gray-900">
+      {/* Zego Container with overlay counter */}
       <div 
         ref={zegoContainerRef} 
         className={cn(
           "absolute inset-0 z-[200] bg-black transition-opacity duration-300", 
           callStatus === 'ongoing' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )} 
-      />
+      >
+        {callStatus === 'ongoing' && (
+          <div className="absolute top-10 left-1/2 -translate-x-1/2 z-[210] px-4 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/20">
+            <span className="text-white font-black text-xs tracking-widest">{formatDuration(callDuration)}</span>
+          </div>
+        )}
+      </div>
 
       {(callStatus === 'calling' || callStatus === 'incoming') && (
-        <div className="absolute inset-0 z-[300] bg-black flex flex-col items-center justify-between py-24 px-8 text-white">
-          <div className="flex flex-col items-center gap-6 mt-10">
+        <div className="absolute inset-0 z-[300] bg-zinc-950 flex flex-col items-center justify-between py-24 px-8 text-white">
+          <div className="flex flex-col items-center gap-8 mt-12 w-full">
             <div className="relative">
-              <Avatar className="w-32 h-32 border-4 border-white/10 shadow-2xl">
+              <div className="absolute -inset-8 bg-primary/20 rounded-full animate-ping opacity-20" />
+              <div className="absolute -inset-16 bg-primary/10 rounded-full animate-pulse opacity-10" />
+              <Avatar className="w-40 h-40 border-8 border-white/5 shadow-2xl relative z-10">
                 <AvatarImage src={otherUserImage} className="object-cover" />
-                <AvatarFallback>{otherUser.username?.[0]}</AvatarFallback>
+                <AvatarFallback className="text-4xl">{otherUser.username?.[0]}</AvatarFallback>
               </Avatar>
-              <div className="absolute -inset-4 bg-primary/20 rounded-full animate-pulse -z-10" />
             </div>
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-black font-headline">{otherUser.username}</h2>
-              <p className="text-xs font-bold text-white/40 uppercase tracking-[0.2em] animate-pulse">
-                {callStatus === 'calling' ? `Calling (${callType})...` : `Incoming ${callType} call...`}
-              </p>
+
+            <div className="text-center space-y-3">
+              <h2 className="text-3xl font-black font-headline tracking-tight">{otherUser.username}</h2>
+              <div className="flex items-center justify-center gap-2">
+                {callType === 'video' ? <Video className="w-4 h-4 text-primary" /> : <Phone className="w-4 h-4 text-primary" />}
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] animate-pulse">
+                  {callStatus === 'calling' ? 'Calling...' : `Incoming ${callType} call`}
+                </p>
+              </div>
             </div>
             
             {hasPermissionError && (
-              <Alert variant="destructive" className="mt-4 bg-red-900/50 border-red-500 text-white">
+              <Alert variant="destructive" className="mt-8 bg-red-900/40 border-red-500/50 text-white rounded-[2rem] max-w-xs">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Permission Required</AlertTitle>
-                <AlertDescription>
-                  Please allow camera and microphone access to start the call.
+                <AlertTitle className="text-xs font-black uppercase">Permission Required</AlertTitle>
+                <AlertDescription className="text-[10px] font-medium opacity-80">
+                  Enable camera and microphone to connect.
                 </AlertDescription>
               </Alert>
             )}
           </div>
 
-          <div className="flex items-center gap-12 mb-10">
+          <div className="flex items-center gap-16 mb-12">
             {callStatus === 'incoming' ? (
               <>
-                <button 
-                  onClick={handleDeclineCall}
-                  className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center shadow-xl active:scale-90 transition-transform"
-                >
-                  <PhoneOff className="w-6 h-6 text-white" />
-                </button>
-                <button 
-                  onClick={handleAcceptCall}
-                  className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center shadow-xl active:scale-90 transition-transform"
-                >
-                  <Phone className="w-6 h-6 text-white" />
-                </button>
+                <div className="flex flex-col items-center gap-4">
+                  <button 
+                    onClick={handleDeclineCall}
+                    className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center shadow-2xl shadow-red-500/40 active:scale-90 transition-all hover:bg-red-600"
+                  >
+                    <PhoneOff className="w-8 h-8 text-white" />
+                  </button>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Decline</span>
+                </div>
+                <div className="flex flex-col items-center gap-4">
+                  <button 
+                    onClick={handleAcceptCall}
+                    className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center shadow-2xl shadow-green-500/40 active:scale-90 transition-all hover:bg-green-600 animate-bounce"
+                  >
+                    <Phone className="w-8 h-8 text-white" />
+                  </button>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Accept</span>
+                </div>
               </>
             ) : (
-              <button 
-                onClick={handleEndCall}
-                className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center shadow-xl active:scale-90 transition-transform"
-              >
-                <PhoneOff className="w-6 h-6 text-white" />
-              </button>
+              <div className="flex flex-col items-center gap-4">
+                <button 
+                  onClick={handleEndCall}
+                  className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center shadow-2xl shadow-red-500/40 active:scale-90 transition-all hover:bg-red-600"
+                >
+                  <PhoneOff className="w-8 h-8 text-white" />
+                </button>
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Cancel</span>
+              </div>
             )}
           </div>
         </div>
