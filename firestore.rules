@@ -13,15 +13,15 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isAuthenticated() && getUserData(request.auth.uid).get('isAdmin', false) == true;
+      return isAuthenticated() && exists(/databases/$(database)/documents/userProfiles/$(request.auth.uid)) && getUserData(request.auth.uid).get('isAdmin', false) == true;
     }
 
     function isSupport() {
-      return isAuthenticated() && getUserData(request.auth.uid).get('isSupport', false) == true;
+      return isAuthenticated() && exists(/databases/$(database)/documents/userProfiles/$(request.auth.uid)) && getUserData(request.auth.uid).get('isSupport', false) == true;
     }
 
     function isCoinseller() {
-      return isAuthenticated() && getUserData(request.auth.uid).get('isCoinseller', false) == true;
+      return isAuthenticated() && exists(/databases/$(database)/documents/userProfiles/$(request.auth.uid)) && getUserData(request.auth.uid).get('isCoinseller', false) == true;
     }
 
     // Helper to check if user is accessing their own document
@@ -41,17 +41,17 @@ service cloud.firestore {
          request.resource.data.get('isSupport', false) == false)
       );
 
-      allow update: if isOwner(userId) && (
-        // Regular users can't change sensitive flags or coins
-        request.resource.data.get('isAdmin', false) == resource.data.get('isAdmin', false) &&
-        request.resource.data.get('isCoinseller', false) == resource.data.get('isCoinseller', false) &&
-        request.resource.data.get('isSupport', false) == resource.data.get('isSupport', false) &&
-        request.resource.data.get('coinBalance', 0) == resource.data.get('coinBalance', 0)
+      allow update: if (
+        isOwner(userId) && (
+          // Regular users can't change roles
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'isCoinseller', 'isSupport']) &&
+          // Balance can only be changed if it's currently 0 (onboarding case) or if it's not being changed at all
+          (request.resource.data.get('coinBalance', 0) == resource.data.get('coinBalance', 0) || 
+           (resource.data.get('coinBalance', 0) == 0 && request.resource.data.get('coinBalance', 0) <= 500))
+        )
       ) || (
-        // Admins can update any profile (e.g., awarding coins or roles)
         isAdmin()
       ) || (
-        // Coinsellers can update other user's coin balance if they are awarded
         isCoinseller() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['coinBalance', 'updatedAt'])
       );
 
@@ -62,7 +62,6 @@ service cloud.firestore {
       }
 
       match /blockedUsers/{blockedId} {
-        // Allow user to check if THEY are blocked by the owner of this profile
         allow get: if isAuthenticated() && (request.auth.uid == userId || request.auth.uid == blockedId);
         allow list: if isOwner(userId);
         allow write: if isOwner(userId);
