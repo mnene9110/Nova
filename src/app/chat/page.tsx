@@ -10,11 +10,6 @@ import { ref, onValue } from "firebase/database"
 import { doc, getDoc, collection } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 
-/**
- * @fileOverview Chat list screen. 
- * Optimized for native-feel: persistent layout, no full-screen loading pops.
- */
-
 function ChatSessionItem({ session }: { session: any }) {
   const { firestore, database } = useFirebase()
   const [otherUserData, setOtherUserData] = useState<any>(null)
@@ -54,9 +49,8 @@ function ChatSessionItem({ session }: { session: any }) {
     return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
   }, [presence]);
 
-  // Handle name display stably
-  const name = otherUserData?.username || `User ${session.otherUserId?.slice(0, 4)}`
-  const image = (otherUserData?.profilePhotoUrls && otherUserData.profilePhotoUrls[0]) || `https://picsum.photos/seed/${session.otherUserId}/100/100`
+  const name = otherUserData?.username || ""
+  const image = (otherUserData?.profilePhotoUrls && otherUserData.profilePhotoUrls[0]) || ""
 
   return (
     <Link 
@@ -64,9 +58,9 @@ function ChatSessionItem({ session }: { session: any }) {
       className="flex items-center gap-3 py-2.5 hover:bg-slate-50/80 rounded-2xl px-2 transition-all group active:scale-[0.98]"
     >
       <div className="relative shrink-0">
-        <Avatar className="w-12 h-12 border border-gray-100 shadow-sm">
-          <AvatarImage src={image} className="object-cover" />
-          <AvatarFallback>{name[0]}</AvatarFallback>
+        <Avatar className="w-12 h-12 border border-gray-100 shadow-sm bg-gray-50">
+          {image && <AvatarImage src={image} className="object-cover" />}
+          <AvatarFallback className="bg-transparent text-gray-300">{name ? name[0] : ''}</AvatarFallback>
         </Avatar>
         <div className={cn(
           "absolute bottom-0 right-0 w-3.5 h-3.5 border-2 border-white rounded-full shadow-sm",
@@ -76,7 +70,7 @@ function ChatSessionItem({ session }: { session: any }) {
 
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-baseline mb-0">
-          <h3 className="font-bold text-sm text-gray-900 truncate font-headline">{name}</h3>
+          <h3 className="font-bold text-sm text-gray-900 truncate font-headline min-h-[1.25rem]">{name}</h3>
           {session.timestamp && (
             <span className="text-[9px] font-bold text-gray-400">
               {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -114,7 +108,6 @@ export default function ChatListPage() {
 
   useEffect(() => {
     if (!database || !currentUser) return
-
     const userChatsRef = ref(database, `users/${currentUser.uid}/chats`)
     return onValue(userChatsRef, (snapshot) => {
       const data = snapshot.val()
@@ -163,14 +156,7 @@ export default function ChatListPage() {
                 <p className="text-xs font-bold text-gray-900">No chats yet</p>
               </div>
             </div>
-          ) : (
-            // Silent placeholder during first load
-            <div className="flex flex-col gap-4 py-4 px-3 opacity-0 animate-in fade-in duration-500 delay-300">
-               {[1,2,3,4].map(i => (
-                 <div key={i} className="h-14 bg-gray-50 rounded-2xl w-full" />
-               ))}
-            </div>
-          )}
+          ) : null}
         </section>
       </main>
     </div>

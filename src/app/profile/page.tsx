@@ -19,10 +19,6 @@ import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-/**
- * @fileOverview Profile screen (Me).
- * Optimized to remove "Loading..." text glitching for a stable UI.
- */
 export default function ProfilePage() {
   const router = useRouter()
   const { user: currentUser } = useUser()
@@ -36,10 +32,10 @@ export default function ProfilePage() {
 
   const { data: userProfile, isLoading } = useDoc(userRef)
 
-  const displayNumericId = userProfile?.numericId || ".......";
+  const displayNumericId = userProfile?.numericId || "";
 
   const copyId = () => {
-    if (displayNumericId !== ".......") {
+    if (displayNumericId) {
       navigator.clipboard.writeText(displayNumericId.toString());
       toast({
         title: "Copied!",
@@ -48,17 +44,17 @@ export default function ProfilePage() {
     }
   }
 
-  const userImage = (userProfile?.profilePhotoUrls && userProfile?.profilePhotoUrls[0]) || `https://picsum.photos/seed/${currentUser?.uid}/400/400`
+  const userImage = (userProfile?.profilePhotoUrls && userProfile?.profilePhotoUrls[0]) || ""
   const darkMaroon = "bg-[#5A1010]";
 
   return (
     <div className="flex flex-col min-h-svh bg-transparent text-gray-900 pb-24 transition-opacity duration-300">
       <header className="flex flex-col items-center pt-12 pb-8 px-6">
         <div className="relative mb-6">
-          <Avatar className="w-28 h-28 shadow-lg">
-            <AvatarImage src={userImage} className="object-cover" />
+          <Avatar className="w-28 h-28 shadow-lg bg-gray-50">
+            {userImage && <AvatarImage src={userImage} className="object-cover" />}
             <AvatarFallback className="bg-primary text-white font-black text-2xl">
-              {userProfile?.username?.[0] || '?'}
+              {userProfile?.username?.[0] || ''}
             </AvatarFallback>
           </Avatar>
           {!isLoading && (
@@ -68,19 +64,19 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* Stable text handling to prevent blinking */}
         <h1 className="text-2xl font-black mb-3 tracking-tight h-8 min-w-[120px] text-center">
-          {userProfile?.username || (isLoading ? "\u00A0" : "Guest User")}
+          {userProfile?.username || ""}
         </h1>
 
-        <button 
-          onClick={copyId}
-          disabled={isLoading}
-          className="flex items-center gap-2 px-5 py-2 bg-white/40 backdrop-blur-md border border-white/30 rounded-full active:bg-white/60 transition-colors"
-        >
-          <span className="text-[10px] font-bold text-green-500 uppercase tracking-[0.2em]">ID: {displayNumericId}</span>
-          <Copy className="w-3 h-3 text-green-500/50" />
-        </button>
+        {displayNumericId && (
+          <button 
+            onClick={copyId}
+            className="flex items-center gap-2 px-5 py-2 bg-white/40 backdrop-blur-md border border-white/30 rounded-full active:bg-white/60 transition-colors"
+          >
+            <span className="text-[10px] font-bold text-green-500 uppercase tracking-[0.2em]">ID: {displayNumericId}</span>
+            <Copy className="w-3 h-3 text-green-500/50" />
+          </button>
+        )}
       </header>
 
       <main className="px-6 space-y-3">

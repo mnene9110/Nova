@@ -73,14 +73,12 @@ export default function ChatDetailPage() {
     }
   }, []);
 
-  // Show camera preview when calling
   useEffect(() => {
     if ((callStatus === 'calling' || callStatus === 'ringing') && callType === 'video' && localVideoRef.current && localStreamRef.current) {
       localVideoRef.current.srcObject = localStreamRef.current;
     }
   }, [callStatus, callType]);
 
-  // Clear unread count when entering chat
   useEffect(() => {
     if (!database || !currentUser || !otherUserId) return
     const unreadRef = ref(database, `users/${currentUser.uid}/chats/${otherUserId}/unreadCount`)
@@ -94,16 +92,11 @@ export default function ChatDetailPage() {
         if (!mounted) return;
         setCallDuration((prev) => {
           const nextVal = prev + 1;
-          
-          // Deduction logic:
-          // 1. Minute 1: Deduct at 11s (10s grace period)
-          // 2. Minute 2+: Deduct at start of each minute (60s, 120s, etc.)
           if (nextVal === 11) {
             handleRecurringDeduction();
           } else if (nextVal > 11 && nextVal % 60 === 0) {
             handleRecurringDeduction();
           }
-          
           return nextVal;
         });
       }, 1000);
@@ -115,30 +108,22 @@ export default function ChatDetailPage() {
 
   const handleRecurringDeduction = async () => {
     if (!currentUser || !firestore || !chatId || !currentUserProfile) return;
-
-    // Female to Male is free
     const isFree = currentUserProfile.isAdmin || 
                    currentUserProfile.isSupport || 
                    currentUserProfile.isCoinseller ||
                    (currentUserProfile.gender === 'female' && otherUser?.gender === 'male');
-
     if (isFree) return;
-
     const costPerMin = callType === 'video' ? 160 : 80;
-
     try {
       await runTransaction(firestore, async (transaction) => {
         const userDoc = await transaction.get(doc(firestore, "userProfiles", currentUser.uid));
         if (!userDoc.exists()) throw new Error("Profile not found");
-        
         const currentBalance = userDoc.data().coinBalance || 0;
         if (currentBalance < costPerMin) throw new Error("INSUFFICIENT_COINS");
-        
         transaction.update(doc(firestore, "userProfiles", currentUser.uid), {
           coinBalance: currentBalance - costPerMin,
           updatedAt: new Date().toISOString()
         });
-
         const txRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
         transaction.set(txRef, {
           id: txRef.id,
@@ -185,10 +170,7 @@ export default function ChatDetailPage() {
 
   const initiateZegoCall = async (roomID: string) => {
     if (!ZegoUIKitPrebuilt || !currentUser || !zegoContainerRef.current || zegoInitializingRef.current) return;
-    
     zegoInitializingRef.current = true;
-    
-    // Ensure we have media before joining Zego
     if (!localStreamRef.current) {
       try {
         localStreamRef.current = await navigator.mediaDevices.getUserMedia({
@@ -196,15 +178,12 @@ export default function ChatDetailPage() {
           audio: true
         });
       } catch (error) {
-        console.error("Media access denied", error);
         handleEndCall();
         return;
       }
     }
-
     const { appID, serverSecret } = await getZegoConfig();
     if (!appID || !serverSecret) { handleEndCall(); return; }
-
     try {
       const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
         appID, 
@@ -213,10 +192,8 @@ export default function ChatDetailPage() {
         currentUser.uid, 
         currentUser.displayName || `User_${currentUser.uid.slice(0, 5)}`
       );
-
       const zp = ZegoUIKitPrebuilt.create(kitToken);
       setZegoInstance(zp);
-
       zp.joinRoom({
         container: zegoContainerRef.current,
         showPreJoinView: false,
@@ -238,14 +215,12 @@ export default function ChatDetailPage() {
         onLeaveRoom: () => handleEndCall(),
       });
     } catch (error) {
-      console.error("Zego join failed", error);
       handleEndCall();
     }
   };
 
   useEffect(() => {
     if (!firestore || !chatId || !currentUser || isBlocked) return
-    
     const callDocRef = doc(firestore, "calls", chatId);
     const unsubscribe = onSnapshot(callDocRef, (snap) => {
       const data = snap.data()
@@ -268,21 +243,16 @@ export default function ChatDetailPage() {
         }
       }
     });
-
     return () => unsubscribe();
   }, [firestore, chatId, currentUser, callStatus, callType, isBlocked]);
 
   const handleInitiateCall = async (type: 'video' | 'audio') => {
     if (!firestore || !chatId || !currentUser || !currentUserProfile || isBlocked) return
     const costPerMin = type === 'video' ? 160 : 80;
-    
-    // Female to Male is free
     const isFree = currentUserProfile.isAdmin || 
                    currentUserProfile.isSupport || 
                    currentUserProfile.isCoinseller ||
                    (currentUserProfile.gender === 'female' && otherUser?.gender === 'male');
-
-    // Start local camera preview immediately
     try {
       localStreamRef.current = await navigator.mediaDevices.getUserMedia({
         video: type === 'video',
@@ -292,15 +262,10 @@ export default function ChatDetailPage() {
       toast({ variant: "destructive", title: "Camera Error", description: "Please allow camera access." });
       return;
     }
-
     try {
-      if (!isFree) {
-        // Must have enough for at least 1 minute
-        if ((currentUserProfile.coinBalance || 0) < costPerMin) {
-          throw new Error("INSUFFICIENT_COINS");
-        }
+      if (!isFree && (currentUserProfile.coinBalance || 0) < costPerMin) {
+        throw new Error("INSUFFICIENT_COINS");
       }
-      
       const callDocRef = doc(firestore, "calls", chatId);
       await setDoc(callDocRef, { 
         callerId: currentUser.uid, 
@@ -316,7 +281,8 @@ export default function ChatDetailPage() {
         toast({
           variant: "destructive",
           title: "Insufficient Balance",
-          description: `Recharge to start this call.`,
+          description: "Recharge to start this call.",
+          duration: 3000,
           action: <Button onClick={() => router.push('/recharge')} size="sm" className="bg-white text-primary">Recharge</Button>
         });
       }
@@ -367,22 +333,15 @@ export default function ChatDetailPage() {
   const handleSendMessage = async () => {
     if (!inputText.trim() || !currentUser || !chatId || !database || !otherUserId || !otherUser || !currentUserProfile || isSending || isBlocked) return
     setIsSending(true)
-    
     const senderGender = currentUserProfile.gender?.toLowerCase() || 'male';
     const receiverGender = otherUser.gender?.toLowerCase() || 'female';
-    
     let isFree = currentUserProfile.isAdmin || 
                  currentUserProfile.isSupport || 
                  currentUserProfile.isCoinseller || 
                  otherUser.isSupport || 
-                 otherUser.isCoinseller;
-    
-    if (senderGender === 'female' && receiverGender === 'male') {
-      isFree = true;
-    }
-
+                 otherUser.isCoinseller ||
+                 (senderGender === 'female' && receiverGender === 'male');
     const messageCost = isFree ? 0 : 15;
-
     try {
       if (messageCost > 0) {
         await runTransaction(firestore, async (transaction) => {
@@ -390,12 +349,10 @@ export default function ChatDetailPage() {
           if (!userDoc.exists()) throw new Error("Profile not found");
           const currentBalance = userDoc.data().coinBalance || 0;
           if (currentBalance < messageCost) throw new Error("INSUFFICIENT_COINS");
-          
           transaction.update(doc(firestore, "userProfiles", currentUser.uid), {
             coinBalance: currentBalance - messageCost,
             updatedAt: new Date().toISOString()
           });
-          
           const txRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
           transaction.set(txRef, {
             id: txRef.id,
@@ -406,7 +363,6 @@ export default function ChatDetailPage() {
           });
         });
       }
-      
       const updates: any = {}
       const msgKey = push(ref(database, `chats/${chatId}/messages`)).key
       const msgData = { messageText: inputText, senderId: currentUser.uid, sentAt: rtdbTimestamp() }
@@ -417,19 +373,23 @@ export default function ChatDetailPage() {
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/otherUserId`] = currentUser.uid
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/chatId`] = chatId
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/unreadCount`] = increment(1)
-      
       await update(ref(database), updates)
       setInputText("")
     } catch (error: any) {
       if (error.message === "INSUFFICIENT_COINS") {
-        toast({ variant: "destructive", title: "Balance Error", description: `Insufficient balance.` });
+        toast({
+          variant: "destructive",
+          title: "Insufficient Coins",
+          description: "Recharge to continue chatting.",
+          duration: 3000,
+          action: <Button onClick={() => router.push('/recharge')} size="sm" className="bg-white text-primary">Recharge</Button>
+        });
       }
     } finally { setIsSending(false) }
   }
 
-  // Header and layout should be stable even while user is loading
   const otherUserImage = (otherUser?.profilePhotoUrls && otherUser.profilePhotoUrls[0]) || `https://picsum.photos/seed/${otherUserId}/200/200`
-  const otherUserName = otherUser?.username || "..."
+  const otherUserName = otherUser?.username || ""
 
   return (
     <div className="flex flex-col h-svh bg-white relative overflow-hidden text-gray-900">
@@ -443,13 +403,12 @@ export default function ChatDetailPage() {
              )}
              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-zinc-950/60" />
           </div>
-
           <div className="relative z-10 flex flex-col items-center gap-10 mt-12 w-full">
             <div className="relative">
               <div className="absolute -inset-8 bg-primary/20 rounded-full animate-ping opacity-20" />
               <Avatar className="w-44 h-44 border-[10px] border-white/5 shadow-2xl">
                 <AvatarImage src={otherUserImage} className="object-cover" />
-                <AvatarFallback className="text-5xl bg-zinc-800">{otherUserName[0]}</AvatarFallback>
+                <AvatarFallback className="text-5xl bg-zinc-800">{otherUserName[0] || '?'}</AvatarFallback>
               </Avatar>
             </div>
             <div className="text-center space-y-4">
@@ -462,7 +421,6 @@ export default function ChatDetailPage() {
               </div>
             </div>
           </div>
-
           <div className="relative z-10 flex items-center gap-16 mb-12">
             {callStatus === 'incoming' ? (
               <>
@@ -490,7 +448,7 @@ export default function ChatDetailPage() {
       <header className="px-5 pt-8 pb-4 bg-white flex items-center justify-between sticky top-0 z-10 border-b border-gray-50">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10 rounded-full bg-gray-50 text-gray-500"><ChevronLeft className="w-5 h-5" /></Button>
         <div className="flex items-center gap-3 cursor-pointer active:opacity-70 transition-opacity flex-1 justify-center mr-10" onClick={() => router.push(`/profile/${otherUserId}`)}>
-          <Avatar className="w-9 h-9 border border-gray-100 shadow-sm"><AvatarImage src={otherUserImage} className="object-cover" /><AvatarFallback>{otherUserName[0]}</AvatarFallback></Avatar>
+          <Avatar className="w-9 h-9 border border-gray-100 shadow-sm"><AvatarImage src={otherUserImage} className="object-cover" /><AvatarFallback>{otherUserName[0] || '?'}</AvatarFallback></Avatar>
           <div className="flex flex-col text-center">
             <h3 className="font-bold text-[13px] text-gray-900 leading-none mb-1 h-3.5">{otherUserName}</h3>
             <span className={cn("text-[9px] font-black uppercase tracking-widest", presence.online ? "text-green-500" : "text-gray-400")}>{presence.online ? "Online" : "Offline"}</span>
