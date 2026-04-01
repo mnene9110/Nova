@@ -38,7 +38,8 @@
 
 .app-container {
   @apply relative min-h-svh w-full max-w-md mx-auto shadow-2xl overflow-hidden flex flex-col;
-  background: linear-gradient(180deg, rgba(128, 0, 0, 0.15) 0%, rgba(255, 255, 255, 1) 40%, rgba(255, 255, 255, 1) 100%);
+  /* Increased intensity: Alpha from 0.15 to 0.6 and extended transition point */
+  background: linear-gradient(180deg, rgba(128, 0, 0, 0.6) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 1) 100%);
 }
 
 .font-logo {
