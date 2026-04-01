@@ -20,16 +20,38 @@ export default function VerifyIdentityPage() {
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null)
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
   const [isVerifying, setIsVerifying] = useState(false)
+  
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
 
   const userRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser])
   const { data: profile } = useDoc(userRef)
 
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
+
   const getCameraPermission = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+      // Request camera with user-facing mode
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: "user",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
+      });
+      
+      streamRef.current = stream;
       setHasCameraPermission(true);
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
@@ -49,13 +71,10 @@ export default function VerifyIdentityPage() {
     getCameraPermission();
   }
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      // Disconnect camera access on unmount
-      if (videoRef.current?.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-      }
+      stopCamera();
     };
   }, []);
 
@@ -63,22 +82,29 @@ export default function VerifyIdentityPage() {
     if (videoRef.current && canvasRef.current) {
       const context = canvasRef.current.getContext('2d');
       if (context) {
+        // Match video dimensions
         canvasRef.current.width = videoRef.current.videoWidth;
         canvasRef.current.height = videoRef.current.videoHeight;
         
-        // Mirror the image for capture as well to match preview
+        // Apply mirror effect to the canvas to match the video preview
         context.translate(canvasRef.current.width, 0);
         context.scale(-1, 1);
         
         context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
-        const dataUri = canvasRef.current.toDataURL('image/jpeg');
+        const dataUri = canvasRef.current.toDataURL('image/jpeg', 0.8);
         setCapturedImage(dataUri);
+        
+        // Optional: stop camera immediately after capture to save resources
+        // stopCamera(); 
       }
     }
   }
 
   const handleRetake = () => {
     setCapturedImage(null);
+    if (!streamRef.current) {
+      getCameraPermission();
+    }
   }
 
   const handleSubmit = async () => {
@@ -88,6 +114,16 @@ export default function VerifyIdentityPage() {
     try {
       const profilePhoto = (profile.profilePhotoUrls && profile.profilePhotoUrls[0]) || "";
       
+      if (!profilePhoto) {
+        toast({
+          variant: "destructive",
+          title: "Missing Profile Photo",
+          description: "Please upload a profile photo before verifying.",
+        });
+        setIsVerifying(false);
+        return;
+      }
+
       const result = await verifyFace({
         profilePhotoUri: profilePhoto,
         livePhotoUri: capturedImage
@@ -99,6 +135,10 @@ export default function VerifyIdentityPage() {
           isVerified: true,
           updatedAt: new Date().toISOString()
         });
+        
+        // Stop camera before leaving
+        stopCamera();
+        
         toast({
           title: "Verification Successful",
           description: "Your identity has been verified! A tick has been added to your profile.",
@@ -123,13 +163,16 @@ export default function VerifyIdentityPage() {
   }
 
   return (
-    <div className="flex flex-col h-svh bg-white text-gray-900 overflow-y-auto">
+    <div className="flex flex-col h-svh bg-white text-gray-900 overflow-y-auto scroll-smooth">
       <header className="px-4 py-6 flex items-center sticky top-0 bg-white z-50 border-b border-gray-50 shrink-0">
         <Button 
           variant="ghost" 
           size="icon" 
-          onClick={() => router.back()} 
-          className="text-gray-900 h-10 w-10 bg-gray-50 rounded-full"
+          onClick={() => {
+            stopCamera();
+            router.back();
+          }} 
+          className="text-gray-900 h-10 w-10 bg-gray-50 rounded-full hover:bg-gray-100"
         >
           <ChevronLeft className="w-6 h-6" />
         </Button>
@@ -138,7 +181,7 @@ export default function VerifyIdentityPage() {
 
       <main className="flex-1 p-6 space-y-8 flex flex-col pb-20">
         {!isStarted ? (
-          <div className="flex-1 flex flex-col items-center justify-center space-y-10 animate-in fade-in slide-in-from-bottom-4">
+          <div className="flex-1 flex flex-col items-center justify-center space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="relative">
               <div className="w-32 h-32 bg-primary/10 rounded-[3rem] flex items-center justify-center border-4 border-primary/20">
                 <ShieldCheck className="w-16 h-16 text-primary" />
@@ -169,7 +212,7 @@ export default function VerifyIdentityPage() {
             </div>
           </div>
         ) : (
-          <div className="space-y-8 animate-in fade-in duration-500 flex flex-col flex-1">
+          <div className="space-y-8 animate-in fade-in duration-700 flex flex-col flex-1">
             <div className="space-y-2 text-center shrink-0">
               <h2 className="text-2xl font-black font-headline">Face Verification</h2>
               <p className="text-sm text-gray-500 font-medium">Please ensure your face is clearly visible within the frame.</p>
