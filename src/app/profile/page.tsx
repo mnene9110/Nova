@@ -63,7 +63,7 @@ export default function ProfilePage() {
       {/* Header Section */}
       <header className="flex flex-col items-center pt-12 pb-8 px-6">
         <div className="relative mb-6">
-          <Avatar className="w-28 h-28 border-4 border-white shadow-lg">
+          <Avatar className="w-28 h-28 shadow-lg">
             <AvatarImage src={userImage} className="object-cover" />
             <AvatarFallback className="bg-primary text-white font-black text-2xl">
               {userProfile?.username?.[0] || '?'}
