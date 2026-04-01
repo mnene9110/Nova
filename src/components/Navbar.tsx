@@ -18,8 +18,8 @@ export function Navbar() {
   ]
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[85%] max-w-sm z-50">
-      <nav className="h-16 bg-white/90 backdrop-blur-3xl border border-gray-100 rounded-full flex items-center justify-around px-5 shadow-2xl">
+    <div className="fixed bottom-0 left-0 w-full z-50">
+      <nav className="h-20 bg-white/95 backdrop-blur-3xl border-t border-gray-100 flex items-center justify-around px-5 pb-[env(safe-area-inset-bottom)]">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href === "/discover" && (pathname === "/" || pathname === "/discover"))
           const Icon = item.icon
@@ -28,12 +28,20 @@ export function Navbar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center gap-1 transition-all duration-300",
-                isActive ? "text-primary scale-105" : "text-gray-400 hover:text-gray-600"
+                "flex flex-col items-center gap-1 transition-all duration-300 flex-1",
+                isActive ? "text-primary" : "text-gray-400 hover:text-gray-600"
               )}
             >
-              <Icon className={cn("w-5 h-5", isActive ? "stroke-[3px]" : "stroke-[2px]")} />
-              <span className={cn("text-[8px] font-black uppercase tracking-[0.1em]", isActive ? "text-primary" : "text-gray-400")}>
+              <div className={cn(
+                "p-2 rounded-2xl transition-all",
+                isActive ? "bg-primary/10 text-primary scale-110" : "bg-transparent"
+              )}>
+                <Icon className={cn("w-5 h-5", isActive ? "stroke-[3px]" : "stroke-[2px]")} />
+              </div>
+              <span className={cn(
+                "text-[9px] font-black uppercase tracking-[0.1em] mt-0.5",
+                isActive ? "text-primary" : "text-gray-400"
+              )}>
                 {item.label}
               </span>
             </Link>
