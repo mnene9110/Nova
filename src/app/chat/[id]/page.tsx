@@ -30,6 +30,7 @@ function ChatDetailContent() {
   
   const scrollRef = useRef<HTMLDivElement>(null)
   const zegoContainerRef = useRef<HTMLDivElement>(null)
+  const previewVideoRef = useRef<HTMLVideoElement>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
   const ringtoneRef = useRef<HTMLAudioElement | null>(null)
   const zegoInitializingRef = useRef(false)
@@ -43,6 +44,7 @@ function ChatDetailContent() {
   const [messages, setMessages] = useState<any[]>([])
   const [presence, setPresence] = useState<{ online: boolean; lastSeen?: number }>({ online: false })
   const [callDuration, setCallDuration] = useState(0)
+  const [localPreviewStream, setLocalPreviewStream] = useState<MediaStream | null>(null)
   
   const chatId = currentUser && otherUserId ? [currentUser.uid, otherUserId].sort().join("_") : ""
   
@@ -56,7 +58,7 @@ function ChatDetailContent() {
   const { data: iBlockedThem } = useDoc(myBlockRef)
 
   const theirBlockRef = useMemoFirebase(() => currentUser && otherUserId ? doc(firestore, "userProfiles", otherUserId, "blockedUsers", currentUser.uid) : null, [firestore, currentUser, otherUserId])
-  const { data: theyBlockedMe } = useDoc(theirBlockRef)
+  const { data: theyBlockedMe } = useDoc(theirBlockMe)
 
   const presenceText = useMemo(() => {
     if (presence.online) return "Online";
@@ -82,6 +84,12 @@ function ChatDetailContent() {
       stopAllMedia();
     }
   }, []);
+
+  useEffect(() => {
+    if (previewVideoRef.current && localPreviewStream) {
+      previewVideoRef.current.srcObject = localPreviewStream;
+    }
+  }, [localPreviewStream]);
 
   useEffect(() => {
     if (initialMsg && currentUser && otherUserId && database && otherUser && !isSending) {
@@ -176,6 +184,10 @@ function ChatDetailContent() {
       localStreamRef.current.getTracks().forEach(track => track.stop());
       localStreamRef.current = null;
     }
+    if (localPreviewStream) {
+      localPreviewStream.getTracks().forEach(track => track.stop());
+      setLocalPreviewStream(null);
+    }
     if (zegoInstance) {
       try { zegoInstance.destroy(); } catch (e) {}
       setZegoInstance(null);
@@ -187,18 +199,10 @@ function ChatDetailContent() {
     if (!ZegoUIKitPrebuilt || !currentUser || !zegoContainerRef.current || zegoInitializingRef.current) return;
     zegoInitializingRef.current = true;
     
-    // MIC/CAMERA TURN ON ONLY WHEN CONNECTED (Joining)
-    if (!localStreamRef.current) {
-      try {
-        localStreamRef.current = await navigator.mediaDevices.getUserMedia({
-          video: callType === 'video',
-          audio: true
-        });
-      } catch (error) {
-        console.error("Media permission error", error);
-        handleEndCall();
-        return;
-      }
+    // Stop early preview before Zego takes over hardware
+    if (localPreviewStream) {
+      localPreviewStream.getTracks().forEach(t => t.stop());
+      setLocalPreviewStream(null);
     }
 
     const { appID, serverSecret } = await getZegoConfig();
@@ -216,7 +220,7 @@ function ChatDetailContent() {
       zp.joinRoom({
         container: zegoContainerRef.current,
         showPreJoinView: false,
-        turnOnMicrophoneWhenJoining: true,
+        turnOnMicrophoneWhenJoining: true, // Mic is added now that status is 'accepted'
         turnOnCameraWhenJoining: callType === 'video',
         showMyCameraToggleButton: false,
         showMyMicrophoneToggleButton: false,
@@ -251,6 +255,10 @@ function ChatDetailContent() {
         return
       }
       setCallType(data.callType || 'video')
+      
+      // If we are incoming video call, we might also want to show preview?
+      // For now, only the caller sees their preview during ringing.
+      
       if (data.status === 'ringing') {
         playRingtone();
         setCallStatus(data.callerId === currentUser.uid ? 'calling' : 'incoming')
@@ -285,8 +293,15 @@ function ChatDetailContent() {
       return;
     }
 
-    // WE DO NOT START MEDIA HERE. We only signal the call.
-    // Hardware is activated in initiateZegoCall after status is 'accepted'.
+    // ACTIVATE CAMERA FOR VIDEO CALL PREVIEW
+    if (type === 'video') {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        setLocalPreviewStream(stream);
+      } catch (e) {
+        console.error("Camera preview failed", e);
+      }
+    }
 
     try {
       const callDocRef = doc(firestore, "calls", chatId);
@@ -306,6 +321,10 @@ function ChatDetailContent() {
 
   const handleAcceptCall = async () => {
     if (!firestore || !chatId) return
+    
+    // For incoming video calls, user might want to see their camera before answering too?
+    // User request focused on "When I call a user".
+    
     const callDocRef = doc(firestore, "calls", chatId);
     await updateDoc(callDocRef, { status: 'accepted' });
   }
@@ -406,7 +425,6 @@ function ChatDetailContent() {
     } finally { setIsSending(false) }
   }
 
-  // Handle Logged Out User State
   if (!isOtherUserLoading && !otherUser) {
     return (
       <div className="flex flex-col items-center justify-center h-svh bg-white p-6 text-center space-y-6">
@@ -437,8 +455,18 @@ function ChatDetailContent() {
       {(callStatus === 'calling' || callStatus === 'incoming') && (
         <div className="absolute inset-0 z-[300] bg-zinc-950 flex flex-col items-center justify-between py-24 px-8 text-white animate-in fade-in duration-500">
           <div className="absolute inset-0 z-0">
-             {/* No hardware camera during calling screen per request */}
-             <div className="w-full h-full bg-zinc-900" />
+             {/* Show camera preview for video call initiation */}
+             {callType === 'video' && localPreviewStream ? (
+               <video 
+                 ref={previewVideoRef} 
+                 autoPlay 
+                 muted 
+                 playsInline 
+                 className="w-full h-full object-cover scale-x-[-1] opacity-40" 
+               />
+             ) : (
+               <div className="w-full h-full bg-zinc-900" />
+             )}
              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-zinc-950/60" />
           </div>
           <div className="relative z-10 flex flex-col items-center gap-10 mt-12 w-full">
