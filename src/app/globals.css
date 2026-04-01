@@ -23,7 +23,7 @@
     --border: 20 10% 15%;
     --input: 20 10% 15%;
     --ring: 24 100% 50%;
-    --radius: 1.5rem;
+    --radius: 1.25rem;
   }
 }
 
@@ -55,4 +55,16 @@
 
 .animate-float {
   animation: float 3s ease-in-out infinite;
+}
+
+.bg-moving-gradient {
+  background: linear-gradient(-45deg, #800000, #400000, #200000, #000000);
+  background-size: 400% 400%;
+  animation: gradient-flow 15s ease infinite;
+}
+
+@keyframes gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }

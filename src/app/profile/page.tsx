@@ -5,17 +5,20 @@ import {
   ChevronRight, 
   Copy, 
   Coins, 
-  ClipboardList, 
-  ShieldCheck, 
   Headset, 
   Loader2,
-  Settings as SettingsIcon
+  Pencil,
+  Wallet,
+  ShieldCheck,
+  ChevronDown
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
 import { useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -36,7 +39,7 @@ export default function ProfilePage() {
   const { data: userProfile, isLoading: isProfileLoading } = useDoc(userRef)
   const { data: coinAccount, isLoading: isCoinsLoading } = useDoc(coinAccountRef)
 
-  const displayNumericId = userProfile?.numericId || currentUser?.uid.slice(-8).toUpperCase();
+  const displayNumericId = userProfile?.numericId || ".......";
 
   const copyId = () => {
     if (displayNumericId) {
@@ -50,114 +53,92 @@ export default function ProfilePage() {
 
   if (isUserLoading || isProfileLoading) {
     return (
-      <div className="flex items-center justify-center h-svh bg-white">
+      <div className="flex items-center justify-center h-svh bg-background">
         <Loader2 className="w-7 h-7 animate-spin text-primary" />
       </div>
     )
   }
 
-  const userImage = (userProfile?.profilePhotoUrls && userProfile?.profilePhotoUrls[0]) || `https://picsum.photos/seed/${currentUser?.uid}/200/200`
-
-  const otherTools = [
-    { label: "Certified", icon: ShieldCheck },
-    { label: "Service", icon: Headset },
-    { label: "Settings", icon: SettingsIcon, href: "/settings" },
-  ]
+  const userImage = (userProfile?.profilePhotoUrls && userProfile?.profilePhotoUrls[0]) || `https://picsum.photos/seed/${currentUser?.uid}/400/400`
 
   return (
-    <div className="flex flex-col min-h-svh bg-slate-50/50 pb-20">
-      <header className="relative pt-12 pb-10 px-6 overflow-hidden bg-moving-gradient rounded-b-[3rem] shadow-2xl">
-        <div className="absolute inset-0 bg-black/10" />
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl" />
-        
-        <div className="flex justify-between items-center relative z-10">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-black font-headline text-white drop-shadow-sm">{userProfile?.username || "Guest"}</h1>
-              <div className="bg-white/20 backdrop-blur-md p-1 rounded-full border border-white/20">
-                <ChevronRight className="w-4 h-4 text-white" />
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2 text-white/60 bg-black/10 w-fit px-3 py-1 rounded-full border border-white/10 backdrop-blur-sm">
-              <span className="text-[10px] font-black tracking-widest uppercase">ID:{displayNumericId}</span>
-              <button 
-                className="p-1 hover:bg-white/20 rounded-full transition-colors"
-                onClick={copyId}
-              >
-                <Copy className="w-3 h-3 text-white" />
-              </button>
-            </div>
-          </div>
-
-          <div className="relative">
-            <Avatar className="w-20 h-20 shadow-2xl border-4 border-white/30 p-0.5 bg-white/10">
-              <AvatarImage src={userImage} className="object-cover rounded-full" />
-              <AvatarFallback className="bg-primary text-white font-black text-2xl">{userProfile?.username?.[0] || '?'}</AvatarFallback>
-            </Avatar>
-            <div className="absolute -bottom-1 -right-1 bg-green-500 w-6 h-6 rounded-full border-4 border-[#800000] z-20" />
-          </div>
+    <div className="flex flex-col min-h-svh bg-background text-white pb-32">
+      {/* Header Section */}
+      <header className="flex flex-col items-center pt-16 pb-10 px-6">
+        <div className="relative mb-8">
+          <Avatar className="w-32 h-32 border-none ring-offset-4 ring-offset-background ring-0">
+            <AvatarImage src={userImage} className="object-cover" />
+            <AvatarFallback className="bg-primary text-white font-black text-3xl">
+              {userProfile?.username?.[0] || '?'}
+            </AvatarFallback>
+          </Avatar>
+          <button className="absolute bottom-1 right-1 w-9 h-9 bg-primary rounded-full flex items-center justify-center border-4 border-background shadow-lg active:scale-90 transition-transform">
+            <Pencil className="w-4 h-4 text-white" />
+          </button>
         </div>
+
+        <h1 className="text-3xl font-black mb-4 tracking-tight">
+          {userProfile?.username || "Guest User"}
+        </h1>
+
+        <button 
+          onClick={copyId}
+          className="flex items-center gap-3 px-6 py-2.5 bg-white/5 border border-white/10 rounded-full active:bg-white/10 transition-colors"
+        >
+          <span className="text-xs font-bold text-white/40 uppercase tracking-[0.2em]">ID: {displayNumericId}</span>
+          <Copy className="w-3.5 h-3.5 text-white/20" />
+        </button>
       </header>
 
-      <main className="px-5 -mt-6 relative z-20 space-y-6">
-        <div 
-          className="bg-white rounded-[2rem] p-5 flex items-center justify-between shadow-xl border border-gray-100 active:scale-[0.98] transition-all cursor-pointer group"
-          onClick={() => router.push('/recharge')}
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-moving-gradient rounded-2xl flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-transform">
-              <Coins className="w-7 h-7 text-white" />
+      {/* Wallet Card */}
+      <main className="px-6 space-y-4">
+        <div className="bg-white/[0.03] border border-white/5 rounded-[3rem] p-8 flex flex-col gap-6">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                <Coins className="w-3.5 h-3.5 text-primary" />
+              </div>
+              <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Wallet Balance</span>
             </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-black text-gray-400 uppercase tracking-widest">My Balance</span>
-              <span className="text-3xl font-black text-gray-900 leading-none mt-1">
-                {isCoinsLoading ? "..." : (coinAccount?.balance || 0).toLocaleString()}
-              </span>
-            </div>
+            <span className="text-3xl font-black">
+              {isCoinsLoading ? "..." : (coinAccount?.balance || 0).toLocaleString()}
+            </span>
           </div>
-          <div className="bg-primary/5 p-3 rounded-2xl">
-            <ChevronRight className="w-5 h-5 text-primary" />
-          </div>
+          
+          <Button 
+            onClick={() => router.push('/recharge')}
+            className="w-full h-16 rounded-[2rem] bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-[0.1em] text-sm"
+          >
+            Recharge
+          </Button>
         </div>
 
-        <section className="bg-white rounded-[2rem] p-6 shadow-lg border border-gray-50">
-          <div className="flex items-center justify-center gap-12">
-            <div className="flex flex-col items-center gap-2 group cursor-pointer">
-              <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center shadow-inner border border-gray-100 group-hover:bg-primary/5 transition-colors">
-                <ClipboardList className="w-7 h-7 text-primary" />
-              </div>
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-tighter">My Tasks</span>
-            </div>
-            <div className="flex flex-col items-center gap-2 group cursor-pointer" onClick={() => router.push('/settings')}>
-              <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center shadow-inner border border-gray-100 group-hover:bg-primary/5 transition-colors">
-                <SettingsIcon className="w-7 h-7 text-gray-400 group-hover:text-primary transition-colors" />
-              </div>
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-tighter">Settings</span>
-            </div>
-          </div>
-        </section>
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-3 pt-4">
+          <button className="w-full h-16 rounded-full bg-[#00FF00] flex items-center justify-center gap-3 active:scale-[0.98] transition-all group">
+            <Wallet className="w-5 h-5 text-black" />
+            <span className="text-black font-black uppercase tracking-[0.1em] text-[11px]">Income</span>
+          </button>
 
-        <section className="space-y-4 px-2">
-          <h2 className="font-headline font-black text-base text-gray-900 flex items-center gap-2">
-            Other Tools
-            <div className="h-px flex-1 bg-gradient-to-r from-gray-100 to-transparent" />
-          </h2>
-          <div className="grid grid-cols-4 gap-6">
-            {otherTools.map((tool) => (
-              <div 
-                key={tool.label} 
-                className="flex flex-col items-center gap-2 group cursor-pointer"
-                onClick={() => tool.href && router.push(tool.href)}
-              >
-                <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-sm border border-gray-100 active:bg-primary/5 transition-all">
-                  <tool.icon className="w-6 h-6 text-gray-400 group-hover:text-primary transition-colors" />
-                </div>
-                <span className="text-[9px] font-black text-gray-400 text-center uppercase tracking-tight">{tool.label}</span>
-              </div>
-            ))}
-          </div>
-        </section>
+          <button className="w-full h-16 rounded-full bg-transparent border border-[#1A3A1A] flex items-center justify-center gap-3 active:bg-[#1A3A1A]/20 transition-all">
+            <Headset className="w-5 h-5 text-[#00FF00]" />
+            <span className="text-[#00FF00] font-black uppercase tracking-[0.1em] text-[11px]">Customer Support</span>
+          </button>
+
+          <button className="w-full h-16 rounded-full bg-transparent border border-white/10 flex flex-col items-center justify-center active:bg-white/5 transition-all">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="w-5 h-5 text-primary" />
+              <span className="text-white/60 font-black uppercase tracking-[0.1em] text-[11px]">Verify Identity</span>
+            </div>
+          </button>
+          
+          <button 
+            onClick={() => router.push('/settings')}
+            className="w-full h-16 rounded-full bg-transparent border border-white/10 flex items-center justify-center gap-3 active:bg-white/5 transition-all"
+          >
+            <span className="text-white/60 font-black uppercase tracking-[0.1em] text-[11px]">Settings</span>
+          </button>
+        </div>
       </main>
 
       <Navbar />
