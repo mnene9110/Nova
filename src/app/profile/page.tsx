@@ -1,6 +1,7 @@
 
 "use client"
 
+import { useState } from "react"
 import { 
   ChevronRight, 
   Copy, 
@@ -9,12 +10,13 @@ import {
   Pencil,
   ShieldCheck,
   Settings as SettingsIcon,
-  ShieldAlert
+  ShieldAlert,
+  Loader2
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
 import { useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase"
-import { doc } from "firebase/firestore"
+import { doc, collection, query, where, getDocs, limit } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -24,6 +26,7 @@ export default function ProfilePage() {
   const { user: currentUser } = useUser()
   const firestore = useFirestore()
   const { toast } = useToast()
+  const [isFindingSupport, setIsFindingSupport] = useState(false)
 
   const userRef = useMemoFirebase(() => {
     if (!firestore || !currentUser) return null;
@@ -41,6 +44,35 @@ export default function ProfilePage() {
         title: "Copied!",
         description: "User ID copied.",
       });
+    }
+  }
+
+  const handleContactSupport = async () => {
+    if (!firestore || isFindingSupport) return
+    setIsFindingSupport(true)
+    
+    try {
+      const q = query(
+        collection(firestore, "userProfiles"), 
+        where("isSupport", "==", true),
+        limit(1)
+      )
+      const snap = await getDocs(q)
+      
+      if (snap.empty) {
+        toast({
+          variant: "destructive",
+          title: "Support Unavailable",
+          description: "No support agents are currently available. Please try again later."
+        })
+      } else {
+        const supportId = snap.docs[0].id
+        router.push(`/chat/${supportId}`)
+      }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Could not connect to support." })
+    } finally {
+      setIsFindingSupport(false)
     }
   }
 
@@ -120,12 +152,16 @@ export default function ProfilePage() {
         )}
 
         <div className="flex flex-col gap-2.5 pt-2">
-          <button className="w-full h-14 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-center gap-3 active:bg-white/60 transition-all">
-            <Headset className="w-4 h-4 text-primary" />
+          <button 
+            onClick={handleContactSupport}
+            disabled={isFindingSupport}
+            className="w-full h-14 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-center gap-3 active:bg-white/60 transition-all disabled:opacity-50"
+          >
+            {isFindingSupport ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : <Headset className="w-4 h-4 text-primary" />}
             <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px]">Customer Support</span>
           </button>
 
-          <button className="w-full h-14 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex flex-col items-center justify-center active:bg-white/60 transition-all">
+          <button className="w-full h-14 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-center gap-3 active:bg-white/60 transition-all">
             <div className="flex items-center gap-3">
               <ShieldCheck className="w-4 h-4 text-green-500" />
               <span className="text-gray-600 font-black uppercase tracking-[0.1em] text-[10px]">Verify Identity</span>

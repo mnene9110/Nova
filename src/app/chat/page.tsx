@@ -44,8 +44,10 @@ function ChatSessionItem({ session }: { session: any }) {
     })
   }, [database, session.otherUserId])
 
-  // Use a stable empty state while loading to prevent name flickering
-  const name = isDataLoaded ? (otherUserData?.username || "User") : ""
+  // Support users always show as Customer Support
+  const name = isDataLoaded 
+    ? (otherUserData?.isSupport ? "Customer Support" : (otherUserData?.username || "User")) 
+    : ""
   const image = (otherUserData?.profilePhotoUrls && otherUserData.profilePhotoUrls[0]) || ""
 
   return (

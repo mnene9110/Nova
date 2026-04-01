@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useRef, useMemo, Suspense } from "react"
@@ -58,7 +59,8 @@ function ChatDetailContent() {
   const theirBlockRef = useMemoFirebase(() => currentUser && otherUserId ? doc(firestore, "userProfiles", otherUserId, "blockedUsers", currentUser.uid) : null, [firestore, currentUser, otherUserId])
   const { data: theyBlockedMe } = useDoc(theirBlockRef)
 
-  const isBlocked = !!iBlockedThem || !!theyBlockedMe
+  const isOtherUserSupport = otherUser?.isSupport === true
+  const isBlocked = !isOtherUserSupport && (!!iBlockedThem || !!theyBlockedMe)
 
   useEffect(() => {
     setMounted(true)
@@ -263,7 +265,7 @@ function ChatDetailContent() {
   }, [firestore, chatId, currentUser, callStatus, callType, isBlocked]);
 
   const handleInitiateCall = async (type: 'video' | 'audio') => {
-    if (!firestore || !chatId || !currentUser || !currentUserProfile || isBlocked) return
+    if (!firestore || !chatId || !currentUser || !currentUserProfile || isBlocked || isOtherUserSupport) return
     const costPerMin = type === 'video' ? 160 : 80;
     const isFree = currentUserProfile.isAdmin || 
                    currentUserProfile.isSupport || 
@@ -406,7 +408,7 @@ function ChatDetailContent() {
   }
 
   const otherUserImage = (otherUser?.profilePhotoUrls && otherUser.profilePhotoUrls[0]) || `https://picsum.photos/seed/${otherUserId}/200/200`
-  const otherUserName = otherUser?.username || "User"
+  const otherUserName = isOtherUserSupport ? "Customer Support" : (otherUser?.username || "User")
 
   const presenceText = useMemo(() => {
     if (presence.online) return "Online";
@@ -474,7 +476,10 @@ function ChatDetailContent() {
 
       <header className="px-5 pt-8 pb-4 bg-white flex items-center justify-between sticky top-0 z-10 border-b border-gray-50">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10 rounded-full bg-gray-50 text-gray-500"><ChevronLeft className="w-5 h-5" /></Button>
-        <div className="flex items-center gap-3 cursor-pointer active:opacity-70 transition-opacity flex-1 justify-center mr-10" onClick={() => router.push(`/profile/${otherUserId}`)}>
+        <div 
+          className={cn("flex items-center gap-3 transition-opacity flex-1 justify-center mr-10", isOtherUserSupport ? "cursor-default" : "cursor-pointer active:opacity-70")} 
+          onClick={() => !isOtherUserSupport && router.push(`/profile/${otherUserId}`)}
+        >
           <Avatar className="w-9 h-9 border border-gray-100 shadow-sm"><AvatarImage src={otherUserImage} className="object-cover" /><AvatarFallback>{otherUserName[0] || '?'}</AvatarFallback></Avatar>
           <div className="flex flex-col text-center">
             <h3 className={cn("font-bold text-[13px] leading-none mb-1 h-3.5", otherUserName === "User logged out" ? "text-gray-400 font-medium italic" : "text-gray-900")}>
@@ -521,11 +526,13 @@ function ChatDetailContent() {
                 {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </Button>
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <button onClick={() => handleInitiateCall('audio')} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm"><Phone className="w-4 h-4 text-gray-500" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Voice</span></button>
-              <button onClick={() => handleInitiateCall('video')} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm"><Video className="w-4 h-4 text-gray-500" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Video</span></button>
-              <button className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm"><Gift className="w-4 h-4 text-primary" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Gift</span></button>
-            </div>
+            {!isOtherUserSupport && (
+              <div className="grid grid-cols-3 gap-3">
+                <button onClick={() => handleInitiateCall('audio')} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm"><Phone className="w-4 h-4 text-gray-500" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Voice</span></button>
+                <button onClick={() => handleInitiateCall('video')} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm"><Video className="w-4 h-4 text-gray-500" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Video</span></button>
+                <button className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm"><Gift className="w-4 h-4 text-primary" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Gift</span></button>
+              </div>
+            )}
           </>
         )}
       </footer>

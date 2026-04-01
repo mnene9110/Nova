@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 import { Sparkles, ClipboardList, RotateCcw, Globe, Loader2 } from "lucide-react"
 import { useFirebase, useUser } from "@/firebase"
-import { collection, query, limit, getDocs, startAfter, orderBy, DocumentData, QueryDocumentSnapshot } from "firebase/firestore"
+import { collection, query, limit, getDocs, startAfter, orderBy, DocumentData, QueryDocumentSnapshot, where } from "firebase/firestore"
 import { ref, onValue } from "firebase/database"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
@@ -51,10 +51,11 @@ export default function DiscoverPage() {
     async function fetchInitialUsers() {
       setIsInitialLoading(true)
       try {
+        // We filter out support agents from the discovery list
         const q = query(
           collection(firestore, 'userProfiles'), 
           orderBy('createdAt', 'desc'),
-          limit(10)
+          limit(20) // Fetch slightly more to account for potential filtered users
         )
         
         const snap = await getDocs(q)
@@ -66,7 +67,8 @@ export default function DiscoverPage() {
 
         const fetchedUsers = snap.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
-          .filter(u => u.id !== currentUser?.uid)
+          .filter(u => u.id !== currentUser?.uid && !u.isSupport)
+          .slice(0, 10)
         
         setUsers(fetchedUsers)
         setLastVisible(snap.docs[snap.docs.length - 1])
@@ -90,7 +92,7 @@ export default function DiscoverPage() {
         collection(firestore, 'userProfiles'),
         orderBy('createdAt', 'desc'),
         startAfter(lastVisible),
-        limit(10)
+        limit(15)
       )
 
       const snap = await getDocs(q)
@@ -102,7 +104,7 @@ export default function DiscoverPage() {
 
       const nextUsers = snap.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(u => u.id !== currentUser?.uid)
+        .filter(u => u.id !== currentUser?.uid && !u.isSupport)
 
       setUsers(prev => [...prev, ...nextUsers])
       setLastVisible(snap.docs[snap.docs.length - 1])

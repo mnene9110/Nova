@@ -15,7 +15,9 @@ import {
   Video,
   ShieldAlert,
   UserX,
-  Copy
+  Copy,
+  Headset,
+  Lock
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -64,7 +66,7 @@ export default function ProfileDetailPage() {
   }, [presence]);
 
   const handleBlock = async () => {
-    if (!currentUser || !id) return
+    if (!currentUser || !id || userProfile?.isSupport) return
     
     try {
       const blockRef = doc(firestore, "userProfiles", currentUser.uid, "blockedUsers", id as string)
@@ -113,6 +115,32 @@ export default function ProfileDetailPage() {
     </div>
   )
 
+  // Users cannot access customer support details
+  if (userProfile.isSupport) {
+    return (
+      <div className="flex flex-col items-center justify-center h-svh p-8 text-center space-y-6 bg-white">
+        <div className="w-24 h-24 bg-primary/10 rounded-[2.5rem] flex items-center justify-center border border-primary/20">
+          <Lock className="w-12 h-12 text-primary" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black font-headline text-gray-900 tracking-tight">Access Restricted</h2>
+          <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-[240px] mx-auto">
+            Profile details for Customer Support agents are private.
+          </p>
+        </div>
+        <div className="flex flex-col w-full gap-3 max-w-[240px]">
+          <Button onClick={() => router.push(`/chat/${id}`)} className="h-14 rounded-full bg-primary font-black uppercase text-xs tracking-widest gap-3">
+            <Headset className="w-4 h-4" />
+            Chat with Support
+          </Button>
+          <Button variant="ghost" onClick={() => router.back()} className="h-14 rounded-full text-gray-400 font-bold uppercase text-[10px] tracking-widest">
+            Go Back
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   const infoTags = [
     { label: "Sometimes", icon: Globe },
     { label: "Undergraduate", icon: GraduationCap },
@@ -123,8 +151,8 @@ export default function ProfileDetailPage() {
 
   const userImage = (userProfile.profilePhotoUrls && userProfile.profilePhotoUrls[0]) || `https://picsum.photos/seed/${userProfile.id}/600/800`
 
-  // Admins cannot be blocked or reported
-  const isAdmin = userProfile.isAdmin === true;
+  // Admins and Support cannot be blocked or reported
+  const isProtected = userProfile.isAdmin === true || userProfile.isSupport === true;
 
   return (
     <div className="flex flex-col min-h-svh bg-black relative">
@@ -140,7 +168,7 @@ export default function ProfileDetailPage() {
             <ChevronLeft className="w-8 h-8" />
           </Button>
 
-          {!isAdmin && (
+          {!isProtected && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
@@ -190,12 +218,20 @@ export default function ProfileDetailPage() {
           </div>
           <p className="text-sm text-gray-500 font-medium leading-relaxed">{userProfile.bio || "No biography provided."}</p>
           
-          {userProfile.isAdmin && (
-            <div className="px-3 py-1 bg-primary/10 rounded-full inline-flex items-center gap-1.5 border border-primary/20">
-              <Sparkles className="w-3 h-3 text-primary" />
-              <span className="text-[9px] font-black text-primary uppercase tracking-widest">Admin</span>
-            </div>
-          )}
+          <div className="flex gap-2 flex-wrap">
+            {userProfile.isAdmin && (
+              <div className="px-3 py-1 bg-primary/10 rounded-full inline-flex items-center gap-1.5 border border-primary/20">
+                <Sparkles className="w-3 h-3 text-primary" />
+                <span className="text-[9px] font-black text-primary uppercase tracking-widest">Admin</span>
+              </div>
+            )}
+            {userProfile.isSupport && (
+              <div className="px-3 py-1 bg-blue-500/10 rounded-full inline-flex items-center gap-1.5 border border-blue-500/20">
+                <Headset className="w-3 h-3 text-blue-500" />
+                <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Support</span>
+              </div>
+            )}
+          </div>
 
           <div className="pt-8 border-t border-gray-50">
              <div className="space-y-4">
