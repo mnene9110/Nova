@@ -34,7 +34,9 @@ service cloud.firestore {
       match /blockedUsers/{blockedId} {
         // The owner of the list can read/write.
         // A user being blocked can read their own specific block status document to check if they are blocked.
-        allow read: if isOwner(userId) || isOwner(blockedId);
+        // This is necessary for the chat screen to verify restriction status.
+        allow get: if isAuthenticated() && (request.auth.uid == userId || request.auth.uid == blockedId);
+        allow list: if isOwner(userId);
         allow write: if isOwner(userId);
       }
     }
