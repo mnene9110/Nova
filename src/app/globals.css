@@ -32,16 +32,23 @@
   * {
     @apply border-border;
   }
+  
+  html, body {
+    @apply m-0 p-0 overflow-x-hidden;
+    background: #B36666; /* Fallback */
+  }
+
   body {
-    @apply text-foreground selection:bg-primary/20 antialiased min-h-svh m-0 p-0;
-    /* Pale Maroon (#B36666) to White Gradient - Matches Status Bar */
-    background: linear-gradient(180deg, #B36666 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 1) 100%);
+    @apply text-foreground selection:bg-primary/20 antialiased min-h-svh;
+    /* Pale Maroon (#B36666) to White Gradient - Seamless Transition */
+    background: linear-gradient(180deg, #B36666 0%, #B36666 5%, rgba(255, 255, 255, 1) 60%, rgba(255, 255, 255, 1) 100%);
     background-attachment: fixed;
   }
 }
 
 .app-container {
   @apply relative min-h-svh w-full flex flex-col;
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 .font-logo {
