@@ -64,7 +64,7 @@ export function Navbar() {
                 isActive ? "bg-primary/10 text-primary scale-110" : "bg-transparent"
               )}>
                 <Icon className={cn("w-5 h-5", isActive ? "stroke-[3px]" : "stroke-[2px]")} />
-                {item.badge && item.badge > 0 && (
+                {item.badge !== undefined && item.badge > 0 && (
                   <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-primary flex items-center justify-center text-[8px] font-black text-white border-2 border-white shadow-sm">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
