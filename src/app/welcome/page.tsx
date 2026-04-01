@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -51,12 +52,13 @@ export default function WelcomePage() {
   }
 
   return (
-    <div className="flex flex-col h-svh bg-moving-gradient relative overflow-hidden">
-      <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" />
+    <div className="flex flex-col h-svh bg-primary relative overflow-hidden">
+      {/* Subtle overlay for depth */}
+      <div className="absolute inset-0 bg-black/5" />
       
       <main className="flex-1 flex flex-col items-center justify-center px-8 text-center relative z-10">
         <div className="mb-6 relative">
-          <div className="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-[2.5rem] shadow-2xl flex items-center justify-center border border-white/30 transform rotate-3 animate-float">
+          <div className="w-24 h-24 bg-white/10 backdrop-blur-xl rounded-[2.5rem] shadow-2xl flex items-center justify-center border border-white/20 transform rotate-3 animate-float">
             <span className="text-white text-4xl font-bold font-headline -rotate-3 drop-shadow-md">MF</span>
           </div>
         </div>
@@ -78,7 +80,7 @@ export default function WelcomePage() {
 
           <Button 
             variant="ghost"
-            className="w-full h-16 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/20 hover:bg-black/30 text-lg font-black gap-3 transition-all active:scale-95"
+            className="w-full h-16 rounded-full bg-white/10 backdrop-blur-md text-white border border-white/10 hover:bg-white/20 text-lg font-black gap-3 transition-all active:scale-95"
             onClick={handleFastLogin}
           >
             {hasRecovery ? (
