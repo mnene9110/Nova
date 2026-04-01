@@ -99,7 +99,19 @@ export default function ProfileDetailPage() {
   }
 
   if (isLoading) return <div className="flex items-center justify-center h-svh bg-white"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
-  if (!userProfile) return <div className="flex flex-col items-center justify-center h-svh p-6 text-center"><h2 className="text-2xl font-bold mb-4">User Not Found</h2><Button onClick={() => router.back()}>Go Back</Button></div>
+  
+  if (!userProfile) return (
+    <div className="flex flex-col items-center justify-center h-svh p-6 text-center space-y-4">
+      <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center">
+        <UserX className="w-10 h-10 text-gray-300" />
+      </div>
+      <div className="space-y-1">
+        <h2 className="text-2xl font-black text-gray-900">User logged out</h2>
+        <p className="text-sm text-gray-500 font-medium">This account no longer exists or has been deactivated.</p>
+      </div>
+      <Button onClick={() => router.back()} className="rounded-full h-12 px-8">Go Back</Button>
+    </div>
+  )
 
   const infoTags = [
     { label: "Sometimes", icon: Globe },
@@ -160,7 +172,7 @@ export default function ProfileDetailPage() {
         </div>
         <div className="absolute bottom-32 left-6 flex items-center gap-2 px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10">
           <div className={cn("w-2.5 h-2.5 rounded-full", presence.online ? "bg-green-500 animate-pulse" : "bg-gray-400")} />
-          <span className="text-white text-[10px] font-black uppercase tracking-tight">{presenceText}</span>
+          <span className={cn("text-[10px] font-black uppercase tracking-tight", presence.online ? "text-white" : "text-gray-400")}>{presenceText}</span>
         </div>
       </div>
 

@@ -389,7 +389,17 @@ export default function ChatDetailPage() {
   }
 
   const otherUserImage = (otherUser?.profilePhotoUrls && otherUser.profilePhotoUrls[0]) || `https://picsum.photos/seed/${otherUserId}/200/200`
-  const otherUserName = otherUser?.username || ""
+  const otherUserName = otherUser?.username || "User"
+
+  const presenceText = useMemo(() => {
+    if (presence.online) return "Online";
+    if (!presence.lastSeen) return "Offline";
+    const date = new Date(presence.lastSeen);
+    const now = new Date();
+    const diffInDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+    if (diffInDays > 2) return "Offline";
+    return `Last seen ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  }, [presence]);
 
   return (
     <div className="flex flex-col h-svh bg-white relative overflow-hidden text-gray-900">
@@ -450,8 +460,15 @@ export default function ChatDetailPage() {
         <div className="flex items-center gap-3 cursor-pointer active:opacity-70 transition-opacity flex-1 justify-center mr-10" onClick={() => router.push(`/profile/${otherUserId}`)}>
           <Avatar className="w-9 h-9 border border-gray-100 shadow-sm"><AvatarImage src={otherUserImage} className="object-cover" /><AvatarFallback>{otherUserName[0] || '?'}</AvatarFallback></Avatar>
           <div className="flex flex-col text-center">
-            <h3 className="font-bold text-[13px] text-gray-900 leading-none mb-1 h-3.5">{otherUserName}</h3>
-            <span className={cn("text-[9px] font-black uppercase tracking-widest", presence.online ? "text-green-500" : "text-gray-400")}>{presence.online ? "Online" : "Offline"}</span>
+            <h3 className={cn("font-bold text-[13px] leading-none mb-1 h-3.5", otherUserName === "User logged out" ? "text-gray-400 font-medium italic" : "text-gray-900")}>
+              {otherUserName}
+            </h3>
+            <span className={cn(
+              "text-[9px] font-black uppercase tracking-widest", 
+              presence.online ? "text-green-500" : "text-gray-400"
+            )}>
+              {presenceText}
+            </span>
           </div>
         </div>
         <div className="w-10" />

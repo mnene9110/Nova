@@ -23,6 +23,8 @@ function ChatSessionItem({ session }: { session: any }) {
         const userDoc = await getDoc(doc(firestore, "userProfiles", session.otherUserId))
         if (userDoc.exists()) {
           setOtherUserData(userDoc.data())
+        } else {
+          setOtherUserData({ username: "User logged out", profilePhotoUrls: [] })
         }
       } catch (e) {
         console.error("Failed to fetch user in chat list", e)
@@ -41,16 +43,6 @@ function ChatSessionItem({ session }: { session: any }) {
       setPresence(val || { online: false })
     })
   }, [database, session.otherUserId])
-
-  const presenceText = useMemo(() => {
-    if (presence.online) return "Online";
-    if (!presence.lastSeen) return "Offline";
-    const date = new Date(presence.lastSeen);
-    const now = new Date();
-    const diffInDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
-    if (diffInDays > 2) return "Offline";
-    return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
-  }, [presence]);
 
   // Use a stable empty state while loading to prevent name flickering
   const name = isDataLoaded ? (otherUserData?.username || "User") : ""
@@ -76,7 +68,10 @@ function ChatSessionItem({ session }: { session: any }) {
 
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-baseline mb-0">
-          <h3 className="font-bold text-sm text-gray-900 truncate font-headline min-h-[1.25rem]">
+          <h3 className={cn(
+            "font-bold text-sm truncate font-headline min-h-[1.25rem]",
+            name === "User logged out" ? "text-gray-400 font-medium italic" : "text-gray-900"
+          )}>
             {isDataLoaded ? name : ""}
           </h3>
           {session.timestamp && (
@@ -95,7 +90,9 @@ function ChatSessionItem({ session }: { session: any }) {
                 {session.unreadCount}
               </span>
             )}
-            <span className="text-[9px] font-bold text-primary/40 uppercase tracking-tighter shrink-0">{presence.online ? "Online" : presenceText}</span>
+            {presence.online && (
+              <span className="text-[9px] font-black text-green-500 uppercase tracking-tighter shrink-0">Online</span>
+            )}
           </div>
         </div>
       </div>
