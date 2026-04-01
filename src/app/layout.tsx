@@ -44,9 +44,9 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="MatchFlow" />
         <link rel="apple-touch-icon" href="https://picsum.photos/seed/mf192/192/192" />
       </head>
-      <body className="font-body antialiased bg-white min-h-svh flex flex-col items-center">
+      <body className="font-body antialiased">
         <FirebaseClientProvider>
-          <div className="app-container shadow-2xl border-x border-gray-100">
+          <div className="app-container">
             <div className="app-content">
               {children}
             </div>
