@@ -39,6 +39,7 @@ export default function DiscoverPage() {
     })
   }, [database])
 
+  // If I block someone, I DON'T see them.
   const blockedIds = new Set(blockedUsers?.map(b => b.id) || [])
   const filteredUsers = firestoreUsers?.filter(u => u.id !== currentUser?.uid && !blockedIds.has(u.id)) || []
 
@@ -60,7 +61,6 @@ export default function DiscoverPage() {
 
   return (
     <div className="flex flex-col min-h-svh pb-32 bg-transparent">
-      {/* Scrollable top buttons */}
       <div className="pt-4 px-4 grid grid-cols-2 gap-3">
         <button className={cn("flex flex-col items-center justify-center gap-2 rounded-[2rem] py-6 shadow-xl group active:scale-95 transition-all", darkMaroon)}>
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -77,7 +77,6 @@ export default function DiscoverPage() {
         </button>
       </div>
 
-      {/* Sticky Tab Switcher */}
       <div className="sticky top-0 z-30 px-4 py-6 bg-transparent">
         <div className="flex items-center gap-3">
           <div className="flex-1 h-14 bg-white/40 backdrop-blur-md border border-white/30 rounded-full p-1 flex items-center shadow-lg shadow-black/5">

@@ -3,7 +3,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Search, Loader2, ShieldCheck, UserCheck, ShieldAlert } from "lucide-react"
+import { ChevronLeft, Search, Loader2, ShieldCheck, UserCheck, ShieldAlert, Coins } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase"
@@ -45,7 +45,6 @@ export default function ManageRolesPage() {
       } else {
         const u = snap.docs[0].data()
         setFoundUser({ ...u, docId: snap.docs[0].id })
-        // Set initial selected role based on current state
         if (u.isSupport) setSelectedRole("support")
         else if (u.isCoinseller) setSelectedRole("coinseller")
         else setSelectedRole("none")

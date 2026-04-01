@@ -29,6 +29,8 @@ export default function ChatDetailPage() {
   const zegoContainerRef = useRef<HTMLDivElement>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
   const ringtoneRef = useRef<HTMLAudioElement | null>(null)
+  const zegoInitializingRef = useRef(false)
+  const [mounted, setMounted] = useState(false)
   
   const [inputText, setInputText] = useState("")
   const [isSending, setIsSending] = useState(false)
@@ -57,6 +59,7 @@ export default function ChatDetailPage() {
   const isBlocked = !!iBlockedThem || !!theyBlockedMe
 
   useEffect(() => {
+    setMounted(true)
     if (typeof window !== "undefined") {
       import('@zegocloud/zego-uikit-prebuilt').then((module) => {
         ZegoUIKitPrebuilt = module.ZegoUIKitPrebuilt;
@@ -64,16 +67,16 @@ export default function ChatDetailPage() {
       ringtoneRef.current = new Audio("/ringtone.mp3");
       ringtoneRef.current.loop = true;
     }
+    return () => setMounted(false)
   }, []);
 
-  // Call Duration and Recurring Deduction Logic
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (callStatus === 'ongoing') {
       interval = setInterval(() => {
+        if (!mounted) return;
         setCallDuration((prev) => {
           const nextVal = prev + 1;
-          // Every 60 seconds (at the start of the next minute)
           if (nextVal > 0 && nextVal % 60 === 0) {
             handleRecurringDeduction();
           }
@@ -84,12 +87,11 @@ export default function ChatDetailPage() {
       setCallDuration(0);
     }
     return () => clearInterval(interval);
-  }, [callStatus]);
+  }, [callStatus, mounted]);
 
   const handleRecurringDeduction = async () => {
     if (!currentUser || !currentUserProfile || !firestore || !chatId) return;
 
-    // Check if free (Admins/Support/Coinsellers)
     const isFree = currentUserProfile.isAdmin || 
                    currentUserProfile.isSupport || 
                    currentUserProfile.isCoinseller;
@@ -117,16 +119,12 @@ export default function ChatDetailPage() {
           type: "deduction",
           amount: -costPerMin,
           transactionDate: new Date().toISOString(),
-          description: `${callType === 'video' ? 'Video' : 'Voice'} call (Next minute) with ${otherUser?.username || 'user'}`
+          description: `${callType === 'video' ? 'Video' : 'Voice'} call (Minute Renewal) with ${otherUser?.username || 'user'}`
         });
       });
     } catch (error: any) {
       if (error.message === "INSUFFICIENT_COINS") {
-        toast({
-          variant: "destructive",
-          title: "Insufficient Coins",
-          description: "Your call ended because you ran out of coins.",
-        });
+        toast({ variant: "destructive", title: "Insufficient Coins", description: "Your call ended because you ran out of coins." });
         handleEndCall();
       }
     }
@@ -140,43 +138,35 @@ export default function ChatDetailPage() {
 
   const stopRingtone = () => {
     if (ringtoneRef.current) {
-      ringtoneRef.current.pause();
-      ringtoneRef.current.currentTime = 0;
+      try { ringtoneRef.current.pause(); ringtoneRef.current.currentTime = 0; } catch (e) {}
     }
   };
 
   const playRingtone = () => {
     if (ringtoneRef.current) {
-      ringtoneRef.current.play().catch(e => console.log("Audio play deferred", e));
+      ringtoneRef.current.play().catch(() => {});
     }
   };
 
   const stopAllMedia = () => {
     stopRingtone();
     if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => {
-        track.stop();
-      });
+      localStreamRef.current.getTracks().forEach(track => track.stop());
       localStreamRef.current = null;
     }
-
     if (zegoInstance) {
-      try { 
-        zegoInstance.destroy(); 
-      } catch (e) { 
-        console.error("Zego destroy error", e); 
-      }
+      try { zegoInstance.destroy(); } catch (e) {}
       setZegoInstance(null);
     }
+    zegoInitializingRef.current = false;
   };
 
-  useEffect(() => { 
-    return () => stopAllMedia(); 
-  }, []);
+  useEffect(() => { return () => stopAllMedia(); }, []);
 
   const initiateZegoCall = async (roomID: string) => {
-    if (!ZegoUIKitPrebuilt || !currentUser || !zegoContainerRef.current) return;
+    if (!ZegoUIKitPrebuilt || !currentUser || !zegoContainerRef.current || zegoInitializingRef.current) return;
     
+    zegoInitializingRef.current = true;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: callType === 'video',
@@ -185,17 +175,13 @@ export default function ChatDetailPage() {
       localStreamRef.current = stream;
       setHasPermissionError(false);
     } catch (error) {
-      console.error('Error accessing media devices:', error);
       setHasPermissionError(true);
       handleEndCall();
       return;
     }
 
     const { appID, serverSecret } = await getZegoConfig();
-    if (!appID || !serverSecret) {
-      handleEndCall();
-      return;
-    }
+    if (!appID || !serverSecret) { handleEndCall(); return; }
 
     try {
       const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
@@ -225,21 +211,11 @@ export default function ChatDetailPage() {
         showLayoutButton: false,
         scenario: {
           mode: ZegoUIKitPrebuilt.OneONoneCall,
-          config: {
-            role: "Host",
-          },
+          config: { role: "Host" },
         },
-        showLeaveRoomConfirmDialog: true,
-        showOnlyAudioUser: true,
-        onJoinRoom: () => {
-          console.log("Joined Zego room automatically");
-        },
-        onLeaveRoom: () => {
-          handleEndCall();
-        },
+        onLeaveRoom: () => handleEndCall(),
       });
     } catch (error) {
-      console.error("Zego join error:", error);
       handleEndCall();
     }
   };
@@ -249,71 +225,50 @@ export default function ChatDetailPage() {
     const callRef = ref(database, `calls/${chatId}`)
     return onValue(callRef, (snap) => {
       const data = snap.val()
-      
       if (!data) {
-        if (callStatus !== 'idle') { 
-          stopAllMedia(); 
-          setCallStatus('idle'); 
-        }
+        if (callStatus !== 'idle') { stopAllMedia(); setCallStatus('idle'); }
         return
       }
-
       setCallType(data.callType || 'video')
-      
       if (data.status === 'ringing') {
         playRingtone();
-        if (data.callerId === currentUser.uid) {
-          setCallStatus('calling')
-        } else {
-          setCallStatus('incoming')
-        }
+        setCallStatus(data.callerId === currentUser.uid ? 'calling' : 'incoming')
       } else if (data.status === 'accepted') {
         stopRingtone();
         if (callStatus !== 'ongoing') {
           setCallStatus('ongoing')
           initiateZegoCall(chatId);
         }
-      } else if (data.status === 'declined' || data.status === 'ended') {
-        stopAllMedia(); 
-        setCallStatus('idle');
       }
     })
   }, [database, chatId, currentUser, callStatus, callType, isBlocked]);
 
   const handleInitiateCall = async (type: 'video' | 'audio') => {
     if (!database || !chatId || !currentUser || !currentUserProfile || isBlocked) return
-
     const costPerMin = type === 'video' ? 160 : 80;
-    const isFree = currentUserProfile.isAdmin || 
-                   currentUserProfile.isSupport || 
-                   currentUserProfile.isCoinseller;
+    const isFree = currentUserProfile.isAdmin || currentUserProfile.isSupport || currentUserProfile.isCoinseller;
 
     try {
       if (!isFree) {
-        // First minute deduction at the start
         await runTransaction(firestore, async (transaction) => {
           const userDoc = await transaction.get(doc(firestore, "userProfiles", currentUser.uid));
           if (!userDoc.exists()) throw new Error("Profile not found");
-          
           const currentBalance = userDoc.data().coinBalance || 0;
           if (currentBalance < costPerMin) throw new Error("INSUFFICIENT_COINS");
-          
           transaction.update(doc(firestore, "userProfiles", currentUser.uid), {
             coinBalance: currentBalance - costPerMin,
             updatedAt: new Date().toISOString()
           });
-
           const txRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
           transaction.set(txRef, {
             id: txRef.id,
             type: "deduction",
             amount: -costPerMin,
             transactionDate: new Date().toISOString(),
-            description: `Started ${type === 'video' ? 'Video' : 'Voice'} call with ${otherUser?.username || 'user'}`
+            description: `Started ${type} call with ${otherUser?.username || 'user'}`
           });
         });
       }
-
       const callRef = ref(database, `calls/${chatId}`)
       set(callRef, { 
         callerId: currentUser.uid, 
@@ -328,7 +283,7 @@ export default function ChatDetailPage() {
         toast({
           variant: "destructive",
           title: "Insufficient Coins",
-          description: `You need at least ${costPerMin} coins to start a ${type} call.`,
+          description: `You need ${costPerMin} coins to start this call.`,
           action: <Button onClick={() => router.push('/recharge')} size="sm">Recharge</Button>
         });
       }
@@ -337,8 +292,7 @@ export default function ChatDetailPage() {
 
   const handleAcceptCall = () => {
     if (!database || !chatId) return
-    const callRef = ref(database, `calls/${chatId}`)
-    update(callRef, { status: 'accepted' })
+    update(ref(database, `calls/${chatId}`), { status: 'accepted' })
   }
 
   const handleDeclineCall = () => {
@@ -357,14 +311,12 @@ export default function ChatDetailPage() {
 
   useEffect(() => {
     if (!database || !otherUserId) return
-    const presenceRef = ref(database, `users/${otherUserId}/presence`)
-    return onValue(presenceRef, (snap) => setPresence(snap.val() || { online: false }))
+    return onValue(ref(database, `users/${otherUserId}/presence`), (snap) => setPresence(snap.val() || { online: false }))
   }, [database, otherUserId])
 
   useEffect(() => {
     if (!database || !chatId) return
-    const messagesRef = ref(database, `chats/${chatId}/messages`)
-    return onValue(messagesRef, (snapshot) => {
+    return onValue(ref(database, `chats/${chatId}/messages`), (snapshot) => {
       const data = snapshot.val()
       if (data) {
         const msgList = Object.entries(data).map(([key, val]: [string, any]) => ({ id: key, ...val }))
@@ -378,29 +330,20 @@ export default function ChatDetailPage() {
 
   const handleSendMessage = async () => {
     if (!inputText.trim() || !currentUser || !chatId || !database || !otherUserId || !otherUser || !currentUserProfile || isSending || isBlocked) return
-    
     setIsSending(true)
-
-    const isFree = currentUserProfile.isAdmin || 
-                   currentUserProfile.isSupport || 
-                   currentUserProfile.isCoinseller ||
-                   otherUser.isSupport ||
-                   otherUser.isCoinseller;
+    const isFree = currentUserProfile.isAdmin || currentUserProfile.isSupport || currentUserProfile.isCoinseller || otherUser.isSupport || otherUser.isCoinseller;
 
     try {
       if (!isFree) {
         await runTransaction(firestore, async (transaction) => {
           const userDoc = await transaction.get(doc(firestore, "userProfiles", currentUser.uid));
           if (!userDoc.exists()) throw new Error("Profile not found");
-          
           const currentBalance = userDoc.data().coinBalance || 0;
           if (currentBalance < 1) throw new Error("INSUFFICIENT_COINS");
-          
           transaction.update(doc(firestore, "userProfiles", currentUser.uid), {
             coinBalance: currentBalance - 1,
             updatedAt: new Date().toISOString()
           });
-
           const txRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
           transaction.set(txRef, {
             id: txRef.id,
@@ -411,7 +354,6 @@ export default function ChatDetailPage() {
           });
         });
       }
-
       const updates: any = {}
       const msgKey = push(ref(database, `chats/${chatId}/messages`)).key
       const msgData = { messageText: inputText, senderId: currentUser.uid, sentAt: rtdbTimestamp() }
@@ -422,16 +364,9 @@ export default function ChatDetailPage() {
       setInputText("")
     } catch (error: any) {
       if (error.message === "INSUFFICIENT_COINS") {
-        toast({
-          variant: "destructive",
-          title: "Insufficient Coins",
-          description: "Recharge to continue chatting.",
-          action: <Button onClick={() => router.push('/recharge')} size="sm">Recharge</Button>
-        });
+        toast({ variant: "destructive", title: "Insufficient Coins", description: "Recharge to continue chatting." });
       }
-    } finally {
-      setIsSending(false)
-    }
+    } finally { setIsSending(false) }
   }
 
   if (isOtherUserLoading) return <div className="flex items-center justify-center h-svh bg-white"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
@@ -441,92 +376,43 @@ export default function ChatDetailPage() {
 
   return (
     <div className="flex flex-col h-svh bg-white relative overflow-hidden text-gray-900">
-      {/* Call Screen UI Overlay */}
       {(callStatus === 'calling' || callStatus === 'incoming') && (
         <div className="absolute inset-0 z-[300] bg-zinc-950 flex flex-col items-center justify-between py-24 px-8 text-white animate-in fade-in duration-500">
           <div className="flex flex-col items-center gap-10 mt-12 w-full">
             <div className="relative">
-              {/* Pulsing rings for ambient call feel */}
               <div className="absolute -inset-8 bg-primary/20 rounded-full animate-ping opacity-20" />
               <div className="absolute -inset-16 bg-primary/10 rounded-full animate-pulse opacity-10" />
-              <Avatar className="w-44 h-44 border-[10px] border-white/5 shadow-[0_0_60px_rgba(179,102,102,0.3)] relative z-10 transition-transform duration-1000">
+              <Avatar className="w-44 h-44 border-[10px] border-white/5 shadow-[0_0_60px_rgba(179,102,102,0.3)] relative z-10">
                 <AvatarImage src={otherUserImage} className="object-cover" />
                 <AvatarFallback className="text-5xl bg-zinc-900">{otherUser.username?.[0]}</AvatarFallback>
               </Avatar>
             </div>
-
             <div className="text-center space-y-4">
               <h2 className="text-4xl font-black font-headline tracking-tight text-white">{otherUser.username}</h2>
-              <div className="flex items-center justify-center gap-3">
-                <div className="px-4 py-1.5 bg-white/5 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-2">
-                  {callType === 'video' ? <Video className="w-4 h-4 text-primary" /> : <Phone className="w-4 h-4 text-primary" />}
-                  <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] animate-pulse">
-                    {callStatus === 'calling' ? 'Calling...' : `Incoming ${callType} call`}
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            {hasPermissionError && (
-              <div className="mt-8 bg-red-500/10 border border-red-500/20 px-6 py-4 rounded-[2rem] max-w-xs text-center space-y-2 backdrop-blur-xl">
-                <div className="flex items-center justify-center gap-2 text-red-500">
-                   <AlertCircle className="h-4 w-4" />
-                   <span className="text-xs font-black uppercase tracking-widest">Permission Denied</span>
-                </div>
-                <p className="text-[10px] font-medium text-white/60 leading-relaxed">
-                  Please enable camera and microphone in settings to connect.
+              <div className="px-4 py-1.5 bg-white/5 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-2">
+                {callType === 'video' ? <Video className="w-4 h-4 text-primary" /> : <Phone className="w-4 h-4 text-primary" />}
+                <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] animate-pulse">
+                  {callStatus === 'calling' ? 'Calling...' : `Incoming ${callType} call`}
                 </p>
               </div>
-            )}
+            </div>
           </div>
-
           <div className="flex items-center gap-16 mb-12">
             {callStatus === 'incoming' ? (
               <>
-                <div className="flex flex-col items-center gap-4">
-                  <button 
-                    onClick={handleDeclineCall}
-                    className="w-24 h-24 rounded-full bg-red-500/90 flex items-center justify-center shadow-[0_20px_40px_rgba(239,68,68,0.3)] active:scale-90 transition-all hover:bg-red-500 group"
-                  >
-                    <PhoneOff className="w-10 h-10 text-white group-hover:rotate-12 transition-transform" />
-                  </button>
-                  <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white/30">Decline</span>
-                </div>
-                <div className="flex flex-col items-center gap-4">
-                  <button 
-                    onClick={handleAcceptCall}
-                    className="w-24 h-24 rounded-full bg-green-500/90 flex items-center justify-center shadow-[0_20px_40px_rgba(34,197,94,0.3)] active:scale-90 transition-all hover:bg-green-500 group animate-bounce"
-                  >
-                    <Phone className="w-10 h-10 text-white group-hover:-rotate-12 transition-transform" />
-                  </button>
-                  <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white/30">Accept</span>
-                </div>
+                <button onClick={handleDeclineCall} className="w-24 h-24 rounded-full bg-red-500/90 flex items-center justify-center shadow-2xl active:scale-90 transition-all"><PhoneOff className="w-10 h-10 text-white" /></button>
+                <button onClick={handleAcceptCall} className="w-24 h-24 rounded-full bg-green-500/90 flex items-center justify-center shadow-2xl active:scale-90 transition-all animate-bounce"><Phone className="w-10 h-10 text-white" /></button>
               </>
             ) : (
-              <div className="flex flex-col items-center gap-4">
-                <button 
-                  onClick={handleEndCall}
-                  className="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center border border-white/10 shadow-2xl active:scale-90 transition-all hover:bg-red-500 group"
-                >
-                  <PhoneOff className="w-10 h-10 text-white/80 group-hover:text-white transition-colors" />
-                </button>
-                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white/30">Cancel</span>
-              </div>
+              <button onClick={handleEndCall} className="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center border border-white/10 shadow-2xl active:scale-90 transition-all hover:bg-red-500"><PhoneOff className="w-10 h-10 text-white/80" /></button>
             )}
           </div>
         </div>
       )}
 
-      {/* Zego Container with overlay counter */}
-      <div 
-        ref={zegoContainerRef} 
-        className={cn(
-          "absolute inset-0 z-[200] bg-black transition-opacity duration-700", 
-          callStatus === 'ongoing' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        )} 
-      >
+      <div ref={zegoContainerRef} className={cn("absolute inset-0 z-[200] bg-black transition-opacity duration-700", callStatus === 'ongoing' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none')}>
         {callStatus === 'ongoing' && (
-          <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[210] px-5 py-2 bg-black/40 backdrop-blur-xl rounded-full border border-white/20 shadow-2xl">
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[210] px-5 py-2 bg-black/40 backdrop-blur-xl rounded-full border border-white/20">
             <div className="flex items-center gap-3">
                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                <span className="text-white font-black text-sm tracking-[0.2em]">{formatDuration(callDuration)}</span>
@@ -536,35 +422,15 @@ export default function ChatDetailPage() {
       </div>
 
       <header className="px-5 pt-8 pb-4 bg-white flex items-center justify-between sticky top-0 z-10 border-b border-gray-50">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => router.back()} 
-          className="h-10 w-10 rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </Button>
-
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10 rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100"><ChevronLeft className="w-5 h-5" /></Button>
         <div className="flex items-center gap-3">
-          <Avatar className="w-9 h-9 border border-gray-100 shadow-sm">
-            <AvatarImage src={otherUserImage} className="object-cover" />
-            <AvatarFallback>{otherUser.username?.[0]}</AvatarFallback>
-          </Avatar>
+          <Avatar className="w-9 h-9 border border-gray-100 shadow-sm"><AvatarImage src={otherUserImage} className="object-cover" /><AvatarFallback>{otherUser.username?.[0]}</AvatarFallback></Avatar>
           <div className="flex flex-col text-center">
             <h3 className="font-bold text-[13px] text-gray-900 leading-none mb-1">{otherUser.username}</h3>
-            <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">
-              {presence.online ? 'Online' : 'Offline'}
-            </span>
+            <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">{presence.online ? 'Online' : 'Offline'}</span>
           </div>
         </div>
-
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-10 w-10 rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100"
-        >
-          <MoreVertical className="w-5 h-5" />
-        </Button>
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100"><MoreVertical className="w-5 h-5" /></Button>
       </header>
 
       <ScrollArea className="flex-1 px-4 py-4 bg-white">
@@ -573,10 +439,7 @@ export default function ChatDetailPage() {
             const isMe = msg.senderId === currentUser?.uid
             return (
               <div key={msg.id} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
-                <div className={cn(
-                  "max-w-[80%] px-4 py-3 text-[13px] font-medium leading-relaxed shadow-sm",
-                  isMe ? "bg-primary text-white rounded-[1.5rem] rounded-tr-none" : "bg-gray-100 text-gray-900 rounded-[1.5rem] rounded-tl-none"
-                )}>
+                <div className={cn("max-w-[80%] px-4 py-3 text-[13px] font-medium leading-relaxed shadow-sm", isMe ? "bg-primary text-white rounded-[1.5rem] rounded-tr-none" : "bg-gray-100 text-gray-900 rounded-[1.5rem] rounded-tl-none")}>
                   <p className="whitespace-pre-wrap">{msg.messageText}</p>
                 </div>
               </div>
@@ -589,59 +452,21 @@ export default function ChatDetailPage() {
       <footer className="px-5 py-5 pb-8 space-y-4 bg-white border-t border-gray-50">
         {isBlocked ? (
           <div className="flex flex-col items-center justify-center py-4 gap-2">
-            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center">
-              <Ban className="w-6 h-6 text-red-500" />
-            </div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-red-500">
-              {iBlockedThem ? "You have blocked this user" : "Chat restricted, you have been blocked"}
-            </p>
+            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center"><Ban className="w-6 h-6 text-red-500" /></div>
+            <p className="text-[11px] font-black uppercase tracking-widest text-red-500">{iBlockedThem ? "You have blocked this user" : "Chat restricted"}</p>
           </div>
         ) : (
           <>
             <div className="relative group">
-              <Input 
-                value={inputText} 
-                onChange={(e) => setInputText(e.target.value)} 
-                placeholder="Flow A Message..." 
-                className="rounded-full h-12 bg-gray-50 border-none px-6 text-[13px] text-gray-900 placeholder:text-gray-400 focus-visible:ring-1 focus-visible:ring-primary/20 shadow-inner" 
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} 
-              />
-              <Button 
-                size="icon" 
-                className={cn(
-                  "absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full w-9 h-9 transition-all",
-                  inputText.trim() && !isSending ? "bg-primary text-white" : "bg-gray-200 text-gray-400"
-                )} 
-                onClick={() => handleSendMessage()} 
-                disabled={!inputText.trim() || isSending}
-              >
+              <Input value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="Message..." className="rounded-full h-12 bg-gray-50 border-none px-6 text-[13px]" onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} />
+              <Button size="icon" className={cn("absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full w-9 h-9", inputText.trim() && !isSending ? "bg-primary text-white" : "bg-gray-200 text-gray-400")} onClick={() => handleSendMessage()} disabled={!inputText.trim() || isSending}>
                 {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </Button>
             </div>
-
             <div className="grid grid-cols-3 gap-3">
-              <button 
-                onClick={() => handleInitiateCall('audio')}
-                className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 transition-all shadow-sm"
-              >
-                <Phone className="w-4 h-4 text-gray-500" />
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Voice</span>
-              </button>
-
-              <button 
-                onClick={() => handleInitiateCall('video')}
-                className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 transition-all shadow-sm"
-              >
-                <Video className="w-4 h-4 text-gray-500" />
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Video</span>
-              </button>
-
-              <button 
-                className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 transition-all shadow-sm"
-              >
-                <Gift className="w-4 h-4 text-primary" />
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Gift</span>
-              </button>
+              <button onClick={() => handleInitiateCall('audio')} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm"><Phone className="w-4 h-4 text-gray-500" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Voice</span></button>
+              <button onClick={() => handleInitiateCall('video')} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm"><Video className="w-4 h-4 text-gray-500" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Video</span></button>
+              <button className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm"><Gift className="w-4 h-4 text-primary" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Gift</span></button>
             </div>
           </>
         )}
