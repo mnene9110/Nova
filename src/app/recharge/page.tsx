@@ -30,7 +30,7 @@ function RechargeContent() {
   const firestore = useFirestore()
   const { toast } = useToast()
   
-  const [selectedPackage, setSelectedPackage] = useState(COIN_PACKAGES[1])
+  const [selectedPackage, setSelectedPackage] = useState<typeof COIN_PACKAGES[0] | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   
   useEffect(() => {
@@ -61,7 +61,7 @@ function RechargeContent() {
   }, [searchParams, toast])
 
   const handlePay = async () => {
-    if (!user) return;
+    if (!user || !selectedPackage) return;
 
     setIsProcessing(true)
     const email = user.email || `guest_${user.uid.slice(0, 8)}@matchflow.app`
@@ -121,7 +121,7 @@ function RechargeContent() {
           <h2 className="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em] mb-3 ml-2">Select Package</h2>
           <div className="grid grid-cols-3 gap-3">
             {COIN_PACKAGES.map((pkg) => {
-              const isSelected = selectedPackage.amount === pkg.amount
+              const isSelected = selectedPackage?.amount === pkg.amount
               return (
                 <Card 
                   key={pkg.amount}
@@ -161,9 +161,9 @@ function RechargeContent() {
         <Button 
           className="w-full h-16 rounded-full bg-primary text-white font-black text-lg shadow-2xl shadow-primary/20 active:scale-95 transition-all"
           onClick={handlePay}
-          disabled={isProcessing || isLoading}
+          disabled={isProcessing || isLoading || !selectedPackage}
         >
-          {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : `Pay ${selectedPackage.label}`}
+          {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : selectedPackage ? `Pay ${selectedPackage.label}` : "Select a Package"}
         </Button>
       </footer>
     </div>
