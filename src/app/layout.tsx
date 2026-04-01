@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
@@ -42,7 +43,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="MatchFlow" />
-        <link rel="apple-touch-icon" href="https://picsum.photos/seed/mf192/192/192" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className="font-body antialiased">
         <FirebaseClientProvider>

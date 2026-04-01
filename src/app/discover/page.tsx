@@ -77,7 +77,7 @@ export default function DiscoverPage() {
         </button>
       </div>
 
-      {/* Sticky Tab Switcher */}
+      {/* Sticky Tab Switcher - Stays at top when scrolling past top buttons */}
       <div className="sticky top-0 z-30 px-4 py-6 bg-white/20 backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <div className="flex-1 h-14 bg-white/40 backdrop-blur-md border border-white/30 rounded-full p-1 flex items-center shadow-lg shadow-black/5">
