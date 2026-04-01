@@ -1,8 +1,8 @@
 
 "use client"
 
-import { useEffect } from "react"
-import { Mail, Zap, Loader2 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Mail, Zap, Loader2, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { useAuth, useUser, initiateAnonymousSignIn } from "@/firebase"
@@ -11,25 +11,40 @@ export default function WelcomePage() {
   const router = useRouter()
   const auth = useAuth()
   const { user, isUserLoading } = useUser()
+  const [hasRecovery, setHasRecovery] = useState(false)
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
 
   useEffect(() => {
-    // If the user is already authenticated (even as a guest), send them to discover
     if (user) {
       router.push("/discover")
     }
   }, [user, router])
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setHasRecovery(!!localStorage.getItem('mf_guest_recovery'))
+    }
+  }, [])
+
   const handleFastLogin = () => {
+    setIsLoggingIn(true)
     initiateAnonymousSignIn(auth)
-      .then(() => {
-        router.push("/onboarding/fast")
+      .then((cred) => {
+        // Only go to onboarding if it's a brand new account
+        const isNew = cred.user.metadata.creationTime === cred.user.metadata.lastSignInTime;
+        if (isNew) {
+          router.push("/onboarding/fast")
+        } else {
+          router.push("/discover")
+        }
       })
       .catch((error) => {
+        setIsLoggingIn(false)
         console.error("Fast login failed:", error)
       })
   }
 
-  if (isUserLoading) {
+  if (isUserLoading || isLoggingIn) {
     return (
       <div className="flex flex-col h-svh bg-white items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -47,13 +62,13 @@ export default function WelcomePage() {
           <div className="absolute -inset-2 bg-primary/10 rounded-full blur-2xl -z-10" />
         </div>
 
-        <h1 className="text-4xl font-logo text-primary mb-4">MatchFlow</h1>
+        <h1 className="text-4xl font-logo text-primary mb-2">MatchFlow</h1>
 
-        <p className="text-muted-foreground text-base leading-relaxed max-w-[240px] mb-12">
+        <p className="text-muted-foreground text-sm leading-relaxed max-w-[240px] mb-12">
           Connect through voice, video, and conversations.
         </p>
 
-        <div className="w-full space-y-3 max-w-sm">
+        <div className="w-full space-y-3 max-w-xs">
           <Button 
             className="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-white text-base font-bold gap-2 shadow-lg shadow-primary/20"
             onClick={() => router.push("/login")}
@@ -67,8 +82,17 @@ export default function WelcomePage() {
             className="w-full h-14 rounded-full bg-primary/10 hover:bg-primary/20 text-primary text-base font-bold gap-2"
             onClick={handleFastLogin}
           >
-            <Zap className="w-5 h-5 fill-current" />
-            Fast Login
+            {hasRecovery ? (
+              <>
+                <RotateCcw className="w-5 h-5" />
+                Return to Guest Account
+              </>
+            ) : (
+              <>
+                <Zap className="w-5 h-5 fill-current" />
+                Fast Login
+              </>
+            )}
           </Button>
         </div>
 

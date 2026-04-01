@@ -10,9 +10,33 @@ import {
   UserCredential,
 } from 'firebase/auth';
 
-/** Initiate anonymous sign-in (non-blocking). */
-export function initiateAnonymousSignIn(authInstance: Auth): Promise<UserCredential> {
-  return signInAnonymously(authInstance);
+/** 
+ * Persistent Guest Logic:
+ * Instead of standard signInAnonymously (which is lost on sign out),
+ * we create a hidden email/password account and store credentials locally.
+ */
+export async function initiateAnonymousSignIn(authInstance: Auth): Promise<UserCredential> {
+  if (typeof window === 'undefined') return signInAnonymously(authInstance);
+
+  const saved = localStorage.getItem('mf_guest_recovery');
+  if (saved) {
+    try {
+      const { email, password } = JSON.parse(saved);
+      return await signInWithEmailAndPassword(authInstance, email, password);
+    } catch (e) {
+      console.warn("Guest recovery failed, creating new account", e);
+      localStorage.removeItem('mf_guest_recovery');
+    }
+  }
+
+  // Create a new "Persistent Guest"
+  const randomId = Math.random().toString(36).substring(2, 10);
+  const email = `guest_${randomId}@matchflow.app`;
+  const password = `pass_${randomId}_${Date.now()}`;
+  
+  const cred = await createUserWithEmailAndPassword(authInstance, email, password);
+  localStorage.setItem('mf_guest_recovery', JSON.stringify({ email, password }));
+  return cred;
 }
 
 /** Initiate email/password sign-up (non-blocking). */
@@ -31,5 +55,9 @@ export function linkAccountToEmail(authInstance: Auth, email: string, password: 
   if (!user) throw new Error("No user currently signed in.");
   
   const credential = EmailAuthProvider.credential(email, password);
-  return linkWithCredential(user, credential);
+  return linkWithCredential(user, credential).then((result) => {
+    // Once linked, we no longer need the guest recovery key
+    localStorage.removeItem('mf_guest_recovery');
+    return result;
+  });
 }
