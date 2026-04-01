@@ -19,6 +19,7 @@ import { useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export default function ProfilePage() {
   const router = useRouter()
