@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
@@ -37,12 +38,12 @@ function RechargeContent() {
     setIsProcessing(false);
   }, []);
 
-  const coinAccountRef = useMemoFirebase(() => {
+  const userProfileRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    return doc(firestore, "coinAccounts", user.uid);
+    return doc(firestore, "userProfiles", user.uid);
   }, [firestore, user])
   
-  const { data: coinAccount, isLoading } = useDoc(coinAccountRef)
+  const { data: userProfile, isLoading } = useDoc(userProfileRef)
 
   useEffect(() => {
     const status = searchParams?.get('status')
@@ -119,7 +120,7 @@ function RechargeContent() {
             </div>
             <div className="flex flex-col">
               <span className="text-4xl font-black font-headline tracking-tighter text-gray-900">
-                {isLoading ? "..." : (coinAccount?.balance || 0).toLocaleString()}
+                {isLoading ? "..." : (userProfile?.coinBalance || 0).toLocaleString()}
               </span>
               <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Available Coins</span>
             </div>

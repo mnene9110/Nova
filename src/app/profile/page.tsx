@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Navbar } from "@/components/Navbar"
@@ -28,13 +29,7 @@ export default function ProfilePage() {
     return doc(firestore, "userProfiles", currentUser.uid);
   }, [firestore, currentUser])
 
-  const coinAccountRef = useMemoFirebase(() => {
-    if (!firestore || !currentUser) return null;
-    return doc(firestore, "coinAccounts", currentUser.uid);
-  }, [firestore, currentUser])
-
   const { data: userProfile, isLoading: isProfileLoading } = useDoc(userRef)
-  const { data: coinAccount, isLoading: isCoinsLoading } = useDoc(coinAccountRef)
 
   const displayNumericId = userProfile?.numericId || ".......";
 
@@ -98,7 +93,7 @@ export default function ProfilePage() {
               <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.15em]">Wallet Balance</span>
             </div>
             <span className="text-2xl font-black text-gray-900">
-              {isCoinsLoading ? "..." : (coinAccount?.balance || 0).toLocaleString()}
+              {(userProfile?.coinBalance || 0).toLocaleString()}
             </span>
           </div>
           

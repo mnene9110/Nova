@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useRouter } from "next/navigation"
@@ -16,7 +17,7 @@ export default function CoinHistoryPage() {
   const transactionsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null
     return query(
-      collection(firestore, "coinAccounts", user.uid, "transactions"),
+      collection(firestore, "userProfiles", user.uid, "transactions"),
       orderBy("transactionDate", "desc"),
       limit(50)
     )

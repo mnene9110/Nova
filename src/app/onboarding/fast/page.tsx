@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -41,21 +42,13 @@ export default function FastOnboardingPage() {
       location: country,
       profilePhotoUrls: [`https://picsum.photos/seed/${user.uid}/600/800`],
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       lastActiveAt: new Date().toISOString(),
-      interests: ["Nature", "Travel"]
+      interests: ["Nature", "Travel"],
+      coinBalance: 100 // Initial bonus coins
     }
 
     setDocumentNonBlocking(userRef, profileData, { merge: true })
-    
-    const coinAccountRef = doc(firestore, "coinAccounts", user.uid)
-    setDocumentNonBlocking(coinAccountRef, {
-      id: user.uid,
-      userId: user.uid,
-      balance: 100,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }, { merge: true })
-
     router.push("/discover")
   }
 

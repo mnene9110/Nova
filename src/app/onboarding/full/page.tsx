@@ -50,22 +50,13 @@ export default function FullOnboardingPage() {
       location: country,
       profilePhotoUrls: [`https://picsum.photos/seed/${user.uid}/600/800`],
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       lastActiveAt: new Date().toISOString(),
-      interests: ["Nature", "Water sports", "Adventure"]
+      interests: ["Nature", "Water sports", "Adventure"],
+      coinBalance: 100 // Initial bonus coins
     }
 
     setDocumentNonBlocking(userRef, profileData, { merge: true })
-    
-    // Path fixed to match standardized backend.json: /coinAccounts/{userId}
-    const coinAccountRef = doc(firestore, "coinAccounts", user.uid)
-    setDocumentNonBlocking(coinAccountRef, {
-      id: user.uid,
-      userId: user.uid,
-      balance: 100,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }, { merge: true })
-
     router.push("/discover")
   }
 
