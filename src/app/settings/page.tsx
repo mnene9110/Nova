@@ -1,3 +1,4 @@
+
 "use client"
 
 import { ChevronLeft, ChevronRight, ShieldCheck, CreditCard, Award, MessageSquare, Ban, Languages, Trash2, Info } from "lucide-react"
@@ -56,8 +57,8 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div className="flex flex-col min-h-svh bg-transparent text-gray-900">
-      <header className="px-4 pt-12 pb-6 flex items-center justify-between sticky top-0 bg-transparent z-10">
+    <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-y-auto">
+      <header className="px-4 pt-12 pb-6 flex items-center justify-between sticky top-0 bg-transparent z-50 backdrop-blur-md">
         <Button 
           variant="ghost" 
           size="icon" 
@@ -70,7 +71,7 @@ export default function SettingsPage() {
         <div className="w-10" />
       </header>
 
-      <main className="flex-1 px-6 pt-2 pb-20 overflow-y-auto space-y-3">
+      <main className="px-6 pt-2 pb-6 space-y-3">
         {settingsItems.map((item, idx) => (
           <button
             key={idx}
@@ -124,7 +125,7 @@ export default function SettingsPage() {
         </div>
       </main>
 
-      <footer className="pb-16 flex flex-col items-center gap-4">
+      <footer className="pb-32 flex flex-col items-center gap-4">
         <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20">
            <span className="text-primary font-logo text-xl">MF</span>
         </div>
