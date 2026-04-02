@@ -19,7 +19,8 @@ import {
   Compass,
   Star,
   Calendar,
-  Zap
+  Zap,
+  Tag
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -192,7 +193,7 @@ export default function ProfileDetailPage() {
 
   const userPhotos = userProfile?.profilePhotoUrls || []
   const mainPhoto = userPhotos[0] || `https://picsum.photos/seed/${userProfile?.id}/600/800`
-  const extraPhotos = userPhotos.slice(1)
+  const extraPhotos = userPhotos.slice(1).filter(Boolean)
   const isVerified = !!userProfile?.isVerified
   const isProtected = userProfile?.isAdmin === true || userProfile?.isSupport === true;
 
@@ -265,7 +266,7 @@ export default function ProfileDetailPage() {
             </div>
             
             <div className="flex flex-col gap-1.5">
-              <p className="text-[13px] font-medium text-gray-500 capitalize leading-none">
+              <p className="text-[13px] font-medium text-gray-500 capitalize leading-none font-body">
                 {userProfile?.gender || "Not specified"} • {age ? `${age} years old` : 'Age hidden'}
               </p>
               
@@ -365,6 +366,23 @@ export default function ProfileDetailPage() {
             </div>
           </div>
 
+          {/* Interests */}
+          {userProfile?.interests && userProfile.interests.length > 0 && (
+            <div className="space-y-4 pt-4">
+              <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Interests</h3>
+              <div className="flex flex-wrap gap-2">
+                {userProfile.interests.map((interest: string) => (
+                  <div key={interest} className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-full flex items-center gap-2">
+                    <Tag className="w-2.5 h-2.5 text-primary/40" />
+                    <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">
+                      {interest}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Gallery Section */}
           {extraPhotos.length > 0 && (
             <div className="space-y-4 pt-4">
@@ -379,21 +397,7 @@ export default function ProfileDetailPage() {
             </div>
           )}
 
-          {/* Interests */}
-          {userProfile?.interests && userProfile.interests.length > 0 && (
-            <div className="space-y-4 pt-4">
-              <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Interests</h3>
-              <div className="flex flex-wrap gap-2">
-                {userProfile.interests.map((interest: string) => (
-                  <div key={interest} className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-full text-[9px] font-black text-gray-600 uppercase tracking-widest">
-                    #{interest}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="h-40" /> {/* Large spacer to ensure content clears action bar */}
+          <div className="h-40" />
         </div>
       </div>
 

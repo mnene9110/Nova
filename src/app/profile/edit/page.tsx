@@ -122,15 +122,21 @@ export default function EditProfilePage() {
 
   const toggleInterest = (interest: string) => {
     setFormData(prev => {
-      const isSelected = prev.interests.includes(interest)
+      const currentInterests = prev.interests || []
+      const isSelected = currentInterests.includes(interest)
+      
       if (isSelected) {
-        return { ...prev, interests: prev.interests.filter(i => i !== interest) }
+        return { ...prev, interests: currentInterests.filter(i => i !== interest) }
       } else {
-        if (prev.interests.length >= 3) {
-          toast({ title: "Limit Reached", description: "Please select up to 3 interests only." })
+        if (currentInterests.length >= 3) {
+          toast({ 
+            variant: "destructive", 
+            title: "Limit Reached", 
+            description: "Please select up to 3 interests only." 
+          })
           return prev
         }
-        return { ...prev, interests: [...prev.interests, interest] }
+        return { ...prev, interests: [...currentInterests, interest] }
       }
     })
   }
@@ -295,10 +301,11 @@ export default function EditProfilePage() {
             <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">My Interests (Pick 3)</Label>
             <div className="grid grid-cols-2 gap-2">
               {INTEREST_OPTIONS.map((interest) => {
-                const isSelected = formData.interests.includes(interest)
+                const isSelected = formData.interests?.includes(interest)
                 return (
                   <button
                     key={interest}
+                    type="button"
                     onClick={() => toggleInterest(interest)}
                     className={cn(
                       "flex items-center justify-between px-4 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all",
