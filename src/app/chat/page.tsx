@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react"
 import { MessageSquare, ChevronRight, CheckCircle, Ban, EyeOff, Loader2, Trash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useFirebase, useUser, useCollection, useMemoFirebase } from "@/firebase"
 import { ref, onValue, update } from "firebase/database"
 import { doc, getDoc, collection } from "firebase/firestore"
@@ -25,8 +25,6 @@ const profileCache: Record<string, any> = {}
 export function clearChatCache() {
   cachedSessions = []
   cachedLoaded = false
-  // We keep profileCache as it's useful across sign-ins, 
-  // but we'll clear it on explicit sign-out/delete
 }
 
 export function clearProfileCache() {
@@ -35,15 +33,16 @@ export function clearProfileCache() {
 
 function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: (id: string) => void }) {
   const { firestore, database } = useFirebase()
+  const router = useRouter()
   const [otherUserData, setOtherUserData] = useState<any>(profileCache[session.otherUserId] || null)
   const [presence, setPresence] = useState<{ online: boolean; lastSeen?: number }>({ online: false })
   const [isDataLoaded, setIsDataLoaded] = useState(!!profileCache[session.otherUserId])
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const longPressedRef = useRef(false)
 
   useEffect(() => {
     async function fetchUser() {
       if (!firestore || !session.otherUserId) return
-      // ECONOMY: Check cache first
       if (profileCache[session.otherUserId]) {
         setOtherUserData(profileCache[session.otherUserId])
         setIsDataLoaded(true)
@@ -80,7 +79,9 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
   }, [database, session.otherUserId])
 
   const handleTouchStart = () => {
+    longPressedRef.current = false
     timerRef.current = setTimeout(() => {
+      longPressedRef.current = true
       onLongPress(session.otherUserId)
     }, 600)
   }
@@ -88,6 +89,13 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
   const handleTouchEnd = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current)
+    }
+  }
+
+  const handleItemClick = () => {
+    // Only navigate if we didn't just perform a long press
+    if (!longPressedRef.current) {
+      router.push(`/chat/${session.otherUserId}`)
     }
   }
 
@@ -103,11 +111,12 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
       onMouseUp={handleTouchEnd}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      className="relative"
+      onContextMenu={(e) => e.preventDefault()}
+      className="relative select-none"
     >
-      <Link 
-        href={`/chat/${session.otherUserId}`} 
-        className="flex items-center gap-3 py-2.5 hover:bg-slate-50/80 rounded-2xl px-2 transition-all group active:scale-[0.98]"
+      <div 
+        onClick={handleItemClick}
+        className="flex items-center gap-3 py-2.5 hover:bg-slate-50/80 rounded-2xl px-2 transition-all group active:scale-[0.98] cursor-pointer"
       >
         <div className="relative shrink-0">
           <Avatar className="w-12 h-12 border border-gray-100 shadow-sm bg-gray-50">
@@ -157,7 +166,7 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
         </div>
         
         <ChevronRight className="w-4 h-4 text-gray-200 group-hover:text-primary transition-colors" />
-      </Link>
+      </div>
     </div>
   )
 }
