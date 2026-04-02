@@ -20,18 +20,18 @@ import Image from "next/image"
 let ZegoUIKitPrebuilt: any = null;
 
 const GIFTS = [
-  { id: 'mask', name: 'Party mask', price: 20, image: 'https://picsum.photos/seed/mask/200/200' },
-  { id: 'handbag', name: 'Luxury Handbag', price: 800, image: 'https://picsum.photos/seed/bag/200/200' },
-  { id: 'tea', name: 'Strong Tea', price: 100, image: 'https://picsum.photos/seed/tea/200/200' },
-  { id: 'duck', name: 'Cute duck', price: 20, image: 'https://picsum.photos/seed/duck/200/200' },
-  { id: 'treasure', name: 'Pearl treasure', price: 500, image: 'https://picsum.photos/seed/treasure/200/200' },
-  { id: 'puppy', name: 'Puppy', price: 150, image: 'https://picsum.photos/seed/puppy/200/200' },
-  { id: 'castle', name: 'Moon castle', price: 800, image: 'https://picsum.photos/seed/castle/200/200' },
-  { id: 'rabbit', name: 'Rabbit', price: 150, image: 'https://picsum.photos/seed/rabbit/200/200' },
-  { id: 'cat', name: 'Cat', price: 150, image: 'https://picsum.photos/seed/cat/200/200' },
-  { id: 'balloon', name: 'Balloon', price: 20, image: 'https://picsum.photos/seed/balloon/200/200' },
-  { id: 'soulmate', name: 'Soul mate', price: 30, image: 'https://picsum.photos/seed/hearts/200/200' },
-  { id: 'ufo', name: 'UFO', price: 1990, image: 'https://picsum.photos/seed/ufo/200/200' },
+  { id: 'mask', name: '🎭 Party mask', price: 20, image: 'https://picsum.photos/seed/mask/200/200' },
+  { id: 'handbag', name: '👜 Luxury Handbag', price: 800, image: 'https://picsum.photos/seed/bag/200/200' },
+  { id: 'tea', name: '🍵 Strong Tea', price: 100, image: 'https://picsum.photos/seed/tea/200/200' },
+  { id: 'duck', name: '🦆 Cute duck', price: 20, image: 'https://picsum.photos/seed/duck/200/200' },
+  { id: 'treasure', name: '💎 Pearl treasure', price: 500, image: 'https://picsum.photos/seed/treasure/200/200' },
+  { id: 'puppy', name: '🐶 Puppy', price: 150, image: 'https://picsum.photos/seed/puppy/200/200' },
+  { id: 'castle', name: '🏰 Moon castle', price: 800, image: 'https://picsum.photos/seed/castle/200/200' },
+  { id: 'rabbit', name: '🐰 Rabbit', price: 150, image: 'https://picsum.photos/seed/rabbit/200/200' },
+  { id: 'cat', name: '🐱 Cat', price: 150, image: 'https://picsum.photos/seed/cat/200/200' },
+  { id: 'balloon', name: '🎈 Balloon', price: 20, image: 'https://picsum.photos/seed/balloon/200/200' },
+  { id: 'soulmate', name: '💖 Soul mate', price: 30, image: 'https://picsum.photos/seed/hearts/200/200' },
+  { id: 'ufo', name: '🛸 UFO', price: 1990, image: 'https://picsum.photos/seed/ufo/200/200' },
 ]
 
 function ChatDetailContent() {
@@ -712,14 +712,16 @@ function ChatDetailContent() {
             const isMe = msg.senderId === currentUser?.uid
             const isCallLog = msg.isCallLog === true
             return (
-              <div key={msg.id} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
-                <div className={cn(
-                  "max-w-[80%] px-4 py-3 text-[13px] font-medium leading-relaxed shadow-sm", 
-                  isMe ? "bg-primary text-white rounded-[1.5rem] rounded-tr-none" : "bg-gray-100 text-gray-900 rounded-[1.5rem] rounded-tl-none",
-                  msg.isGift && "border-2 border-amber-400/30 bg-gradient-to-br from-amber-50 to-white text-amber-900 shadow-amber-100",
-                  isCallLog && "bg-transparent shadow-none border-none py-1 px-2 font-black text-[10px] tracking-widest text-gray-300 uppercase"
-                )}>
-                  <p className="whitespace-pre-wrap">{msg.messageText}</p>
+              <div key={msg.id} className="flex w-full flex-col">
+                <div className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
+                  <div className={cn(
+                    "max-w-[80%] px-4 py-3 text-[13px] font-medium leading-relaxed shadow-sm", 
+                    isMe ? "bg-primary text-white rounded-[1.5rem] rounded-tr-none" : "bg-gray-100 text-gray-900 rounded-[1.5rem] rounded-tl-none",
+                    msg.isGift && "border-2 border-amber-400/30 bg-gradient-to-br from-amber-50 to-white text-amber-900 shadow-amber-100",
+                    isCallLog && "bg-transparent shadow-none border-none py-1 px-2 font-black text-[10px] tracking-widest text-gray-300 uppercase"
+                  )}>
+                    <p className="whitespace-pre-wrap">{msg.messageText}</p>
+                  </div>
                 </div>
               </div>
             )
