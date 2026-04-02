@@ -22,7 +22,11 @@ export default function TaskCenterPage() {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // CRITICAL: Set date on client only to prevent Hydration Mismatch
+    /**
+     * CRITICAL: Use useEffect to set client-side values.
+     * This prevents a Hydration Mismatch error where the server and client
+     * produce different initial HTML.
+     */
     setTodayStr(new Date().toISOString().split('T')[0]);
     setMounted(true);
   }, []);
@@ -100,9 +104,9 @@ export default function TaskCenterPage() {
 
   if (!mounted || isLoading) {
     return (
-      <div className="flex h-svh items-center justify-center bg-transparent">
+      <div className="flex h-svh items-center justify-center bg-[#B36666]">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <Loader2 className="w-10 h-10 animate-spin text-white" />
           <span className="text-[10px] font-black uppercase text-white/60 tracking-[0.2em]">Preparing rewards...</span>
         </div>
       </div>
