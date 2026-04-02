@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -7,15 +6,16 @@ import { ChevronLeft, Search, Loader2, Coins, Award, UserCheck, ArrowRight } fro
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase"
-import { doc, query, collection, where, getDocs, runTransaction } from "firebase/firestore"
+import { useFirestore, useUser, useDoc, useMemoFirebase, useFirebase } from "@/firebase"
+import { doc, query, collection, where, getDocs, updateDoc, increment as firestoreIncrement, setDoc } from "firebase/firestore"
+import { ref, get, runTransaction as runRtdbTransaction } from "firebase/database"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
 export default function AwardCoinsPage() {
   const router = useRouter()
   const { user: currentUser } = useUser()
-  const firestore = useFirestore()
+  const { firestore, database } = useFirebase()
   const { toast } = useToast()
 
   const [targetNumericId, setTargetNumericId] = useState("")
@@ -56,63 +56,57 @@ export default function AwardCoinsPage() {
 
   const handleAward = async () => {
     const amount = Number(awardAmount)
-    if (!foundUser || !amount || amount <= 0 || isAwarding) return
-
-    // Coinsellers are limited by their balance, Admin is not
-    if (profile?.isCoinseller && (profile.coinBalance || 0) < amount) {
-      toast({ variant: "destructive", title: "Insufficient Balance", description: "You don't have enough coins to award." })
-      return
-    }
+    if (!foundUser || !amount || amount <= 0 || isAwarding || !currentUser || !profile) return
 
     setIsAwarding(true)
     try {
-      await runTransaction(firestore, async (transaction) => {
-        const targetRef = doc(firestore, "userProfiles", foundUser.docId)
-        const senderRef = doc(firestore, "userProfiles", profile!.id)
+      // 1. RTDB Atomic Transaction
+      const senderCoinRef = ref(database, `users/${currentUser.uid}/coinBalance`);
+      const receiverCoinRef = ref(database, `users/${foundUser.id}/coinBalance`);
 
-        const targetSnap = await transaction.get(targetRef)
-        const senderSnap = await transaction.get(senderRef)
+      if (profile.isCoinseller && !profile.isAdmin) {
+        const result = await runRtdbTransaction(senderCoinRef, (current) => {
+          if (current === null) return 0;
+          if (current < amount) return undefined;
+          return current - amount;
+        });
+        if (!result.committed) throw new Error("INSUFFICIENT_COINS");
+      }
 
-        if (!targetSnap.exists() || !senderSnap.exists()) throw new Error("Profile error")
+      await runRtdbTransaction(receiverCoinRef, (current) => (current || 0) + amount);
 
-        // 1. Update Target
-        const targetBalance = targetSnap.data().coinBalance || 0
-        transaction.update(targetRef, {
-          coinBalance: targetBalance + amount,
+      // 2. Firestore Backup Sync
+      const senderRef = doc(firestore, "userProfiles", currentUser.uid);
+      const targetRef = doc(firestore, "userProfiles", foundUser.id);
+
+      if (profile.isCoinseller && !profile.isAdmin) {
+        updateDoc(senderRef, {
+          coinBalance: firestoreIncrement(-amount),
           updatedAt: new Date().toISOString()
-        })
-
-        // 2. Update Sender (only if Coinseller)
-        if (profile?.isCoinseller && !profile?.isAdmin) {
-          const senderBalance = senderSnap.data().coinBalance || 0
-          if (senderBalance < amount) throw new Error("INSUFFICIENT_FUNDS")
-          transaction.update(senderRef, {
-            coinBalance: senderBalance - amount,
-            updatedAt: new Date().toISOString()
-          })
-        }
-
-        // 3. Log Transactions
-        const targetTxRef = doc(collection(targetRef, "transactions"))
-        transaction.set(targetTxRef, {
-          id: targetTxRef.id,
-          type: "award",
-          amount: amount,
+        });
+        const senderTxRef = doc(collection(senderRef, "transactions"));
+        setDoc(senderTxRef, {
+          id: senderTxRef.id,
+          type: "deduction",
+          amount: -amount,
           transactionDate: new Date().toISOString(),
-          description: `Received coins from ${profile?.isAdmin ? 'Admin' : 'Coinseller'}`
-        })
+          description: `Awarded coins to ID: ${foundUser.numericId}`
+        });
+      }
 
-        if (profile?.isCoinseller && !profile?.isAdmin) {
-          const senderTxRef = doc(collection(senderRef, "transactions"))
-          transaction.set(senderTxRef, {
-            id: senderTxRef.id,
-            type: "deduction",
-            amount: -amount,
-            transactionDate: new Date().toISOString(),
-            description: `Awarded coins to ID: ${foundUser.numericId}`
-          })
-        }
-      })
+      updateDoc(targetRef, {
+        coinBalance: firestoreIncrement(amount),
+        updatedAt: new Date().toISOString()
+      });
+
+      const targetTxRef = doc(collection(targetRef, "transactions"));
+      setDoc(targetTxRef, {
+        id: targetTxRef.id,
+        type: "award",
+        amount: amount,
+        transactionDate: new Date().toISOString(),
+        description: `Received coins from ${profile.isAdmin ? 'Admin' : 'Coinseller'}`
+      });
 
       toast({ title: "Award Successful", description: `${amount} coins have been sent.` })
       router.back()

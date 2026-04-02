@@ -1,11 +1,11 @@
-
 "use client"
 
 import { useEffect, useRef, use, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { useFirebase, useUser, useMemoFirebase } from "@/firebase"
-import { doc, runTransaction, collection, addDoc } from "firebase/firestore"
+import { doc, runTransaction as runFirestoreTransaction, collection, query, where, getDocs, updateDoc, increment as firestoreIncrement, setDoc } from "firebase/firestore"
+import { ref, runTransaction as runRtdbTransaction } from "firebase/database"
 import { verifyPaystackTransaction } from "@/app/actions/paystack"
 import { useToast } from "@/hooks/use-toast"
 
@@ -13,7 +13,7 @@ function PaystackCallbackContent({ searchParams }: { searchParams: Promise<any> 
   const params = use(searchParams)
   const router = useRouter()
   const { user: currentUser } = useUser()
-  const { firestore } = useFirebase()
+  const { firestore, database } = useFirebase()
   const { toast } = useToast()
   const processedRef = useRef(false)
 
@@ -30,7 +30,7 @@ function PaystackCallbackContent({ searchParams }: { searchParams: Promise<any> 
       return;
     }
 
-    if (!currentUser || !firestore || !userProfileDocRef || processedRef.current) return;
+    if (!currentUser || !firestore || !database || !userProfileDocRef || processedRef.current) return;
 
     const handleVerification = async () => {
       processedRef.current = true;
@@ -41,28 +41,31 @@ function PaystackCallbackContent({ searchParams }: { searchParams: Promise<any> 
         if (result.status === true && result.data.status === 'success') {
           const amountInSubunits = result.data.amount;
           const metadata = result.data.metadata;
-          const coinsToGain = metadata?.packageAmount || (amountInSubunits / 10);
+          const coinsToGain = metadata?.packageAmount || (amountInSubunits / 100);
 
-          await runTransaction(firestore, async (transaction) => {
-            const userDoc = await transaction.get(userProfileDocRef);
-            if (!userDoc.exists()) throw new Error("Profile not found");
-            
-            const currentBalance = userDoc.data().coinBalance || 0;
-            const newBalance = currentBalance + coinsToGain;
-            
+          // 1. RTDB Primary Update
+          const coinRef = ref(database, `users/${currentUser.uid}/coinBalance`);
+          await runRtdbTransaction(coinRef, (current) => (current || 0) + coinsToGain);
+
+          // 2. Firestore Backup Sync
+          await runFirestoreTransaction(firestore, async (transaction) => {
+            const txQuery = query(collection(userProfileDocRef, "transactions"), where("orderTrackingId", "==", reference));
+            const existingTx = await getDocs(txQuery);
+            if (!existingTx.empty) return;
+
             transaction.update(userProfileDocRef, {
-              coinBalance: newBalance,
+              coinBalance: firestoreIncrement(coinsToGain),
               updatedAt: new Date().toISOString()
             });
 
-            // Log transaction in the subcollection
             const txRef = doc(collection(userProfileDocRef, "transactions"));
             transaction.set(txRef, {
               id: txRef.id,
               type: "recharge",
               amount: coinsToGain,
+              orderTrackingId: reference,
               transactionDate: new Date().toISOString(),
-              description: `Coin Recharge via Paystack (Ref: ${reference})`
+              description: `Coin Recharge (${coinsToGain} coins) via Paystack`
             });
           });
 
@@ -79,7 +82,7 @@ function PaystackCallbackContent({ searchParams }: { searchParams: Promise<any> 
     };
 
     handleVerification();
-  }, [reference, currentUser, firestore, userProfileDocRef, router, toast]);
+  }, [reference, currentUser, firestore, database, userProfileDocRef, router, toast]);
 
   return (
     <div className="min-h-svh bg-slate-50 flex flex-col items-center justify-center p-8 text-center">
