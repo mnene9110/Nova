@@ -10,8 +10,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useToast } from "@/hooks/use-toast"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
-import { doc, runTransaction, collection, onSnapshot, setDoc, updateDoc, deleteDoc } from "firebase/firestore"
-import { ref, push, onValue, serverTimestamp as rtdbTimestamp, update, set, increment } from "firebase/database"
+import { doc, collection, setDoc, updateDoc as updateFirestoreDoc, increment as firestoreIncrement } from "firebase/firestore"
+import { ref, push, onValue, serverTimestamp as rtdbTimestamp, update, set, increment, runTransaction as runRtdbTransaction, remove } from "firebase/database"
 import { cn } from "@/lib/utils"
 import { getZegoConfig } from "@/app/actions/zego"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -62,6 +62,7 @@ function ChatDetailContent() {
   const [presence, setPresence] = useState<{ online: boolean; lastSeen?: number }>({ online: false })
   const [callDuration, setCallDuration] = useState(0)
   const [localPreviewStream, setLocalPreviewStream] = useState<MediaStream | null>(null)
+  const [userCoins, setUserCoins] = useState(0)
   
   // Gift State
   const [isGiftSheetOpen, setIsGiftSheetOpen] = useState(false)
@@ -108,6 +109,12 @@ function ChatDetailContent() {
   }, []);
 
   useEffect(() => {
+    if (!database || !currentUser) return
+    const coinRef = ref(database, `users/${currentUser.uid}/coinBalance`)
+    return onValue(coinRef, (snap) => setUserCoins(snap.val() || 0))
+  }, [database, currentUser])
+
+  useEffect(() => {
     if (previewVideoRef.current && localPreviewStream) {
       previewVideoRef.current.srcObject = localPreviewStream;
     }
@@ -152,36 +159,44 @@ function ChatDetailContent() {
   }, [callStatus, mounted, callType]);
 
   const handleRecurringDeduction = async () => {
-    if (!currentUser || !firestore || !chatId || !currentUserProfile) return;
+    if (!currentUser || !firestore || !chatId || !currentUserProfile || !database) return;
     const isFree = currentUserProfile.isAdmin || 
                    currentUserProfile.isSupport || 
                    currentUserProfile.isCoinseller ||
                    (currentUserProfile.gender === 'female' && otherUser?.gender === 'male');
     if (isFree) return;
+    
     const costPerMin = callType === 'video' ? 160 : 80;
+    const userCoinRef = ref(database, `users/${currentUser.uid}/coinBalance`);
+
     try {
-      await runTransaction(firestore, async (transaction) => {
-        const userDoc = await transaction.get(doc(firestore, "userProfiles", currentUser.uid));
-        if (!userDoc.exists()) throw new Error("Profile not found");
-        const currentBalance = userDoc.data().coinBalance || 0;
-        if (currentBalance < costPerMin) throw new Error("INSUFFICIENT_COINS");
-        transaction.update(doc(firestore, "userProfiles", currentUser.uid), {
-          coinBalance: currentBalance - costPerMin,
-          updatedAt: new Date().toISOString()
-        });
-        const txRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
-        transaction.set(txRef, {
-          id: txRef.id,
-          type: "deduction",
-          amount: -costPerMin,
-          transactionDate: new Date().toISOString(),
-          description: `Call in progress with ${otherUser?.username || 'user'}`
-        });
+      const result = await runRtdbTransaction(userCoinRef, (current) => {
+        if (current === null) return 0;
+        if (current < costPerMin) return undefined;
+        return current - costPerMin;
       });
-    } catch (error: any) {
-      if (error.message === "INSUFFICIENT_COINS") {
+
+      if (!result.committed) {
         handleEndCall();
+        return;
       }
+
+      // Sync to Firestore & Log
+      await updateFirestoreDoc(doc(firestore, "userProfiles", currentUser.uid), {
+        coinBalance: firestoreIncrement(-costPerMin),
+        updatedAt: new Date().toISOString()
+      });
+
+      const txRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
+      await setDoc(txRef, {
+        id: txRef.id,
+        type: "deduction",
+        amount: -costPerMin,
+        transactionDate: new Date().toISOString(),
+        description: `Call in progress with ${otherUser?.username || 'user'}`
+      });
+    } catch (error) {
+      handleEndCall();
     }
   };
 
@@ -264,10 +279,10 @@ function ChatDetailContent() {
   };
 
   useEffect(() => {
-    if (!firestore || !chatId || !currentUser || !otherUser || (otherUser.isSupport && !currentUserProfile?.isAdmin)) return
-    const callDocRef = doc(firestore, "calls", chatId);
-    const unsubscribe = onSnapshot(callDocRef, (snap) => {
-      const data = snap.data()
+    if (!database || !chatId || !currentUser || !otherUser || (otherUser.isSupport && !currentUserProfile?.isAdmin)) return
+    const callRef = ref(database, `calls/${chatId}`);
+    const unsubscribe = onValue(callRef, (snap) => {
+      const data = snap.val()
       if (!data) {
         if (callStatus !== 'idle') { 
           stopAllMedia(); 
@@ -289,10 +304,10 @@ function ChatDetailContent() {
       }
     });
     return () => unsubscribe();
-  }, [firestore, chatId, currentUser, callStatus, callType, !!otherUser]);
+  }, [database, chatId, currentUser, callStatus, callType, !!otherUser]);
 
   const handleInitiateCall = async (type: 'video' | 'audio') => {
-    if (!firestore || !chatId || !currentUser || !currentUserProfile || !otherUser) return
+    if (!database || !chatId || !currentUser || !currentUserProfile || !otherUser) return
 
     const costPerMin = type === 'video' ? 160 : 80;
     const isFree = currentUserProfile.isAdmin || 
@@ -300,7 +315,7 @@ function ChatDetailContent() {
                    currentUserProfile.isCoinseller ||
                    (currentUserProfile.gender === 'female' && otherUser?.gender === 'male');
 
-    if (!isFree && (currentUserProfile.coinBalance || 0) < costPerMin) {
+    if (!isFree && userCoins < costPerMin) {
       toast({
         variant: "destructive",
         title: "Insufficient Balance",
@@ -321,14 +336,14 @@ function ChatDetailContent() {
     }
 
     try {
-      const callDocRef = doc(firestore, "calls", chatId);
-      await setDoc(callDocRef, { 
+      const callRef = ref(database, `calls/${chatId}`);
+      await set(callRef, { 
         callerId: currentUser.uid, 
         receiverId: otherUserId, 
         status: 'ringing', 
         callType: type, 
         timestamp: Date.now(),
-        callerName: currentUser.displayName || 'Someone'
+        callerName: currentUserProfile.username || 'Someone'
       });
     } catch (error: any) {
       stopAllMedia();
@@ -337,23 +352,23 @@ function ChatDetailContent() {
   }
 
   const handleAcceptCall = async () => {
-    if (!firestore || !chatId) return
-    const callDocRef = doc(firestore, "calls", chatId);
-    await updateDoc(callDocRef, { status: 'accepted' });
+    if (!database || !chatId) return
+    const callRef = ref(database, `calls/${chatId}`);
+    await update(callRef, { status: 'accepted' });
   }
 
   const handleDeclineCall = async () => {
-    if (!firestore || !chatId) return
-    const callDocRef = doc(firestore, "calls", chatId);
-    await deleteDoc(callDocRef);
+    if (!database || !chatId) return
+    const callRef = ref(database, `calls/${chatId}`);
+    await remove(callRef);
     setCallStatus('idle')
     stopAllMedia();
   }
 
   const handleEndCall = async () => {
-    if (!firestore || !chatId) return
-    const callDocRef = doc(firestore, "calls", chatId);
-    await deleteDoc(callDocRef);
+    if (!database || !chatId) return
+    const callRef = ref(database, `calls/${chatId}`);
+    await remove(callRef);
     stopAllMedia(); 
     setCallStatus('idle')
   }
@@ -381,42 +396,43 @@ function ChatDetailContent() {
     const textToUse = textOverride || inputText;
     if (!textToUse.trim() || !currentUser || !chatId || !database || !otherUserId || !otherUser || !currentUserProfile || isSending) return
     
-    // Logic: Free for females, admins, support, and coinsellers. 
-    // Also free if messaging support or coinsellers.
-    const senderGender = currentUserProfile.gender?.toLowerCase() || 'male';
-    const receiverGender = otherUser.gender?.toLowerCase() || 'female';
-    
-    let isFree = currentUserProfile.isAdmin || 
-                 currentUserProfile.isSupport || 
-                 currentUserProfile.isCoinseller || 
-                 otherUser.isSupport || 
-                 otherUser.isCoinseller ||
-                 (senderGender === 'female' && receiverGender === 'male');
+    // Male users charged 15 coins unless they are Admin/Coinseller/Support or messaging Support/Coinseller
+    const isFree = currentUserProfile.isAdmin || 
+                   currentUserProfile.isSupport || 
+                   currentUserProfile.isCoinseller || 
+                   otherUser.isSupport || 
+                   otherUser.isCoinseller ||
+                   currentUserProfile.gender?.toLowerCase() === 'female';
 
     const messageCost = isFree ? 0 : 15;
     
     setIsSending(true)
     try {
       if (messageCost > 0) {
-        await runTransaction(firestore, async (transaction) => {
-          const userDoc = await transaction.get(doc(firestore, "userProfiles", currentUser.uid));
-          if (!userDoc.exists()) throw new Error("Profile not found");
-          const currentBalance = userDoc.data().coinBalance || 0;
-          if (currentBalance < messageCost) throw new Error("INSUFFICIENT_COINS");
-          
-          transaction.update(doc(firestore, "userProfiles", currentUser.uid), {
-            coinBalance: currentBalance - messageCost,
-            updatedAt: new Date().toISOString()
-          });
+        const userCoinRef = ref(database, `users/${currentUser.uid}/coinBalance`);
+        const result = await runRtdbTransaction(userCoinRef, (current) => {
+          if (current === null) return 0;
+          if (current < messageCost) return undefined; // Abort
+          return current - messageCost;
+        });
 
-          const txRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
-          transaction.set(txRef, {
-            id: txRef.id,
-            type: "deduction",
-            amount: -messageCost,
-            transactionDate: new Date().toISOString(),
-            description: `Message sent to ${otherUser?.username || 'user'}`
-          });
+        if (!result.committed) {
+          throw new Error("INSUFFICIENT_COINS");
+        }
+
+        // Sync to Firestore & Log
+        updateFirestoreDoc(doc(firestore, "userProfiles", currentUser.uid), {
+          coinBalance: firestoreIncrement(-messageCost),
+          updatedAt: new Date().toISOString()
+        });
+
+        const txRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
+        setDoc(txRef, {
+          id: txRef.id,
+          type: "deduction",
+          amount: -messageCost,
+          transactionDate: new Date().toISOString(),
+          description: `Message sent to ${otherUser?.username || 'user'}`
         });
       }
 
@@ -448,59 +464,56 @@ function ChatDetailContent() {
   }
 
   const handleSendGift = async () => {
-    if (!selectedGift || !currentUser || !otherUserId || isSendingGift || !currentUserProfile) return;
+    if (!selectedGift || !currentUser || !otherUserId || isSendingGift || !currentUserProfile || !database) return;
     
     setIsSendingGift(true);
     const giftPrice = selectedGift.price;
     const diamondGain = Math.floor(giftPrice * 0.6);
 
     try {
-      await runTransaction(firestore, async (transaction) => {
-        const senderRef = doc(firestore, "userProfiles", currentUser.uid);
-        const receiverRef = doc(firestore, "userProfiles", otherUserId);
-
-        const senderSnap = await transaction.get(senderRef);
-        const receiverSnap = await transaction.get(receiverRef);
-
-        if (!senderSnap.exists() || !receiverSnap.exists()) throw new Error("Profile not found");
-
-        const senderBalance = senderSnap.data().coinBalance || 0;
-        if (senderBalance < giftPrice) throw new Error("INSUFFICIENT_COINS");
-
-        // 1. Deduct from Sender
-        transaction.update(senderRef, {
-          coinBalance: senderBalance - giftPrice,
-          updatedAt: new Date().toISOString()
-        });
-
-        // 2. Add to Receiver (Diamonds)
-        const receiverDiamonds = receiverSnap.data().diamondBalance || 0;
-        transaction.update(receiverRef, {
-          diamondBalance: receiverDiamonds + diamondGain,
-          updatedAt: new Date().toISOString()
-        });
-
-        // 3. Log Transactions
-        const senderTxRef = doc(collection(senderRef, "transactions"));
-        transaction.set(senderTxRef, {
-          id: senderTxRef.id,
-          type: "gift_sent",
-          amount: -giftPrice,
-          transactionDate: new Date().toISOString(),
-          description: `Sent ${selectedGift.name} to ${otherUser?.username || 'User'}`
-        });
-
-        const receiverTxRef = doc(collection(receiverRef, "transactions"));
-        transaction.set(receiverTxRef, {
-          id: receiverTxRef.id,
-          type: "gift_received",
-          amount: diamondGain,
-          transactionDate: new Date().toISOString(),
-          description: `Received ${selectedGift.name} (Diamond value)`
-        });
+      // 1. RTDB Atomic Deduction
+      const senderCoinRef = ref(database, `users/${currentUser.uid}/coinBalance`);
+      const result = await runRtdbTransaction(senderCoinRef, (current) => {
+        if (current === null) return 0;
+        if (current < giftPrice) return undefined;
+        return current - giftPrice;
       });
 
-      // Send chat message
+      if (!result.committed) throw new Error("INSUFFICIENT_COINS");
+
+      // 2. RTDB Diamond Add
+      const receiverDiamondRef = ref(database, `users/${otherUserId}/diamondBalance`);
+      await runRtdbTransaction(receiverDiamondRef, (current) => (current || 0) + diamondGain);
+
+      // 3. Firestore Sync & Log
+      await updateFirestoreDoc(doc(firestore, "userProfiles", currentUser.uid), {
+        coinBalance: firestoreIncrement(-giftPrice),
+        updatedAt: new Date().toISOString()
+      });
+      await updateFirestoreDoc(doc(firestore, "userProfiles", otherUserId), {
+        diamondBalance: firestoreIncrement(diamondGain),
+        updatedAt: new Date().toISOString()
+      });
+
+      const senderTxRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
+      setDoc(senderTxRef, {
+        id: senderTxRef.id,
+        type: "gift_sent",
+        amount: -giftPrice,
+        transactionDate: new Date().toISOString(),
+        description: `Sent ${selectedGift.name} to ${otherUser?.username || 'User'}`
+      });
+
+      const receiverTxRef = doc(collection(firestore, "userProfiles", otherUserId, "transactions"));
+      setDoc(receiverTxRef, {
+        id: receiverTxRef.id,
+        type: "gift_received",
+        amount: diamondGain,
+        transactionDate: new Date().toISOString(),
+        description: `Received ${selectedGift.name} (Diamond value)`
+      });
+
+      // 4. Chat Message
       const giftMessage = `🎁 Sent a gift: ${selectedGift.name}`;
       const updates: any = {}
       const msgKey = push(ref(database, `chats/${chatId}/messages`)).key
@@ -526,7 +539,6 @@ function ChatDetailContent() {
     }
   }
 
-  // Handle Loading & Missing User definitively
   if (isOtherUserLoading) {
     return <div className="flex h-svh items-center justify-center bg-white"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
   }
@@ -731,7 +743,7 @@ function ChatDetailContent() {
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5 bg-zinc-800 px-3 py-2 rounded-full border border-zinc-700">
                           <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-[8px] font-black text-zinc-900 italic">S</div>
-                          <span className="text-xs font-black">{currentUserProfile?.coinBalance?.toLocaleString() || 0}</span>
+                          <span className="text-xs font-black">{userCoins.toLocaleString()}</span>
                         </div>
                       </div>
                       <Button 

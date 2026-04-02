@@ -3,16 +3,23 @@
   "rules": {
     "users": {
       "$uid": {
+        ".read": "auth != null",
+        ".write": "auth.uid === $uid",
         "presence": {
-          ".read": "auth != null",
-          ".write": "auth.uid === $uid",
           "online": { ".validate": "newData.isBoolean()" },
           "lastSeen": { ".validate": "newData.isNumber()" }
         },
+        "coinBalance": {
+          ".validate": "newData.isNumber() && (data.exists() ? (newData <= data.val() || auth.token.is_coinseller === true || auth.token.is_admin === true) : true)"
+        },
+        "diamondBalance": {
+          ".validate": "newData.isNumber()"
+        },
+        "inCall": {
+          ".validate": "newData.isBoolean()"
+        },
         "chats": {
-          ".read": "auth.uid === $uid",
           "$otherId": {
-            // Sender can increment unread count, owner can clear it
             ".write": "auth.uid === $uid || auth.uid === $otherId",
             "unreadCount": {
                ".validate": "newData.isNumber() && newData >= 0"
@@ -23,7 +30,6 @@
     },
     "chats": {
       "$chatId": {
-        // ChatId must contain the user's UID to allow access
         ".read": "auth != null && $chatId.contains(auth.uid)",
         ".write": "auth != null && $chatId.contains(auth.uid)",
         "messages": {
@@ -33,6 +39,12 @@
             "sentAt": { ".validate": "newData.isNumber()" }
           }
         }
+      }
+    },
+    "calls": {
+      "$chatId": {
+        ".read": "auth != null && $chatId.contains(auth.uid)",
+        ".write": "auth != null && $chatId.contains(auth.uid)"
       }
     }
   }

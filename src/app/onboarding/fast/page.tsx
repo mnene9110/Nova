@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -6,8 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { useFirestore, useUser, setDocumentNonBlocking } from "@/firebase"
+import { useFirestore, useUser, useFirebase, setDocumentNonBlocking } from "@/firebase"
 import { doc } from "firebase/firestore"
+import { ref, set } from "firebase/database"
 import { cn } from "@/lib/utils"
 
 const TARGET_COUNTRIES = [
@@ -22,20 +24,29 @@ export default function FastOnboardingPage() {
   const [country, setCountry] = useState("")
   const router = useRouter()
   const { user } = useUser()
-  const firestore = useFirestore()
+  const { firestore, database } = useFirebase()
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!user || !gender || !country) return
 
-    // Generate a unique 8-digit numeric ID
     const numericId = Math.floor(10000000 + Math.random() * 90000000);
+    const welcomeCoins = 500;
 
+    // 1. RTDB Init
+    const rtdbUserRef = ref(database, `users/${user.uid}`);
+    await set(rtdbUserRef, {
+      coinBalance: welcomeCoins,
+      diamondBalance: 0,
+      presence: { online: true, lastSeen: Date.now() },
+      inCall: false
+    });
+
+    // 2. Firestore Init
     const userRef = doc(firestore, "userProfiles", user.uid)
     const profileData = {
       id: user.uid,
       numericId,
       authProviderId: "anonymous",
-      // Assign a random friendly guest name
       username: `Guest_${user.uid.slice(0, 5)}`,
       gender,
       location: country,
@@ -44,11 +55,11 @@ export default function FastOnboardingPage() {
       updatedAt: new Date().toISOString(),
       lastActiveAt: new Date().toISOString(),
       interests: ["Nature", "Travel"],
-      coinBalance: 500, // Welcome gift
+      coinBalance: welcomeCoins,
       isAdmin: false,
       isCoinseller: false,
       isSupport: false,
-      dateOfBirth: "2000-01-01", // Default adult DOB for fast setup
+      dateOfBirth: "2000-01-01",
       isVerified: false
     }
 
@@ -78,7 +89,7 @@ export default function FastOnboardingPage() {
                   gender === "male" ? "border-[#5A1010] ring-1 ring-[#5A1010]" : "border-gray-100"
                 )}
               >
-                <RadioGroupItem value="male" id="male" className="border-primary" />
+                <RadioGroupItem value="male" id="male" />
                 <Label htmlFor="male" className={cn("cursor-pointer font-black text-xs tracking-widest uppercase", gender === "male" ? darkMaroonText : "text-gray-400")}>Man</Label>
               </div>
               <div 
@@ -88,7 +99,7 @@ export default function FastOnboardingPage() {
                   gender === "female" ? "border-[#5A1010] ring-1 ring-[#5A1010]" : "border-gray-100"
                 )}
               >
-                <RadioGroupItem value="female" id="female" className="border-primary" />
+                <RadioGroupItem value="female" id="female" />
                 <Label htmlFor="female" className={cn("cursor-pointer font-black text-xs tracking-widest uppercase", gender === "female" ? darkMaroonText : "text-gray-400")}>Woman</Label>
               </div>
             </RadioGroup>
@@ -101,21 +112,13 @@ export default function FastOnboardingPage() {
                 <SelectValue placeholder="Select country" />
               </SelectTrigger>
               <SelectContent className="bg-white border-zinc-100 text-gray-900 rounded-[2rem] p-2">
-                {TARGET_COUNTRIES.map(c => (
-                  <SelectItem key={c} value={c} className="hover:bg-zinc-50 focus:bg-zinc-50 rounded-xl font-bold py-3 px-4">{c}</SelectItem>
-                ))}
+                {TARGET_COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
         </div>
 
-        <Button 
-          className={cn("w-full h-18 rounded-full text-white text-xl font-black mb-10 shadow-2xl active:scale-95 transition-all", darkMaroonBg)}
-          disabled={!gender || !country}
-          onClick={handleConfirm}
-        >
-          Confirm & Start
-        </Button>
+        <Button className={cn("w-full h-18 rounded-full text-white text-xl font-black mb-10 shadow-2xl active:scale-95 transition-all", darkMaroonBg)} disabled={!gender || !country} onClick={handleConfirm}>Confirm & Start</Button>
       </div>
     </div>
   )
