@@ -43,8 +43,11 @@ export function GlobalCallOverlay() {
         AgoraRTC = module.default;
         AgoraRTC.setLogLevel(2); // Error only for performance
       });
-      ringtoneRef.current = new Audio("/ringtone.mp3");
-      ringtoneRef.current.loop = true;
+      // Initialize ringtone with explicit settings
+      const audio = new Audio("/ringtone.mp3");
+      audio.loop = true;
+      audio.preload = "auto";
+      ringtoneRef.current = audio;
     }
   }, []);
 
@@ -78,8 +81,8 @@ export function GlobalCallOverlay() {
 
     if (data.status === 'ringing') {
       // Use ringtone.mp3 for both parties during ringing
-      if (ringtoneRef.current) {
-        ringtoneRef.current.play().catch(() => {});
+      if (ringtoneRef.current && ringtoneRef.current.paused) {
+        ringtoneRef.current.play().catch((e) => console.warn("Ringtone play blocked:", e));
       }
       setCallStatus(isCaller ? 'ringing' : 'incoming');
       
@@ -241,6 +244,11 @@ export function GlobalCallOverlay() {
 
   const handleAcceptCall = async () => {
     if (!database || !activeChatIdRef.current || !callData) return;
+    // Stop ringtone immediately on acceptance
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
+    }
     // Engage hardware immediately upon click for instant handshake
     engageHardware(callData.callType);
     await update(ref(database, `calls/${activeChatIdRef.current}`), { status: 'accepted' });
@@ -304,7 +312,7 @@ export function GlobalCallOverlay() {
     <div className="fixed inset-0 z-[1000] bg-zinc-950 flex flex-col overflow-hidden text-white font-body">
       {/* 
           AGORA VIDEO GRID LAYER
-          The remote video will render here once connected.
+          The remote user's video is rendered here. 
       */}
       <div 
         ref={remoteContainerRef} 
@@ -315,8 +323,8 @@ export function GlobalCallOverlay() {
       />
 
       {/* 
-          LOCAL SELF-VIEW (PICTURE-IN-PICTURE)
-          Always on top during ringing or active calls.
+          LOCAL SELF-VIEW (MIRRORED PiP)
+          CSS scale-x-[-1] applied to container to ensure mirror effect.
       */}
       <div className={cn(
         "absolute top-12 right-6 w-32 aspect-[3/4] bg-zinc-900 rounded-2xl overflow-hidden border-2 border-white/10 z-50 shadow-2xl transition-all duration-500",
@@ -327,7 +335,6 @@ export function GlobalCallOverlay() {
 
       {/* 
           PRE-CONNECTION UI (RINGING / INCOMING)
-          Shown until the Agora tracks are subscribed and played.
       */}
       {(callStatus !== 'ongoing' || isConnecting) && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-between py-24 px-8">
@@ -352,7 +359,7 @@ export function GlobalCallOverlay() {
               {isConnecting && (
                 <div className="flex items-center justify-center gap-2">
                   <Loader2 className="w-4 h-4 text-primary animate-spin" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Connecting Agora</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Securing Agora Link</span>
                 </div>
               )}
             </div>
@@ -361,8 +368,7 @@ export function GlobalCallOverlay() {
       )}
 
       {/* 
-          ONGOING STATUS (TIMER)
-          Floating overlay for high-quality feel.
+          TIMER OVERLAY
       */}
       {callStatus === 'ongoing' && !isConnecting && (
         <div className="absolute top-12 left-6 z-50">
@@ -377,7 +383,6 @@ export function GlobalCallOverlay() {
 
       {/* 
           PRIMARY ACTION CONTROLS
-          Simple red/green buttons for native phone behavior.
       */}
       <div className="absolute bottom-16 left-0 right-0 z-[60] flex items-center justify-center gap-12 px-8">
         {callStatus === 'incoming' ? (

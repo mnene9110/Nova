@@ -408,7 +408,7 @@ function ChatDetailContent() {
                       <SheetTitle className="text-xs font-black uppercase tracking-widest text-zinc-400">Select a Gift</SheetTitle>
                       <div className="flex items-center justify-between">
                         <div className="flex gap-6">
-                          <button className="text-xs font-black uppercase tracking-widest border-b-2 border-primary pb-2">Gift</button>
+                          <button className="text-xs font-black uppercase tracking-widest border-b-2 border-primary pb-2">Gifts</button>
                         </div>
                       </div>
                     </SheetHeader>
