@@ -48,7 +48,6 @@ function ChatDetailContent() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const zegoContainerRef = useRef<HTMLDivElement>(null)
   const previewVideoRef = useRef<HTMLVideoElement>(null)
-  const localStreamRef = useRef<MediaStream | null>(null)
   const ringtoneRef = useRef<HTMLAudioElement | null>(null)
   const zegoInitializingRef = useRef(false)
   
@@ -181,14 +180,14 @@ function ChatDetailContent() {
         return;
       }
 
-      // Sync to Firestore & Log
-      await updateFirestoreDoc(doc(firestore, "userProfiles", currentUser.uid), {
+      // Backup Sync to Firestore
+      updateFirestoreDoc(doc(firestore, "userProfiles", currentUser.uid), {
         coinBalance: firestoreIncrement(-costPerMin),
         updatedAt: new Date().toISOString()
       });
 
       const txRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
-      await setDoc(txRef, {
+      setDoc(txRef, {
         id: txRef.id,
         type: "deduction",
         amount: -costPerMin,
@@ -217,10 +216,7 @@ function ChatDetailContent() {
 
   const stopAllMedia = () => {
     stopRingtone();
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => track.stop());
-      localStreamRef.current = null;
-    }
+    if (previewVideoRef.current) previewVideoRef.current.srcObject = null;
     if (localPreviewStream) {
       localPreviewStream.getTracks().forEach(track => track.stop());
       setLocalPreviewStream(null);
@@ -396,7 +392,6 @@ function ChatDetailContent() {
     const textToUse = textOverride || inputText;
     if (!textToUse.trim() || !currentUser || !chatId || !database || !otherUserId || !otherUser || !currentUserProfile || isSending) return
     
-    // Male users charged 15 coins unless they are Admin/Coinseller/Support or messaging Support/Coinseller
     const isFree = currentUserProfile.isAdmin || 
                    currentUserProfile.isSupport || 
                    currentUserProfile.isCoinseller || 
@@ -412,15 +407,13 @@ function ChatDetailContent() {
         const userCoinRef = ref(database, `users/${currentUser.uid}/coinBalance`);
         const result = await runRtdbTransaction(userCoinRef, (current) => {
           if (current === null) return 0;
-          if (current < messageCost) return undefined; // Abort
+          if (current < messageCost) return undefined;
           return current - messageCost;
         });
 
-        if (!result.committed) {
-          throw new Error("INSUFFICIENT_COINS");
-        }
+        if (!result.committed) throw new Error("INSUFFICIENT_COINS");
 
-        // Sync to Firestore & Log
+        // Sync to Firestore Backup
         updateFirestoreDoc(doc(firestore, "userProfiles", currentUser.uid), {
           coinBalance: firestoreIncrement(-messageCost),
           updatedAt: new Date().toISOString()
@@ -471,7 +464,6 @@ function ChatDetailContent() {
     const diamondGain = Math.floor(giftPrice * 0.6);
 
     try {
-      // 1. RTDB Atomic Deduction
       const senderCoinRef = ref(database, `users/${currentUser.uid}/coinBalance`);
       const result = await runRtdbTransaction(senderCoinRef, (current) => {
         if (current === null) return 0;
@@ -481,16 +473,15 @@ function ChatDetailContent() {
 
       if (!result.committed) throw new Error("INSUFFICIENT_COINS");
 
-      // 2. RTDB Diamond Add
       const receiverDiamondRef = ref(database, `users/${otherUserId}/diamondBalance`);
       await runRtdbTransaction(receiverDiamondRef, (current) => (current || 0) + diamondGain);
 
-      // 3. Firestore Sync & Log
-      await updateFirestoreDoc(doc(firestore, "userProfiles", currentUser.uid), {
+      // Firestore Backup Sync
+      updateFirestoreDoc(doc(firestore, "userProfiles", currentUser.uid), {
         coinBalance: firestoreIncrement(-giftPrice),
         updatedAt: new Date().toISOString()
       });
-      await updateFirestoreDoc(doc(firestore, "userProfiles", otherUserId), {
+      updateFirestoreDoc(doc(firestore, "userProfiles", otherUserId), {
         diamondBalance: firestoreIncrement(diamondGain),
         updatedAt: new Date().toISOString()
       });
@@ -513,13 +504,13 @@ function ChatDetailContent() {
         description: `Received ${selectedGift.name} (Diamond value)`
       });
 
-      // 4. Chat Message
       const giftMessage = `🎁 Sent a gift: ${selectedGift.name}`;
       const updates: any = {}
       const msgKey = push(ref(database, `chats/${chatId}/messages`)).key
       const msgData = { messageText: giftMessage, senderId: currentUser.uid, sentAt: rtdbTimestamp(), isGift: true }
       updates[`/chats/${chatId}/messages/${msgKey}`] = msgData
-      updates[`/users/${currentUser.uid}/chats/${otherUserId}`] = { lastMessage: giftMessage, timestamp: rtdbTimestamp(), otherUserId, chatId, unreadCount: 0 }
+      updates[`/users/${currentUser.uid}/chats/${otherUserId}/lastMessage`] = giftMessage
+      updates[`/users/${currentUser.uid}/chats/${otherUserId}/timestamp`] = rtdbTimestamp()
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/lastMessage`] = giftMessage
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/timestamp`] = rtdbTimestamp()
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/unreadCount`] = increment(1)

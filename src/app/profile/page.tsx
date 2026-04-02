@@ -46,7 +46,7 @@ export default function ProfilePage() {
 
   const { data: userProfile, isLoading } = useDoc(userRef)
 
-  // Realtime Balance Listeners
+  // Realtime Balance Listeners from RTDB
   useEffect(() => {
     if (!database || !currentUser) return
     const coinRef = ref(database, `users/${currentUser.uid}/coinBalance`)

@@ -37,7 +37,7 @@ export default function IncomePage() {
     const coinsToGain = blocks * 150
 
     try {
-      // 1. RTDB Atomic Update
+      // 1. RTDB Atomic Transaction (Primary)
       const userRef = ref(database, `users/${currentUser.uid}`)
       await runRtdbTransaction(userRef, (current) => {
         if (!current) return current;
@@ -49,16 +49,16 @@ export default function IncomePage() {
         }
       });
 
-      // 2. Firestore Sync & Log
+      // 2. Firestore Backup Sync & Log
       const profileRef = doc(firestore, "userProfiles", currentUser.uid);
-      await updateDoc(profileRef, {
+      updateDoc(profileRef, {
         diamondBalance: firestoreIncrement(-diamondsToDeduct),
         coinBalance: firestoreIncrement(coinsToGain),
         updatedAt: new Date().toISOString()
       });
 
       const txRef = doc(collection(profileRef, "transactions"));
-      await setDoc(txRef, {
+      setDoc(txRef, {
         id: txRef.id,
         type: "diamond_exchange",
         amount: coinsToGain,

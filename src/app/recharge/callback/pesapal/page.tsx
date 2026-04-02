@@ -37,11 +37,11 @@ function PesaPalCallbackContent({ searchParams }: { searchParams: Promise<any> }
           const amount = result.amount;
           const coinsToGain = Math.round((amount / 120) * 1000);
 
-          // 1. RTDB Update
+          // 1. RTDB Primary Update
           const coinRef = ref(database, `users/${currentUser.uid}/coinBalance`);
           await runRtdbTransaction(coinRef, (current) => (current || 0) + coinsToGain);
 
-          // 2. Firestore Sync & Log
+          // 2. Firestore Backup Sync & Log
           await runFirestoreTransaction(firestore, async (transaction) => {
             const txQuery = query(collection(userProfileDocRef, "transactions"), where("orderTrackingId", "==", orderTrackingId));
             const existingTx = await getDocs(txQuery);
