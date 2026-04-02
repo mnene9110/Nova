@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { useFirestore, useUser, useFirebase, setDocumentNonBlocking } from "@/firebase"
-import { doc } from "firebase/firestore"
-import { ref, set } from "firebase/database"
+import { useFirestore, useUser, useFirebase } from "@/firebase"
+import { doc, setDoc } from "firebase/firestore"
+import { ref, set as setRtdb } from "firebase/database"
 import { cn } from "@/lib/utils"
+import { Loader2 } from "lucide-react"
 
 const TARGET_COUNTRIES = [
   "Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya", 
@@ -22,49 +23,57 @@ const TARGET_COUNTRIES = [
 export default function FastOnboardingPage() {
   const [gender, setGender] = useState("")
   const [country, setCountry] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const { user } = useUser()
   const { firestore, database } = useFirebase()
 
   const handleConfirm = async () => {
-    if (!user || !gender || !country) return
+    if (!user || !gender || !country || isSubmitting) return
+    setIsSubmitting(true)
 
-    const numericId = Math.floor(10000000 + Math.random() * 90000000);
-    const welcomeCoins = 500;
+    try {
+      const numericId = Math.floor(10000000 + Math.random() * 90000000);
+      const welcomeCoins = 500;
 
-    // 1. RTDB Init
-    const rtdbUserRef = ref(database, `users/${user.uid}`);
-    await set(rtdbUserRef, {
-      coinBalance: welcomeCoins,
-      diamondBalance: 0,
-      presence: { online: true, lastSeen: Date.now() },
-      inCall: false
-    });
+      // 1. RTDB Init (Primary)
+      const rtdbUserRef = ref(database, `users/${user.uid}`);
+      await setRtdb(rtdbUserRef, {
+        coinBalance: welcomeCoins,
+        diamondBalance: 0,
+        presence: { online: true, lastSeen: Date.now() },
+        inCall: false
+      });
 
-    // 2. Firestore Init
-    const userRef = doc(firestore, "userProfiles", user.uid)
-    const profileData = {
-      id: user.uid,
-      numericId,
-      authProviderId: "anonymous",
-      username: `Guest_${user.uid.slice(0, 5)}`,
-      gender,
-      location: country,
-      profilePhotoUrls: [`https://picsum.photos/seed/${user.uid}/600/800`],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      lastActiveAt: new Date().toISOString(),
-      interests: ["Nature", "Travel"],
-      coinBalance: welcomeCoins,
-      isAdmin: false,
-      isCoinseller: false,
-      isSupport: false,
-      dateOfBirth: "2000-01-01",
-      isVerified: false
+      // 2. Firestore Init (Persistent Profile)
+      const userRef = doc(firestore, "userProfiles", user.uid)
+      const profileData = {
+        id: user.uid,
+        numericId,
+        authProviderId: "anonymous",
+        username: `Guest_${user.uid.slice(0, 5)}`,
+        gender,
+        location: country,
+        profilePhotoUrls: [`https://picsum.photos/seed/${user.uid}/600/800`],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastActiveAt: new Date().toISOString(),
+        interests: ["Travel"],
+        coinBalance: welcomeCoins,
+        isAdmin: false,
+        isCoinseller: false,
+        isSupport: false,
+        dateOfBirth: "2000-01-01",
+        isVerified: false
+      }
+
+      // We await this to ensure the Discover query finds the user immediately
+      await setDoc(userRef, profileData, { merge: true })
+      router.push("/discover")
+    } catch (error) {
+      console.error("Fast onboarding failed:", error)
+      setIsSubmitting(false)
     }
-
-    setDocumentNonBlocking(userRef, profileData, { merge: true })
-    router.push("/discover")
   }
 
   const darkMaroonText = "text-[#5A1010]";
@@ -118,7 +127,13 @@ export default function FastOnboardingPage() {
           </div>
         </div>
 
-        <Button className={cn("w-full h-18 rounded-full text-white text-xl font-black mb-10 shadow-2xl active:scale-95 transition-all", darkMaroonBg)} disabled={!gender || !country} onClick={handleConfirm}>Confirm & Start</Button>
+        <Button 
+          className={cn("w-full h-18 rounded-full text-white text-xl font-black mb-10 shadow-2xl active:scale-95 transition-all", darkMaroonBg)} 
+          disabled={!gender || !country || isSubmitting} 
+          onClick={handleConfirm}
+        >
+          {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Confirm & Start"}
+        </Button>
       </div>
     </div>
   )
