@@ -16,7 +16,8 @@ import {
   ClipboardList,
   Award,
   Zap,
-  Gem
+  Gem,
+  ArrowDownToLine
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
@@ -167,14 +168,32 @@ export default function ProfilePage() {
             <span className="text-2xl font-black text-gray-900 font-headline">
               {isLoading ? "..." : (userProfile?.diamondBalance || 0).toLocaleString()}
             </span>
-            <div className="w-full h-10 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-               <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">Rewards</span>
-            </div>
+            <Button 
+              onClick={() => router.push('/profile/income')}
+              className="w-full h-10 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center active:bg-blue-500/20"
+            >
+               <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">Income</span>
+            </Button>
           </div>
         </div>
 
         {/* Action Buttons Section */}
         <div className="flex flex-col gap-3">
+          {/* Income Button (Mobile style) */}
+          <button 
+            onClick={() => router.push('/profile/income')}
+            className="w-full h-16 rounded-[2rem] bg-white/40 backdrop-blur-md border border-white/30 flex items-center px-6 gap-4 active:bg-white/60 transition-all shadow-sm"
+          >
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500/10">
+              <ArrowDownToLine className="w-5 h-5 text-blue-500" />
+            </div>
+            <div className="flex-1 text-left">
+              <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px] block">Diamond Rewards</span>
+              <span className="text-gray-400 text-[11px] font-bold">Exchange diamonds for coins</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-300" />
+          </button>
+
           {/* Support Specific Features */}
           {!isLoading && userProfile?.isSupport && (
             <button 
