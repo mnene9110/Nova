@@ -1,10 +1,9 @@
 {
   "entities": {
     "UserProfile": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
-      "type": "object",
       "description": "Represents a user's profile and wallet information.",
+      "type": "object",
       "properties": {
         "id": { "type": "string" },
         "numericId": { "type": "number" },
@@ -44,7 +43,6 @@
       "required": ["id", "authProviderId", "username", "dateOfBirth", "gender", "createdAt", "coinBalance"]
     },
     "CoinTransaction": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "CoinTransaction",
       "type": "object",
       "properties": {
@@ -58,7 +56,6 @@
       "required": ["id", "type", "amount", "transactionDate"]
     },
     "CallSession": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "CallSession",
       "type": "object",
       "properties": {
@@ -71,7 +68,6 @@
       }
     },
     "Report": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Report",
       "type": "object",
       "properties": {
@@ -88,35 +84,21 @@
     "providers": ["password", "anonymous"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/userProfiles/{userId}",
-        "definition": {
-          "entityName": "UserProfile",
-          "schema": { "$ref": "#/entities/UserProfile" }
-        }
-      },
-      {
-        "path": "/userProfiles/{userId}/transactions/{transactionId}",
-        "definition": {
-          "entityName": "CoinTransaction",
-          "schema": { "$ref": "#/entities/CoinTransaction" }
-        }
-      },
-      {
-        "path": "/calls/{chatId}",
-        "definition": {
-          "entityName": "CallSession",
-          "schema": { "$ref": "#/entities/CallSession" }
-        }
-      },
-      {
-        "path": "/reports/{reportId}",
-        "definition": {
-          "entityName": "Report",
-          "schema": { "$ref": "#/entities/Report" }
-        }
-      }
-    ]
+    "/userProfiles/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile document."
+    },
+    "/userProfiles/{userId}/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/CoinTransaction" },
+      "description": "User transaction history."
+    },
+    "/calls/{chatId}": {
+      "schema": { "$ref": "#/entities/CallSession" },
+      "description": "Active call sessions."
+    },
+    "/reports/{reportId}": {
+      "schema": { "$ref": "#/entities/Report" },
+      "description": "User violation reports."
+    }
   }
 }

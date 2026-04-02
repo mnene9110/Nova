@@ -37,11 +37,11 @@ service cloud.firestore {
 
       allow update: if (
         isOwner(userId) && (
-          // Allow updates to standard profile fields
+          // Allow updates to standard profile fields, but block balance/role changes
           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'isCoinseller', 'isSupport']) &&
-          // Protect balance: only allow if it's the initial welcome gift (0 -> value <= 500) or not changed
           (
             !request.resource.data.diff(resource.data).affectedKeys().hasAny(['coinBalance']) ||
+            // Special exception for initial welcome gift update if balance was 0
             (resource.data.get('coinBalance', 0) == 0 && request.resource.data.get('coinBalance', 0) <= 500)
           )
         )
