@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
-// Global session cache
+// ECONOMY: Session-based feed caching
 let cachedUsers: any[] = []
 let cachedLastVisible: QueryDocumentSnapshot<DocumentData> | null = null
 let cachedHasMore: boolean = true
@@ -42,7 +42,8 @@ export default function DiscoverPage() {
   useEffect(() => {
     if (!database || !currentUser || isProfileLoading || !currentUserProfile) return;
 
-    const syncBalance = async () => {
+    // ECONOMY: Only sync if RTDB balance is missing
+    const syncBalanceIfMissing = async () => {
       const rtdbRef = ref(database, `users/${currentUser.uid}`);
       const snap = await get(rtdbRef);
       const data = snap.val();
@@ -57,7 +58,7 @@ export default function DiscoverPage() {
         });
       }
     }
-    syncBalance();
+    syncBalanceIfMissing();
   }, [database, currentUser, isProfileLoading, !!currentUserProfile]);
 
   useEffect(() => {

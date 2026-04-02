@@ -51,9 +51,10 @@ function ChatDetailContent() {
   const ringtoneRef = useRef<HTMLAudioElement | null>(null)
   const zegoInitializingRef = useRef(false)
   
-  // Call History Refs
+  // ECONOMY: Tracking call usage for deferred Firestore sync
   const callStatusRef = useRef<'idle' | 'ringing' | 'calling' | 'incoming' | 'ongoing'>('idle')
   const callDurationRef = useRef(0)
+  const totalCostAccruedRef = useRef(0)
   const wasCallAcceptedRef = useRef(false)
   const isInitiatorRef = useRef(false)
 
@@ -157,6 +158,7 @@ function ChatDetailContent() {
         if (!mounted) return;
         setCallDuration((prev) => {
           const nextVal = prev + 1;
+          // ECONOMY: Deductions happen every 60 seconds starting at 11s
           if (nextVal === 11) {
             handleRecurringDeduction();
           } else if (nextVal > 11 && nextVal % 60 === 0) {
@@ -184,7 +186,7 @@ function ChatDetailContent() {
 
     try {
       const result = await runRtdbTransaction(userCoinRef, (current) => {
-        if (current === null) return current; // Retry once fetched
+        if (current === null) return current; 
         if (current < costPerMin) return undefined;
         return current - costPerMin;
       });
@@ -194,23 +196,34 @@ function ChatDetailContent() {
         return;
       }
 
-      // Backup Sync to Firestore
-      updateFirestoreDoc(doc(firestore, "userProfiles", currentUser.uid), {
-        coinBalance: firestoreIncrement(-costPerMin),
-        updatedAt: new Date().toISOString()
-      });
-
-      const txRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
-      setDoc(txRef, {
-        id: txRef.id,
-        type: "deduction",
-        amount: -costPerMin,
-        transactionDate: new Date().toISOString(),
-        description: `Call in progress with ${otherUser?.username || 'user'}`
-      });
+      // ECONOMY: Accumulate cost locally, deferred Firestore write until call end
+      totalCostAccruedRef.current += costPerMin;
+      
     } catch (error) {
       handleEndCall();
     }
+  };
+
+  const syncFinalCallCostsToFirestore = async () => {
+    const totalCost = totalCostAccruedRef.current;
+    if (totalCost <= 0 || !currentUser || !firestore) return;
+
+    // ECONOMY: Batch Firestore backup write at the end of the session
+    updateFirestoreDoc(doc(firestore, "userProfiles", currentUser.uid), {
+      coinBalance: firestoreIncrement(-totalCost),
+      updatedAt: new Date().toISOString()
+    });
+
+    const txRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
+    setDoc(txRef, {
+      id: txRef.id,
+      type: "deduction",
+      amount: -totalCost,
+      transactionDate: new Date().toISOString(),
+      description: `Call summary: ${otherUser?.username || 'user'} (${Math.floor(callDurationRef.current / 60)}m)`
+    });
+
+    totalCostAccruedRef.current = 0;
   };
 
   const stopRingtone = () => {
@@ -240,10 +253,12 @@ function ChatDetailContent() {
       setZegoInstance(null);
     }
     zegoInitializingRef.current = false;
+    
+    // ECONOMY: Final Firestore Sync on cleanup
+    syncFinalCallCostsToFirestore();
   };
 
   const logCallEndToChat = async (finalDuration: number, finalWasAccepted: boolean) => {
-    // Only the initiator logs the message to avoid duplicates
     if (!isInitiatorRef.current || !database || !chatId || !currentUser) return;
 
     let logMessage = "[cancelled]";
@@ -326,12 +341,9 @@ function ChatDetailContent() {
     const unsubscribe = onValue(callRef, (snap) => {
       const data = snap.val()
       
-      // If call data was removed (null), check if we need to log the end
       if (!data) {
         if (callStatusRef.current !== 'idle') {
-          // Log to chat before resetting
           logCallEndToChat(callDurationRef.current, wasCallAcceptedRef.current);
-          
           stopAllMedia(); 
           setCallStatus('idle');
           wasCallAcceptedRef.current = false;
@@ -468,14 +480,14 @@ function ChatDetailContent() {
       if (messageCost > 0) {
         const userCoinRef = ref(database, `users/${currentUser.uid}/coinBalance`);
         const result = await runRtdbTransaction(userCoinRef, (current) => {
-          if (current === null) return current; // Wait for initial fetch
+          if (current === null) return current; 
           if (current < messageCost) return undefined;
           return current - messageCost;
         });
 
         if (!result.committed) throw new Error("INSUFFICIENT_COINS");
 
-        // Sync to Firestore Backup
+        // ECONOMY: Direct sync to Firestore Backup for permanent logging
         updateFirestoreDoc(doc(firestore, "userProfiles", currentUser.uid), {
           coinBalance: firestoreIncrement(-messageCost),
           updatedAt: new Date().toISOString()
@@ -514,7 +526,6 @@ function ChatDetailContent() {
           action: <Button onClick={() => router.push('/recharge')} size="sm" className="bg-white text-primary">Recharge</Button>
         });
       } else {
-        console.error("Message send error:", error);
         toast({ variant: "destructive", title: "Error", description: "Could not send message." });
       }
     } finally { setIsSending(false) }
@@ -540,7 +551,7 @@ function ChatDetailContent() {
       const receiverDiamondRef = ref(database, `users/${otherUserId}/diamondBalance`);
       await runRtdbTransaction(receiverDiamondRef, (current) => (current || 0) + diamondGain);
 
-      // Firestore Backup Sync
+      // ECONOMY: Instant RTDB update followed by deferred Firestore sync
       updateFirestoreDoc(doc(firestore, "userProfiles", currentUser.uid), {
         coinBalance: firestoreIncrement(-giftPrice),
         updatedAt: new Date().toISOString()
@@ -548,24 +559,6 @@ function ChatDetailContent() {
       updateFirestoreDoc(doc(firestore, "userProfiles", otherUserId), {
         diamondBalance: firestoreIncrement(diamondGain),
         updatedAt: new Date().toISOString()
-      });
-
-      const senderTxRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
-      setDoc(senderTxRef, {
-        id: senderTxRef.id,
-        type: "gift_sent",
-        amount: -giftPrice,
-        transactionDate: new Date().toISOString(),
-        description: `Sent ${selectedGift.name} to ${otherUser?.username || 'User'}`
-      });
-
-      const receiverTxRef = doc(collection(firestore, "userProfiles", otherUserId, "transactions"));
-      setDoc(receiverTxRef, {
-        id: receiverTxRef.id,
-        type: "gift_received",
-        amount: diamondGain,
-        transactionDate: new Date().toISOString(),
-        description: `Received ${selectedGift.name} (Diamond value)`
       });
 
       const giftMessage = `🎁 Sent a gift: ${selectedGift.name}`;

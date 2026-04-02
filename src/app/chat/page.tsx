@@ -17,31 +17,49 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 
-// Session cache
+// ECONOMY: Global module-level caches
 let cachedSessions: any[] = []
 let cachedLoaded: boolean = false
+const profileCache: Record<string, any> = {}
 
 export function clearChatCache() {
   cachedSessions = []
   cachedLoaded = false
+  // We keep profileCache as it's useful across sign-ins, 
+  // but we'll clear it on explicit sign-out/delete
+}
+
+export function clearProfileCache() {
+  Object.keys(profileCache).forEach(k => delete profileCache[k])
 }
 
 function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: (id: string) => void }) {
   const { firestore, database } = useFirebase()
-  const [otherUserData, setOtherUserData] = useState<any>(null)
+  const [otherUserData, setOtherUserData] = useState<any>(profileCache[session.otherUserId] || null)
   const [presence, setPresence] = useState<{ online: boolean; lastSeen?: number }>({ online: false })
-  const [isDataLoaded, setIsDataLoaded] = useState(false)
+  const [isDataLoaded, setIsDataLoaded] = useState(!!profileCache[session.otherUserId])
   const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     async function fetchUser() {
       if (!firestore || !session.otherUserId) return
+      // ECONOMY: Check cache first
+      if (profileCache[session.otherUserId]) {
+        setOtherUserData(profileCache[session.otherUserId])
+        setIsDataLoaded(true)
+        return
+      }
+
       try {
         const userDoc = await getDoc(doc(firestore, "userProfiles", session.otherUserId))
         if (userDoc.exists()) {
-          setOtherUserData(userDoc.data())
+          const data = userDoc.data()
+          profileCache[session.otherUserId] = data
+          setOtherUserData(data)
         } else {
-          setOtherUserData({ username: "User logged out", profilePhotoUrls: [] })
+          const deleted = { username: "User logged out", profilePhotoUrls: [] }
+          profileCache[session.otherUserId] = deleted
+          setOtherUserData(deleted)
         }
       } catch (e) {
         console.error("Failed to fetch user in chat list", e)
