@@ -28,6 +28,14 @@ const HOROSCOPES = [
   "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
 ]
 
+const EDUCATION_OPTIONS = [
+  "High School",
+  "Vocational",
+  "In College",
+  "Post Graduate",
+  "Doctorate"
+]
+
 const GOALS = ["Casual", "Long-term", "Friendship", "Networking"]
 
 export default function EditProfilePage() {
@@ -90,7 +98,6 @@ export default function EditProfilePage() {
       }
       reader.readAsDataURL(file)
     }
-    // Clear the input so the same file can be selected again if removed
     e.target.value = ''
   }
 
@@ -243,7 +250,7 @@ export default function EditProfilePage() {
           </div>
 
           <div className="space-y-3">
-            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">About Me</Label>
+            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">User Information</Label>
             <Textarea 
               value={formData.bio}
               onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
@@ -294,12 +301,17 @@ export default function EditProfilePage() {
 
           <div className="space-y-3">
             <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Education</Label>
-            <Input 
-              value={formData.education}
-              onChange={(e) => setFormData(prev => ({ ...prev, education: e.target.value }))}
-              className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner focus-visible:ring-primary/30"
-              placeholder="e.g. University of Nairobi"
-            />
+            <Select 
+              value={formData.education} 
+              onValueChange={(val) => setFormData(prev => ({ ...prev, education: val }))}
+            >
+              <SelectTrigger className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner focus:ring-primary/30">
+                <SelectValue placeholder="Your education status" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl bg-white/95 backdrop-blur-xl border-none shadow-2xl">
+                {EDUCATION_OPTIONS.map(opt => <SelectItem key={opt} value={opt} className="rounded-xl font-bold text-xs py-3">{opt}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-3">

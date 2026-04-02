@@ -8,7 +8,6 @@ import {
   MoreHorizontal, 
   Globe, 
   GraduationCap, 
-  Sparkles, 
   Loader2, 
   ShieldAlert,
   UserX,
@@ -18,10 +17,9 @@ import {
   CheckCircle,
   ShieldCheck,
   Compass,
-  Zap,
   Star,
-  User,
-  Calendar
+  Calendar,
+  Zap
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -258,26 +256,32 @@ export default function ProfileDetailPage() {
       <div className="flex-1 bg-white relative z-20 px-6 pb-32 -mt-10">
         <div className="space-y-8">
           {/* Header Section */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <h1 className="text-4xl font-black font-headline text-gray-900 leading-tight">
-                {userProfile?.username}{age ? `, ${age}` : ''}
+              <h1 className="text-3xl font-black font-headline text-gray-900 leading-none">
+                {userProfile?.username}
               </h1>
-              {isVerified && <CheckCircle className="w-7 h-7 text-blue-500 fill-blue-500/10" />}
+              {isVerified && <CheckCircle className="w-6 h-6 text-blue-500 fill-blue-500/10" />}
             </div>
             
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={copyId}
-                className="flex items-center gap-2 px-3 py-1 bg-green-50 rounded-full text-[10px] font-black text-green-600 uppercase tracking-widest active:scale-95 transition-all"
-              >
-                ID: {userProfile?.numericId || '---'}
-                <Copy className="w-3 h-3 opacity-50" />
-              </button>
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium text-gray-500 capitalize leading-none">
+                {userProfile?.gender || "Not specified"} • {age ? `${age} years old` : 'Age hidden'}
+              </p>
               
-              <div className="flex items-center gap-1.5 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                <Globe className="w-3 h-3" />
-                {userProfile?.location || "Kenya"}
+              <div className="flex items-center gap-4 mt-1">
+                <button 
+                  onClick={copyId}
+                  className="flex items-center gap-2 px-3 py-1 bg-green-50 rounded-full text-[9px] font-black text-green-600 uppercase tracking-widest active:scale-95 transition-all"
+                >
+                  ID: {userProfile?.numericId || '---'}
+                  <Copy className="w-3 h-3 opacity-50" />
+                </button>
+                
+                <div className="flex items-center gap-1.5 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                  <Globe className="w-3 h-3" />
+                  {userProfile?.location || "Kenya"}
+                </div>
               </div>
             </div>
           </div>
@@ -300,7 +304,7 @@ export default function ProfileDetailPage() {
               {isVerified && (
                 <div className="px-3 py-1 bg-blue-500/10 rounded-full inline-flex items-center gap-1.5 border border-blue-500/20">
                   <ShieldCheck className="w-3 h-3 text-blue-500" />
-                  <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Verified Identity</span>
+                  <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Verified</span>
                 </div>
               )}
             </div>
@@ -308,7 +312,7 @@ export default function ProfileDetailPage() {
 
           {/* User Information Section */}
           <div className="space-y-4">
-            <h3 className="text-[11px] font-black uppercase text-gray-400 tracking-[0.2em]">User Information</h3>
+            <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">User Information</h3>
             
             <div className="grid grid-cols-1 gap-3">
               {userProfile?.bio && (
@@ -324,8 +328,8 @@ export default function ProfileDetailPage() {
                   <Calendar className="w-6 h-6" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Age</p>
-                  <p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{age ? `${age} years old` : "Not specified"}</p>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Age Status</p>
+                  <p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{age ? `${age} years old` : "Private"}</p>
                 </div>
               </div>
 
@@ -354,7 +358,7 @@ export default function ProfileDetailPage() {
                   <Star className="w-6 h-6" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Goal</p>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Relationship Goal</p>
                   <p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{userProfile?.relationshipGoal || "Networking"}</p>
                 </div>
               </div>
@@ -364,7 +368,7 @@ export default function ProfileDetailPage() {
           {/* Gallery Section - Only if extra photos exist */}
           {extraPhotos.length > 0 && (
             <div className="space-y-4 pt-4">
-              <h3 className="text-[11px] font-black uppercase text-gray-400 tracking-[0.2em]">Gallery</h3>
+              <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Gallery</h3>
               <div className="grid grid-cols-2 gap-3">
                 {extraPhotos.map((url, index) => (
                   <div key={index} className="relative aspect-square rounded-[2rem] overflow-hidden border-2 border-white shadow-md">
@@ -378,10 +382,10 @@ export default function ProfileDetailPage() {
           {/* Interests */}
           {userProfile?.interests && userProfile.interests.length > 0 && (
             <div className="space-y-4 pt-4">
-              <h3 className="text-[11px] font-black uppercase text-gray-400 tracking-[0.2em]">Interests</h3>
+              <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Interests</h3>
               <div className="flex flex-wrap gap-2">
                 {userProfile.interests.map((interest: string) => (
-                  <div key={interest} className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-full text-[10px] font-black text-gray-600 uppercase tracking-widest">
+                  <div key={interest} className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-full text-[9px] font-black text-gray-600 uppercase tracking-widest">
                     #{interest}
                   </div>
                 ))}
