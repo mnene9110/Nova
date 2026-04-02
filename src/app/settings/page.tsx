@@ -1,12 +1,12 @@
-
 "use client"
 
 import { ChevronLeft, ChevronRight, ShieldCheck, CreditCard, Award, MessageSquare, Ban, Languages, Trash2, Info } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { useAuth, useUser } from "@/firebase"
+import { useAuth, useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase"
 import { signOut } from "firebase/auth"
 import { useToast } from "@/hooks/use-toast"
+import { doc } from "firebase/firestore"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +23,15 @@ export default function SettingsPage() {
   const router = useRouter()
   const auth = useAuth()
   const { user } = useUser()
+  const firestore = useFirestore()
   const { toast } = useToast()
+
+  const userRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, "userProfiles", user.uid);
+  }, [firestore, user])
+
+  const { data: userProfile } = useDoc(userRef)
 
   const handleSignOut = async () => {
     try {
@@ -39,6 +47,7 @@ export default function SettingsPage() {
   }
 
   const isGuest = user?.email?.includes('@matchflow.app') || user?.isAnonymous
+  const isAdmin = userProfile?.isAdmin === true
 
   const settingsItems = [
     { 
@@ -135,13 +144,17 @@ export default function SettingsPage() {
             <span className="cursor-pointer hover:text-primary transition-colors">Privacy</span>
             <span className="w-px h-2 bg-gray-100" />
             <span className="cursor-pointer hover:text-primary transition-colors">Terms</span>
-            <span className="w-px h-2 bg-gray-100" />
-            <span 
-              onClick={() => router.push('/settings/delete-account')}
-              className="cursor-pointer hover:text-red-500 transition-colors"
-            >
-              Delete Account
-            </span>
+            {!isAdmin && (
+              <>
+                <span className="w-px h-2 bg-gray-100" />
+                <span 
+                  onClick={() => router.push('/settings/delete-account')}
+                  className="cursor-pointer hover:text-red-500 transition-colors"
+                >
+                  Delete Account
+                </span>
+              </>
+            )}
           </div>
         </div>
       </footer>

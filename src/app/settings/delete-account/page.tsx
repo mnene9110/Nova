@@ -1,14 +1,14 @@
-
 "use client"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Trash2, Loader2, AlertTriangle } from "lucide-react"
+import { ChevronLeft, Trash2, Loader2, AlertTriangle, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useAuth, useFirestore, useUser, deleteDocumentNonBlocking } from "@/firebase"
+import { useAuth, useFirestore, useUser, deleteDocumentNonBlocking, useDoc, useMemoFirebase, useDatabase } from "@/firebase"
 import { doc } from "firebase/firestore"
+import { ref, remove } from "firebase/database"
 import { deleteUser } from "firebase/auth"
 import { useToast } from "@/hooks/use-toast"
 
@@ -16,30 +16,42 @@ export default function DeleteAccountPage() {
   const router = useRouter()
   const auth = useAuth()
   const firestore = useFirestore()
+  const database = useDatabase()
   const { user } = useUser()
   const { toast } = useToast()
+
+  const userRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, "userProfiles", user.uid);
+  }, [firestore, user])
+
+  const { data: userProfile, isLoading } = useDoc(userRef)
 
   const [confirmationText, setConfirmationText] = useState("")
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
-    if (!user || confirmationText !== "DELETE") return
+    if (!user || confirmationText !== "DELETE" || userProfile?.isAdmin) return
 
     setIsDeleting(true)
     try {
       // 1. Delete Firestore Profile Data
-      const userRef = doc(firestore, "userProfiles", user.uid)
-      deleteDocumentNonBlocking(userRef)
+      const firestoreDocRef = doc(firestore, "userProfiles", user.uid)
+      deleteDocumentNonBlocking(firestoreDocRef)
 
-      // 2. Clear local storage if it was a persistent guest
+      // 2. Delete Realtime Database User Node (Coins, Presence, etc.)
+      const rtdbUserRef = ref(database, `users/${user.uid}`)
+      await remove(rtdbUserRef)
+
+      // 3. Clear local storage if it was a persistent guest
       localStorage.removeItem('mf_guest_recovery')
 
-      // 3. Delete from Firebase Auth
+      // 4. Delete from Firebase Auth (This permanently kills the session)
       await deleteUser(user)
 
       toast({
         title: "Account Deleted",
-        description: "Your data has been permanently removed.",
+        description: "Your data and coins have been permanently removed.",
       })
       
       router.push("/welcome")
@@ -59,6 +71,27 @@ export default function DeleteAccountPage() {
         })
       }
     }
+  }
+
+  if (isLoading) return <div className="flex h-svh items-center justify-center bg-white"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+
+  if (userProfile?.isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center h-svh p-8 text-center space-y-6 bg-white">
+        <div className="w-24 h-24 bg-red-50 rounded-[3rem] flex items-center justify-center border-4 border-red-100">
+          <ShieldAlert className="w-12 h-12 text-red-500" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black font-headline text-gray-900 tracking-tight">Action Restricted</h2>
+          <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-[240px] mx-auto">
+            Administrator accounts cannot be deleted directly for security reasons.
+          </p>
+        </div>
+        <Button onClick={() => router.back()} className="h-14 w-full max-w-[200px] rounded-full bg-primary font-black uppercase text-xs tracking-widest shadow-xl">
+          Go Back
+        </Button>
+      </div>
+    )
   }
 
   return (
@@ -113,7 +146,7 @@ export default function DeleteAccountPage() {
           
           <div className="flex items-center justify-center gap-2 mt-6 text-[10px] font-black uppercase tracking-[0.1em] text-gray-400">
              <AlertTriangle className="w-3.5 h-3.5" />
-             Account will be removed from database
+             Account will be removed from all systems
           </div>
         </div>
       </main>
