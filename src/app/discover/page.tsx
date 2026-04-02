@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Sparkles, ClipboardList, RotateCcw, Globe, Loader2, CheckCircle } from "lucide-react"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
@@ -30,7 +30,7 @@ export default function DiscoverPage() {
 
   // Fetch current user profile to determine gender for filtering
   const currentUserRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser])
-  const { data: currentUserProfile } = useDoc(currentUserRef)
+  const { data: currentUserProfile, isLoading: isProfileLoading } = useDoc(currentUserRef)
 
   // Fetch presence once
   useEffect(() => {
@@ -50,7 +50,7 @@ export default function DiscoverPage() {
 
   // Initial Fetch (Paginated and Filtered by Opposite Gender)
   useEffect(() => {
-    if (!firestore || !currentUser || !currentUserProfile) return
+    if (!firestore || !currentUser || isProfileLoading || !currentUserProfile) return
     
     async function fetchInitialUsers() {
       setIsInitialLoading(true)
@@ -89,7 +89,7 @@ export default function DiscoverPage() {
     }
 
     fetchInitialUsers()
-  }, [firestore, currentUser, !!currentUserProfile])
+  }, [firestore, currentUser, isProfileLoading, currentUserProfile])
 
   const loadMore = async () => {
     if (!firestore || !lastVisible || isLoadingMore || !hasMore || !currentUserProfile) return
@@ -226,18 +226,18 @@ export default function DiscoverPage() {
           </div>
         ))}
 
-        {isInitialLoading && Array.from({ length: 4 }).map((_, i) => (
+        {(isInitialLoading || isProfileLoading) && Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="aspect-[3/4.2] rounded-[2.5rem] bg-white/20 animate-pulse" />
         ))}
 
-        {!isInitialLoading && displayUsers.length === 0 && (
+        {!(isInitialLoading || isProfileLoading) && displayUsers.length === 0 && (
           <div className="col-span-2 flex flex-col items-center justify-center py-20 text-center opacity-40">
             <Globe className="w-12 h-12 text-white mb-4" />
             <p className="text-[10px] font-black text-white uppercase tracking-[0.2em]">No more users to show</p>
           </div>
         )}
 
-        {hasMore && !isInitialLoading && (
+        {hasMore && !(isInitialLoading || isProfileLoading) && (
           <div className="col-span-2 flex justify-center py-8">
             <Button 
               variant="ghost" 
@@ -250,7 +250,7 @@ export default function DiscoverPage() {
           </div>
         )}
 
-        {!hasMore && !isInitialLoading && displayUsers.length > 0 && (
+        {!hasMore && !(isInitialLoading || isProfileLoading) && displayUsers.length > 0 && (
           <div className="col-span-2 flex justify-center py-8">
              <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">No more users to show</p>
           </div>

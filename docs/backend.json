@@ -65,7 +65,7 @@
           "description": "The user's zodiac sign."
         },
         "interests": {
-          "array": "array",
+          "type": "array",
           "description": "A list of interests and hobbies of the user.",
           "items": {
             "type": "string"
@@ -210,7 +210,7 @@
         "definition": {
           "entityName": "UserProfile",
           "schema": {
-            "$ref": "#/backend/entities/UserProfile"
+            "$ref": "#/entities/UserProfile"
           },
           "description": "Stores user profiles including their coin balance.",
           "params": [
@@ -226,7 +226,7 @@
         "definition": {
           "entityName": "CoinTransaction",
           "schema": {
-            "$ref": "#/backend/backend/entities/CoinTransaction"
+            "$ref": "#/entities/CoinTransaction"
           },
           "description": "Records individual coin transactions for a user.",
           "params": [
@@ -246,7 +246,7 @@
         "definition": {
           "entityName": "CallSession",
           "schema": {
-            "$ref": "#/backend/entities/CallSession"
+            "$ref": "#/entities/CallSession"
           },
           "description": "Stores active call session state.",
           "params": [
@@ -262,7 +262,7 @@
         "definition": {
           "entityName": "Report",
           "schema": {
-            "$ref": "#/backend/entities/Report"
+            "$ref": "#/entities/Report"
           },
           "description": "User-submitted reports.",
           "params": [

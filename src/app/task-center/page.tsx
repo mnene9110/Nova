@@ -17,7 +17,14 @@ export default function TaskCenterPage() {
   const { user } = useUser()
   const firestore = useFirestore()
   const { toast } = useToast()
+  
   const [isClaiming, setIsClaiming] = useState(false)
+  const [todayStr, setTodayStr] = useState<string>("")
+
+  useEffect(() => {
+    // Set today's date only on the client to avoid hydration mismatch
+    setTodayStr(new Date().toISOString().split('T')[0]);
+  }, []);
 
   const userRef = useMemoFirebase(() => {
     if (!firestore || !user) return null
@@ -26,13 +33,12 @@ export default function TaskCenterPage() {
 
   const { data: profile, isLoading } = useDoc(userRef)
 
-  const today = new Date().toISOString().split('T')[0]
   const lastCheckIn = profile?.lastCheckInDate || ""
   const streak = profile?.checkInStreak || 0
-  const canClaim = lastCheckIn !== today
+  const canClaim = !!todayStr && lastCheckIn !== todayStr
 
   const handleClaim = async () => {
-    if (!user || !firestore || !userRef || isClaiming || !canClaim) return
+    if (!user || !firestore || !userRef || isClaiming || !canClaim || !todayStr) return
     setIsClaiming(true)
 
     try {
@@ -40,8 +46,8 @@ export default function TaskCenterPage() {
         const userDoc = await transaction.get(userRef)
         if (!userDoc.exists()) throw new Error("Profile not found")
 
-        const currentStreak = userDoc.data().checkInStreak || 0
-        const lastDate = userDoc.data().lastCheckInDate || ""
+        const currentStreak = userDoc.data()?.checkInStreak || 0
+        const lastDate = userDoc.data()?.lastCheckInDate || ""
         
         let newStreak = 1
         const yesterday = new Date()
@@ -53,11 +59,11 @@ export default function TaskCenterPage() {
         }
 
         const rewardAmount = REWARDS[newStreak - 1]
-        const currentBalance = userDoc.data().coinBalance || 0
+        const currentBalance = userDoc.data()?.coinBalance || 0
 
         transaction.update(userRef, {
           coinBalance: currentBalance + rewardAmount,
-          lastCheckInDate: today,
+          lastCheckInDate: todayStr,
           checkInStreak: newStreak,
           updatedAt: new Date().toISOString()
         })
@@ -87,7 +93,7 @@ export default function TaskCenterPage() {
     }
   }
 
-  if (isLoading) {
+  if (isLoading || !todayStr) {
     return (
       <div className="flex h-svh items-center justify-center bg-zinc-950">
         <Loader2 className="w-10 h-10 animate-spin text-[#FF7A00]" />
@@ -176,7 +182,7 @@ export default function TaskCenterPage() {
                 <div 
                   key={i}
                   className={cn(
-                    "aspect-square rounded-[2rem] border flex flex-col items-center justify-center gap-2 transition-all",
+                    "aspect-square rounded-[2rem] border flex flex-col items-center justify-center gap-2 transition-all relative",
                     isActive ? "bg-[#FF7A00] border-[#FF7A00] shadow-[0_0_20px_rgba(255,122,0,0.3)]" : 
                     isCurrent ? "bg-zinc-800 border-[#FF7A00] animate-pulse" : "bg-zinc-800/50 border-zinc-700/50"
                   )}
