@@ -120,23 +120,15 @@ export default function EditProfilePage() {
     })
   }
 
+  // UPDATED: Single interest selection logic
   const toggleInterest = (interest: string) => {
     setFormData(prev => {
-      const currentInterests = prev.interests || []
-      const isSelected = currentInterests.includes(interest)
+      const isSelected = prev.interests?.includes(interest)
       
       if (isSelected) {
-        return { ...prev, interests: currentInterests.filter(i => i !== interest) }
+        return { ...prev, interests: [] }
       } else {
-        if (currentInterests.length >= 3) {
-          toast({ 
-            variant: "destructive", 
-            title: "Limit Reached", 
-            description: "Please select up to 3 interests only." 
-          })
-          return prev
-        }
-        return { ...prev, interests: [...currentInterests, interest] }
+        return { ...prev, interests: [interest] }
       }
     })
   }
@@ -298,7 +290,7 @@ export default function EditProfilePage() {
           </div>
 
           <div className="space-y-3">
-            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">My Interests (Pick 3)</Label>
+            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">My Interests (Pick 1)</Label>
             <div className="grid grid-cols-2 gap-2">
               {INTEREST_OPTIONS.map((interest) => {
                 const isSelected = formData.interests?.includes(interest)
