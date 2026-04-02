@@ -153,7 +153,10 @@ export default function DiscoverPage() {
           <span className="text-white font-black text-[9px] tracking-[0.1em] uppercase">Mystery Note</span>
         </button>
 
-        <button className="flex flex-col items-center justify-center gap-2 bg-white/40 backdrop-blur-md border border-white/20 rounded-[2rem] py-6 group active:scale-95 transition-all">
+        <button 
+          onClick={() => router.push('/task-center')}
+          className="flex flex-col items-center justify-center gap-2 bg-white/40 backdrop-blur-md border border-white/20 rounded-[2rem] py-6 group active:scale-95 transition-all"
+        >
           <div className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center">
             <ClipboardList className="w-5 h-5 text-[#5A1010]" />
           </div>
