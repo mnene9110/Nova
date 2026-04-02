@@ -117,11 +117,12 @@ function ChatDetailContent() {
                    otherUser.isCoinseller ||
                    (currentUserProfile.gender === 'female' && otherUser?.gender === 'male');
 
+    // STRICT: Must have at least 1 minute worth of coins to start the ringing phase
     if (!isFree && userCoins < costPerMin) {
       toast({
         variant: "destructive",
         title: "Insufficient Balance",
-        description: "Recharge to start this call.",
+        description: `You need at least ${costPerMin} coins to start this call.`,
         duration: 3000,
         action: <Button onClick={() => router.push('/recharge')} size="sm" className="bg-white text-primary">Recharge</Button>
       });

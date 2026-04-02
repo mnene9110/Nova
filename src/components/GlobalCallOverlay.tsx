@@ -10,13 +10,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import { getAgoraToken } from "@/app/actions/agora"
 
-// Dynamic import for Agora to avoid SSR issues
 let AgoraRTC: any = null;
 
 /**
- * @fileOverview Global Call Overlay for Agora-powered phone calls.
- * Implements 10s free grace period, start-of-minute deductions, 
- * and deferred hardware engagement until call is connected.
+ * @fileOverview Global Call Overlay for Agora-powered calls.
+ * Implements:
+ * - 10s free grace period.
+ * - Deduction at 11th second (Start of Min 1).
+ * - Deduction at 60s intervals (Start of Min 2, 3, etc.).
+ * - Deferred hardware engagement until call is accepted.
  */
 
 export function GlobalCallOverlay() {
@@ -115,7 +117,6 @@ export function GlobalCallOverlay() {
           handleTimeout();
         }, 40000);
       }
-      // Note: Hardware engagement is deferred until 'accepted' phase
     } else if (data.status === 'accepted') {
       if (ringingTimerRef.current) {
         clearTimeout(ringingTimerRef.current);
@@ -130,8 +131,7 @@ export function GlobalCallOverlay() {
       if (callStatus !== 'ongoing') {
         setCallStatus('ongoing');
         setIsConnecting(true);
-        // Engagement happens when call is connected
-        engageHardware(data.callType);
+        // Hardware engagement deferred until this phase
         initiateAgoraConnection(activeChatIdRef.current!, data.callType);
       }
     }
@@ -169,7 +169,6 @@ export function GlobalCallOverlay() {
       });
 
       if (!result.committed) {
-        // Stop call immediately if balance is insufficient
         handleEndCall();
         return;
       }
@@ -187,10 +186,11 @@ export function GlobalCallOverlay() {
         type: "deduction",
         amount: -amount,
         transactionDate: new Date().toISOString(),
-        description: `Call duration charge (${callData?.callType})`
+        description: `Call charge (${callData?.callType})`
       });
     } catch (error) {
       console.error("Call billing failed:", error);
+      handleEndCall(); // Safety exit
     }
   };
 
@@ -220,9 +220,8 @@ export function GlobalCallOverlay() {
 
       await client.join(appId, channelName, token, currentUser.uid);
 
-      if (!localTracksRef.current.audioTrack) {
-        await engageHardware(type);
-      }
+      // Now create hardware tracks
+      await engageHardware(type);
 
       const tracksToPublish = [];
       if (localTracksRef.current.audioTrack) tracksToPublish.push(localTracksRef.current.audioTrack);
@@ -340,15 +339,14 @@ export function GlobalCallOverlay() {
           const next = prev + 1;
           callDurationRef.current = next;
           
-          // BILLING LOGIC: Caller pays
           const isCaller = callData?.callerId === currentUser?.uid;
           if (isCaller && !callData?.isFree) {
             const cost = callData?.costPerMin || 0;
-            // First 10s free, deduct at 11th second
+            // 10s free, deduct at 11th second
             if (next === 11) {
               deductCoins(cost);
             } 
-            // From 2nd minute onwards, deduct at the start of each minute
+            // Deduct at the start of every minute from minute 2 onwards
             else if (next > 11 && next % 60 === 0) {
               deductCoins(cost);
             }
@@ -368,7 +366,6 @@ export function GlobalCallOverlay() {
 
   return (
     <div className="fixed inset-0 z-[1000] bg-zinc-950 flex flex-col overflow-hidden text-white font-body">
-      {/* Remote Video */}
       <div 
         ref={remoteContainerRef} 
         className={cn(
@@ -377,7 +374,6 @@ export function GlobalCallOverlay() {
         )} 
       />
 
-      {/* Local Preview */}
       <div className={cn(
         "absolute top-12 right-6 w-32 aspect-[3/4] bg-zinc-900 rounded-2xl overflow-hidden border-2 border-white/10 z-50 shadow-2xl transition-all duration-500",
         callStatus === 'ongoing' ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
@@ -385,7 +381,6 @@ export function GlobalCallOverlay() {
         <div ref={previewVideoRef as any} className="w-full h-full object-cover scale-x-[-1] [&_video]:scale-x-[-1]" />
       </div>
 
-      {/* Ringing UI */}
       {(callStatus !== 'ongoing' || isConnecting) && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-between py-24 px-8">
           <div className="absolute inset-0 z-[-1]">
@@ -417,7 +412,6 @@ export function GlobalCallOverlay() {
         </div>
       )}
 
-      {/* Timer / Counter */}
       {callStatus === 'ongoing' && !isConnecting && (
         <div className="absolute top-12 left-6 z-50">
           <div className="px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-2">
@@ -429,7 +423,6 @@ export function GlobalCallOverlay() {
         </div>
       )}
 
-      {/* Controls */}
       <div className="absolute bottom-16 left-0 right-0 z-[60] flex items-center justify-center gap-12 px-8">
         {callStatus === 'incoming' ? (
           <>
