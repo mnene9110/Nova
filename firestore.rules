@@ -43,11 +43,13 @@ service cloud.firestore {
 
       allow update: if (
         isOwner(userId) && (
-          // Regular users can't change roles
+          // 1. Regular users can't change roles
           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'isCoinseller', 'isSupport']) &&
-          // Balance can only be changed if it's currently 0 (onboarding case) or if it's not being changed at all
-          (request.resource.data.get('coinBalance', 0) == resource.data.get('coinBalance', 0) || 
-           (resource.data.get('coinBalance', 0) == 0 && request.resource.data.get('coinBalance', 0) <= 500))
+          // 2. Balance is protected unless it's the initial setting (0 -> value) or not being changed at all
+          (
+            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['coinBalance']) ||
+            (resource.data.get('coinBalance', 0) == 0 && request.resource.data.get('coinBalance', 0) <= 500)
+          )
         )
       ) || (
         isAdmin()

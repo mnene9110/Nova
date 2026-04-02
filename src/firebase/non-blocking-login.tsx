@@ -37,13 +37,6 @@ export async function initiateAnonymousSignIn(authInstance: Auth): Promise<UserC
   const cred = await createUserWithEmailAndPassword(authInstance, email, password);
   localStorage.setItem('mf_guest_recovery', JSON.stringify({ email, password }));
   
-  // Track this UID for device limits
-  const uids = JSON.parse(localStorage.getItem('mf_device_uids') || '[]');
-  if (!uids.includes(cred.user.uid)) {
-    uids.push(cred.user.uid);
-    localStorage.setItem('mf_device_uids', JSON.stringify(uids));
-  }
-  
   return cred;
 }
 
