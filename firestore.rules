@@ -57,6 +57,9 @@ service cloud.firestore {
         isCoinseller() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['coinBalance', 'updatedAt'])
       );
 
+      // Allow users to delete their own profile
+      allow delete: if isOwner(userId) || isAdmin();
+
       // Secure sub-collections
       match /transactions/{transactionId} {
         allow read: if isOwner(userId) || isAdmin() || isSupport();

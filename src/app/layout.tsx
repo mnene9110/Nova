@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
@@ -60,7 +61,7 @@ export default function RootLayout({
         <Toaster />
         <Script id="register-sw" strategy="afterInteractive">
           {`
-            if ('serviceWorker' in navigator) {
+            if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
               window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/sw.js').then(
                   function(registration) {
