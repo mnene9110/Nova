@@ -381,14 +381,18 @@ function ChatDetailContent() {
     const textToUse = textOverride || inputText;
     if (!textToUse.trim() || !currentUser || !chatId || !database || !otherUserId || !otherUser || !currentUserProfile || isSending) return
     
+    // Logic: Free for females, admins, support, and coinsellers. 
+    // Also free if messaging support or coinsellers.
     const senderGender = currentUserProfile.gender?.toLowerCase() || 'male';
     const receiverGender = otherUser.gender?.toLowerCase() || 'female';
+    
     let isFree = currentUserProfile.isAdmin || 
                  currentUserProfile.isSupport || 
                  currentUserProfile.isCoinseller || 
                  otherUser.isSupport || 
                  otherUser.isCoinseller ||
                  (senderGender === 'female' && receiverGender === 'male');
+
     const messageCost = isFree ? 0 : 15;
     
     setIsSending(true)
@@ -399,20 +403,23 @@ function ChatDetailContent() {
           if (!userDoc.exists()) throw new Error("Profile not found");
           const currentBalance = userDoc.data().coinBalance || 0;
           if (currentBalance < messageCost) throw new Error("INSUFFICIENT_COINS");
+          
           transaction.update(doc(firestore, "userProfiles", currentUser.uid), {
             coinBalance: currentBalance - messageCost,
             updatedAt: new Date().toISOString()
           });
+
           const txRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
           transaction.set(txRef, {
             id: txRef.id,
             type: "deduction",
             amount: -messageCost,
             transactionDate: new Date().toISOString(),
-            description: `Message sent`
+            description: `Message sent to ${otherUser?.username || 'user'}`
           });
         });
       }
+
       const updates: any = {}
       const msgKey = push(ref(database, `chats/${chatId}/messages`)).key
       const msgData = { messageText: textToUse, senderId: currentUser.uid, sentAt: rtdbTimestamp() }
@@ -434,6 +441,8 @@ function ChatDetailContent() {
           duration: 3000,
           action: <Button onClick={() => router.push('/recharge')} size="sm" className="bg-white text-primary">Recharge</Button>
         });
+      } else {
+        toast({ variant: "destructive", title: "Error", description: "Could not send message." });
       }
     } finally { setIsSending(false) }
   }
