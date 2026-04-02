@@ -1,8 +1,9 @@
+
 "use client"
 
 import { useState, useEffect, useRef, useMemo, Suspense } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { ChevronLeft, Video, Send, Phone, Loader2, Gift, PhoneOff, Ban, CheckCircle, UserX } from "lucide-react"
+import { ChevronLeft, Video, Send, Phone, Loader2, Gift, PhoneOff, Ban, CheckCircle, UserX, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -13,8 +14,25 @@ import { doc, runTransaction, collection, onSnapshot, setDoc, updateDoc, deleteD
 import { ref, push, onValue, serverTimestamp as rtdbTimestamp, update, set, increment } from "firebase/database"
 import { cn } from "@/lib/utils"
 import { getZegoConfig } from "@/app/actions/zego"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import Image from "next/image"
 
 let ZegoUIKitPrebuilt: any = null;
+
+const GIFTS = [
+  { id: 'mask', name: 'Party mask', price: 20, image: 'https://picsum.photos/seed/mask/200/200' },
+  { id: 'handbag', name: 'Luxury Handbag', price: 800, image: 'https://picsum.photos/seed/bag/200/200' },
+  { id: 'tea', name: 'Strong Tea', price: 100, image: 'https://picsum.photos/seed/tea/200/200' },
+  { id: 'duck', name: 'Cute duck', price: 20, image: 'https://picsum.photos/seed/duck/200/200' },
+  { id: 'treasure', name: 'Pearl treasure', price: 500, image: 'https://picsum.photos/seed/treasure/200/200' },
+  { id: 'puppy', name: 'Puppy', price: 150, image: 'https://picsum.photos/seed/puppy/200/200' },
+  { id: 'castle', name: 'Moon castle', price: 800, image: 'https://picsum.photos/seed/castle/200/200' },
+  { id: 'rabbit', name: 'Rabbit', price: 150, image: 'https://picsum.photos/seed/rabbit/200/200' },
+  { id: 'cat', name: 'Cat', price: 150, image: 'https://picsum.photos/seed/cat/200/200' },
+  { id: 'balloon', name: 'Balloon', price: 20, image: 'https://picsum.photos/seed/balloon/200/200' },
+  { id: 'soulmate', name: 'Soul mate', price: 30, image: 'https://picsum.photos/seed/hearts/200/200' },
+  { id: 'ufo', name: 'UFO', price: 1990, image: 'https://picsum.photos/seed/ufo/200/200' },
+]
 
 function ChatDetailContent() {
   const params = useParams()
@@ -45,6 +63,11 @@ function ChatDetailContent() {
   const [callDuration, setCallDuration] = useState(0)
   const [localPreviewStream, setLocalPreviewStream] = useState<MediaStream | null>(null)
   
+  // Gift State
+  const [isGiftSheetOpen, setIsGiftSheetOpen] = useState(false)
+  const [selectedGift, setSelectedGift] = useState<typeof GIFTS[0] | null>(null)
+  const [isSendingGift, setIsSendingGift] = useState(false)
+
   const chatId = currentUser && otherUserId ? [currentUser.uid, otherUserId].sort().join("_") : ""
   
   const otherUserRef = useMemoFirebase(() => otherUserId ? doc(firestore, "userProfiles", otherUserId) : null, [firestore, otherUserId])
@@ -415,6 +438,85 @@ function ChatDetailContent() {
     } finally { setIsSending(false) }
   }
 
+  const handleSendGift = async () => {
+    if (!selectedGift || !currentUser || !otherUserId || isSendingGift || !currentUserProfile) return;
+    
+    setIsSendingGift(true);
+    const giftPrice = selectedGift.price;
+    const diamondGain = Math.floor(giftPrice * 0.6);
+
+    try {
+      await runTransaction(firestore, async (transaction) => {
+        const senderRef = doc(firestore, "userProfiles", currentUser.uid);
+        const receiverRef = doc(firestore, "userProfiles", otherUserId);
+
+        const senderSnap = await transaction.get(senderRef);
+        const receiverSnap = await transaction.get(receiverRef);
+
+        if (!senderSnap.exists() || !receiverSnap.exists()) throw new Error("Profile not found");
+
+        const senderBalance = senderSnap.data().coinBalance || 0;
+        if (senderBalance < giftPrice) throw new Error("INSUFFICIENT_COINS");
+
+        // 1. Deduct from Sender
+        transaction.update(senderRef, {
+          coinBalance: senderBalance - giftPrice,
+          updatedAt: new Date().toISOString()
+        });
+
+        // 2. Add to Receiver (Diamonds)
+        const receiverDiamonds = receiverSnap.data().diamondBalance || 0;
+        transaction.update(receiverRef, {
+          diamondBalance: receiverDiamonds + diamondGain,
+          updatedAt: new Date().toISOString()
+        });
+
+        // 3. Log Transactions
+        const senderTxRef = doc(collection(senderRef, "transactions"));
+        transaction.set(senderTxRef, {
+          id: senderTxRef.id,
+          type: "gift_sent",
+          amount: -giftPrice,
+          transactionDate: new Date().toISOString(),
+          description: `Sent ${selectedGift.name} to ${otherUser?.username || 'User'}`
+        });
+
+        const receiverTxRef = doc(collection(receiverRef, "transactions"));
+        transaction.set(receiverTxRef, {
+          id: receiverTxRef.id,
+          type: "gift_received",
+          amount: diamondGain,
+          transactionDate: new Date().toISOString(),
+          description: `Received ${selectedGift.name} (Diamond value)`
+        });
+      });
+
+      // Send chat message
+      const giftMessage = `🎁 Sent a gift: ${selectedGift.name}`;
+      const updates: any = {}
+      const msgKey = push(ref(database, `chats/${chatId}/messages`)).key
+      const msgData = { messageText: giftMessage, senderId: currentUser.uid, sentAt: rtdbTimestamp(), isGift: true }
+      updates[`/chats/${chatId}/messages/${msgKey}`] = msgData
+      updates[`/users/${currentUser.uid}/chats/${otherUserId}`] = { lastMessage: giftMessage, timestamp: rtdbTimestamp(), otherUserId, chatId, unreadCount: 0 }
+      updates[`/users/${otherUserId}/chats/${currentUser.uid}/lastMessage`] = giftMessage
+      updates[`/users/${otherUserId}/chats/${currentUser.uid}/timestamp`] = rtdbTimestamp()
+      updates[`/users/${otherUserId}/chats/${currentUser.uid}/unreadCount`] = increment(1)
+      await update(ref(database), updates)
+
+      toast({ title: "Gift Sent!", description: `You sent a ${selectedGift.name}.` });
+      setIsGiftSheetOpen(false);
+      setSelectedGift(null);
+    } catch (error: any) {
+      if (error.message === "INSUFFICIENT_COINS") {
+        toast({ variant: "destructive", title: "Insufficient Coins", description: "Please recharge to send this gift." });
+      } else {
+        toast({ variant: "destructive", title: "Error", description: "Could not send gift." });
+      }
+    } finally {
+      setIsSendingGift(false);
+    }
+  }
+
   // Handle Loading & Missing User definitively
   if (isOtherUserLoading) {
     return <div className="flex h-svh items-center justify-center bg-white"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
@@ -539,7 +641,11 @@ function ChatDetailContent() {
             const isMe = msg.senderId === currentUser?.uid
             return (
               <div key={msg.id} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
-                <div className={cn("max-w-[80%] px-4 py-3 text-[13px] font-medium leading-relaxed shadow-sm", isMe ? "bg-primary text-white rounded-[1.5rem] rounded-tr-none" : "bg-gray-100 text-gray-900 rounded-[1.5rem] rounded-tl-none")}>
+                <div className={cn(
+                  "max-w-[80%] px-4 py-3 text-[13px] font-medium leading-relaxed shadow-sm", 
+                  isMe ? "bg-primary text-white rounded-[1.5rem] rounded-tr-none" : "bg-gray-100 text-gray-900 rounded-[1.5rem] rounded-tl-none",
+                  msg.isGift && "border-2 border-amber-400/30 bg-gradient-to-br from-amber-50 to-white text-amber-900 shadow-amber-100"
+                )}>
                   <p className="whitespace-pre-wrap">{msg.messageText}</p>
                 </div>
               </div>
@@ -567,7 +673,68 @@ function ChatDetailContent() {
               <div className="grid grid-cols-3 gap-3">
                 <button onClick={() => handleInitiateCall('audio')} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm"><Phone className="w-4 h-4 text-gray-500" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Voice</span></button>
                 <button onClick={() => handleInitiateCall('video')} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm"><Video className="w-4 h-4 text-gray-500" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Video</span></button>
-                <button className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm"><Gift className="w-4 h-4 text-primary" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Gift</span></button>
+                
+                <Sheet open={isGiftSheetOpen} onOpenChange={setIsGiftSheetOpen}>
+                  <SheetTrigger asChild>
+                    <button className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm">
+                      <Gift className="w-4 h-4 text-primary" />
+                      <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Gift</span>
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent side="bottom" className="rounded-t-[3rem] h-[75svh] p-0 border-none bg-zinc-900 text-white overflow-hidden flex flex-col">
+                    <SheetHeader className="px-6 pt-8 pb-4 shrink-0">
+                      <div className="flex items-center justify-between">
+                        <div className="flex gap-6">
+                          <button className="text-xs font-black uppercase tracking-widest border-b-2 border-primary pb-2">Gift</button>
+                          <button className="text-xs font-black uppercase tracking-widest text-zinc-500 pb-2">Privilege</button>
+                        </div>
+                        <button onClick={() => setIsGiftSheetOpen(false)} className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center"><X className="w-4 h-4" /></button>
+                      </div>
+                    </SheetHeader>
+                    
+                    <div className="flex-1 overflow-y-auto px-4 pb-32">
+                      <div className="grid grid-cols-4 gap-2">
+                        {GIFTS.map((gift) => (
+                          <div 
+                            key={gift.id}
+                            onClick={() => setSelectedGift(gift)}
+                            className={cn(
+                              "flex flex-col items-center gap-2 p-2 rounded-2xl border transition-all cursor-pointer",
+                              selectedGift?.id === gift.id ? "bg-primary/20 border-primary shadow-lg" : "bg-transparent border-transparent"
+                            )}
+                          >
+                            <div className="relative w-14 h-14">
+                              <Image src={gift.image} alt={gift.name} fill className="object-contain" />
+                            </div>
+                            <div className="flex flex-col items-center gap-0.5">
+                              <div className="flex items-center gap-1">
+                                <div className="w-3 h-3 rounded-full bg-amber-500 flex items-center justify-center text-[6px] font-black text-zinc-900 italic">S</div>
+                                <span className="text-[10px] font-black">{gift.price}</span>
+                              </div>
+                              <span className="text-[8px] font-bold text-zinc-400 text-center truncate w-full">{gift.name}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <footer className="absolute bottom-0 left-0 right-0 p-6 bg-zinc-950/80 backdrop-blur-xl border-t border-zinc-800 flex items-center justify-between z-50">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 bg-zinc-800 px-3 py-2 rounded-full border border-zinc-700">
+                          <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-[8px] font-black text-zinc-900 italic">S</div>
+                          <span className="text-xs font-black">{currentUserProfile?.coinBalance?.toLocaleString() || 0}</span>
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={handleSendGift}
+                        disabled={!selectedGift || isSendingGift}
+                        className="h-12 px-10 rounded-full bg-primary text-white font-black uppercase text-xs tracking-widest shadow-xl active:scale-95 transition-all"
+                      >
+                        {isSendingGift ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send"}
+                      </Button>
+                    </footer>
+                  </SheetContent>
+                </Sheet>
               </div>
             )}
           </>

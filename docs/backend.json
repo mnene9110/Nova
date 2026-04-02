@@ -31,6 +31,7 @@
           "items": { "type": "string" }
         },
         "coinBalance": { "type": "number" },
+        "diamondBalance": { "type": "number" },
         "lastCheckInDate": { "type": "string", "format": "date" },
         "checkInStreak": { "type": "number" },
         "isVerified": { "type": "boolean" },
@@ -45,7 +46,7 @@
     },
     "CoinTransaction": {
       "title": "CoinTransaction",
-      "description": "Represents a single coin-related activity (recharge, award, or deduction).",
+      "description": "Represents a single coin or diamond related activity.",
       "type": "object",
       "properties": {
         "id": { "type": "string" },

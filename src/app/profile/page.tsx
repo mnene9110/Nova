@@ -15,7 +15,8 @@ import {
   CheckCircle,
   ClipboardList,
   Award,
-  Zap
+  Zap,
+  Gem
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
@@ -137,25 +138,39 @@ export default function ProfilePage() {
 
       <main className="flex-1 px-6 space-y-6 pb-44">
         {/* Wallet Section */}
-        <div className="bg-white/40 backdrop-blur-md border border-white/40 rounded-[2.5rem] p-6 flex flex-col gap-5 shadow-sm">
-          <div className="flex flex-col gap-2 text-center items-center">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white/40 backdrop-blur-md border border-white/40 rounded-[2.5rem] p-6 flex flex-col items-center gap-2 shadow-sm text-center">
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
                 <Coins className="w-3 h-3 text-primary" />
               </div>
-              <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.15em]">Wallet Balance</span>
+              <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Coins</span>
             </div>
-            <span className="text-4xl font-black text-gray-900 font-headline">
+            <span className="text-2xl font-black text-gray-900 font-headline">
               {isLoading ? "..." : (userProfile?.coinBalance || 0).toLocaleString()}
             </span>
+            <Button 
+              onClick={() => router.push('/recharge')}
+              className={cn("w-full h-10 rounded-full text-white font-black uppercase tracking-widest text-[8px] shadow-lg", darkMaroon)}
+            >
+              Buy
+            </Button>
           </div>
-          
-          <Button 
-            onClick={() => router.push('/recharge')}
-            className={cn("w-full h-14 rounded-[1.75rem] text-white font-black uppercase tracking-[0.1em] text-xs shadow-lg shadow-primary/20", darkMaroon)}
-          >
-            Recharge
-          </Button>
+
+          <div className="bg-white/40 backdrop-blur-md border border-white/40 rounded-[2.5rem] p-6 flex flex-col items-center gap-2 shadow-sm text-center">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <Gem className="w-3 h-3 text-blue-500" />
+              </div>
+              <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Diamonds</span>
+            </div>
+            <span className="text-2xl font-black text-gray-900 font-headline">
+              {isLoading ? "..." : (userProfile?.diamondBalance || 0).toLocaleString()}
+            </span>
+            <div className="w-full h-10 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+               <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">Rewards</span>
+            </div>
+          </div>
         </div>
 
         {/* Action Buttons Section */}
