@@ -12,6 +12,11 @@ import { getAgoraToken } from "@/app/actions/agora"
 // Dynamic import for Agora to avoid SSR issues
 let AgoraRTC: any = null;
 
+/**
+ * @fileOverview Global Call Overlay for Agora-powered phone calls.
+ * Features: Outgoing/Incoming ringing, instant connection, mirror mode, and ringtone.
+ */
+
 export function GlobalCallOverlay() {
   const { user: currentUser } = useUser()
   const { database } = useFirebase()
@@ -74,6 +79,7 @@ export function GlobalCallOverlay() {
     const isCaller = data.callerId === currentUser?.uid;
 
     if (data.status === 'ringing') {
+      // Play ringtone for both caller and receiver
       if (ringtoneRef.current && ringtoneRef.current.paused) {
         ringtoneRef.current.play().catch(() => {
           console.warn("Ringtone playback requires user interaction.");
@@ -81,16 +87,19 @@ export function GlobalCallOverlay() {
       }
       setCallStatus(isCaller ? 'ringing' : 'incoming');
       
+      // 40 second timeout logic
       if (isCaller && !ringingTimerRef.current) {
         ringingTimerRef.current = setTimeout(() => {
           handleTimeout();
         }, 40000);
       }
 
+      // Proactively engage hardware for caller
       if (isCaller && !localTracksRef.current.audioTrack && !localTracksRef.current.videoTrack) {
         engageHardware(data.callType);
       }
     } else if (data.status === 'accepted') {
+      // Stop ringtone immediately
       if (ringingTimerRef.current) {
         clearTimeout(ringingTimerRef.current);
         ringingTimerRef.current = null;
@@ -119,6 +128,7 @@ export function GlobalCallOverlay() {
       if (type === 'video' && !localTracksRef.current.videoTrack) {
         const videoTrack = await AgoraRTC.createCameraVideoTrack();
         localTracksRef.current.videoTrack = videoTrack;
+        // Preview is always mirrored for natural feel
         if (previewVideoRef.current) {
           videoTrack.play(previewVideoRef.current);
         }
@@ -137,6 +147,7 @@ export function GlobalCallOverlay() {
       const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
       agoraClientRef.current = client;
 
+      // Handle client events using the provided native pattern
       client.on("user-published", async (user: any, mediaType: string) => {
         await client.subscribe(user, mediaType);
 
@@ -188,6 +199,7 @@ export function GlobalCallOverlay() {
       ringtoneRef.current.currentTime = 0;
     }
 
+    // Explicitly close tracks to release hardware
     if (localTracksRef.current.audioTrack) {
       localTracksRef.current.audioTrack.stop();
       localTracksRef.current.audioTrack.close();
@@ -203,6 +215,7 @@ export function GlobalCallOverlay() {
       agoraClientRef.current = null;
     }
     
+    // Log duration only if call was actually connected and I am the caller
     if (wasCallAcceptedRef.current && activeChatIdRef.current && currentUser?.uid === callData?.callerId) {
       logCallInChat(activeChatIdRef.current, callDurationRef.current);
     }
@@ -281,6 +294,7 @@ export function GlobalCallOverlay() {
 
   return (
     <div className="fixed inset-0 z-[1000] bg-zinc-950 flex flex-col overflow-hidden text-white font-body">
+      {/* Remote Video (Full Screen) */}
       <div 
         ref={remoteContainerRef} 
         className={cn(
@@ -289,13 +303,15 @@ export function GlobalCallOverlay() {
         )} 
       />
 
+      {/* Local Preview (PiP) - Mirrored for natural experience */}
       <div className={cn(
         "absolute top-12 right-6 w-32 aspect-[3/4] bg-zinc-900 rounded-2xl overflow-hidden border-2 border-white/10 z-50 shadow-2xl transition-all duration-500",
         callStatus === 'ongoing' || callStatus === 'ringing' ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
       )}>
-        <div ref={previewVideoRef as any} className="w-full h-full object-cover scale-x-[-1]" />
+        <div ref={previewVideoRef as any} className="w-full h-full object-cover scale-x-[-1] [&_video]:scale-x-[-1]" />
       </div>
 
+      {/* Ringing/Connecting UI Overlay */}
       {(callStatus !== 'ongoing' || isConnecting) && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-between py-24 px-8">
           <div className="absolute inset-0 z-[-1]">
@@ -327,6 +343,7 @@ export function GlobalCallOverlay() {
         </div>
       )}
 
+      {/* Call Duration (Visible during ongoing call) */}
       {callStatus === 'ongoing' && !isConnecting && (
         <div className="absolute top-12 left-6 z-50">
           <div className="px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-2">
@@ -338,6 +355,7 @@ export function GlobalCallOverlay() {
         </div>
       )}
 
+      {/* Call Controls */}
       <div className="absolute bottom-16 left-0 right-0 z-[60] flex items-center justify-center gap-12 px-8">
         {callStatus === 'incoming' ? (
           <>

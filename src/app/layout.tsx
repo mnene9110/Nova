@@ -11,11 +11,17 @@ import { Navbar } from "@/components/Navbar"
 import { GlobalCallOverlay } from "@/components/GlobalCallOverlay"
 import Script from 'next/script';
 
+/**
+ * @fileOverview Root layout component.
+ * Added ExitGuard to prevent accidental app exits.
+ */
+
 function ExitGuard() {
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Standard way to trigger the browser's "Are you sure you want to leave?" popup
       e.preventDefault();
-      e.returnValue = ''; // Standard browser confirmation popup
+      e.returnValue = ''; 
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
