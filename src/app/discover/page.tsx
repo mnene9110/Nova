@@ -55,8 +55,7 @@ export default function DiscoverPage() {
     async function fetchInitialUsers() {
       setIsInitialLoading(true)
       try {
-        // Determine target gender (opposite of current user)
-        const currentGender = currentUserProfile?.gender?.toLowerCase()
+        const currentGender = currentUserProfile?.gender?.toLowerCase() || 'male'
         const targetGender = currentGender === 'male' ? 'female' : 'male'
 
         const q = query(
@@ -96,7 +95,7 @@ export default function DiscoverPage() {
     setIsLoadingMore(true)
 
     try {
-      const currentGender = currentUserProfile?.gender?.toLowerCase()
+      const currentGender = currentUserProfile?.gender?.toLowerCase() || 'male'
       const targetGender = currentGender === 'male' ? 'female' : 'male'
 
       const q = query(
@@ -118,9 +117,12 @@ export default function DiscoverPage() {
         .map(doc => ({ id: doc.id, ...doc.data() }))
         .filter(u => u.id !== currentUser?.uid && !u.isSupport)
 
-      setUsers(prev => [...prev, ...nextUsers])
-      setLastVisible(snap.docs[snap.docs.length - 1])
-      if (snap.docs.length < 10) setHasMore(false)
+      if (nextUsers.length > 0) {
+        setUsers(prev => [...prev, ...nextUsers])
+        setLastVisible(snap.docs[snap.docs.length - 1])
+      }
+      
+      if (snap.docs.length < 15) setHasMore(false)
     } catch (error) {
       console.error("Error loading more users:", error)
     } finally {

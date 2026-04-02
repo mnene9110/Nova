@@ -96,7 +96,10 @@ export default function TaskCenterPage() {
   if (isLoading || !todayStr) {
     return (
       <div className="flex h-svh items-center justify-center bg-zinc-950">
-        <Loader2 className="w-10 h-10 animate-spin text-[#FF7A00]" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 animate-spin text-[#FF7A00]" />
+          <span className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.2em]">Preparing rewards...</span>
+        </div>
       </div>
     )
   }

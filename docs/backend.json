@@ -170,6 +170,7 @@
       ]
     },
     "CallSession": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "CallSession",
       "type": "object",
       "description": "Represents an active call session between two users.",
@@ -183,6 +184,7 @@
       }
     },
     "Report": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Report",
       "type": "object",
       "description": "A user report submitted for review.",
