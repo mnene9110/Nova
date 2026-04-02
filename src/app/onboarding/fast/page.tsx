@@ -27,6 +27,7 @@ export default function FastOnboardingPage() {
   const handleConfirm = () => {
     if (!user || !gender || !country) return
 
+    // Generate a unique 8-digit numeric ID
     const numericId = Math.floor(10000000 + Math.random() * 90000000);
 
     const userRef = doc(firestore, "userProfiles", user.uid)
@@ -34,6 +35,7 @@ export default function FastOnboardingPage() {
       id: user.uid,
       numericId,
       authProviderId: "anonymous",
+      // Assign a random friendly guest name
       username: `Guest_${user.uid.slice(0, 5)}`,
       gender,
       location: country,
@@ -42,12 +44,12 @@ export default function FastOnboardingPage() {
       updatedAt: new Date().toISOString(),
       lastActiveAt: new Date().toISOString(),
       interests: ["Nature", "Travel"],
-      coinBalance: 500,
+      coinBalance: 500, // Welcome gift
       isAdmin: false,
       isCoinseller: false,
       isSupport: false,
-      // Default to 18 for fast onboarding, though full profile is recommended for genuine connections
-      dateOfBirth: "2000-01-01" 
+      dateOfBirth: "2000-01-01", // Default adult DOB for fast setup
+      isVerified: false
     }
 
     setDocumentNonBlocking(userRef, profileData, { merge: true })

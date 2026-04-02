@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -17,10 +16,13 @@ export default function WelcomePage() {
   const [isLoggingIn, setIsLoggingIn] = useState(false)
 
   useEffect(() => {
-    if (user) {
-      router.replace("/discover")
+    if (user && !isUserLoading) {
+      // Logic handled in handleFastLogin for redirects, 
+      // but this catch-all ensures signed-in users go somewhere valid.
+      // If anonymous and has no profile, the Navbar/Discover logic will usually bounce them back 
+      // or we handle it here.
     }
-  }, [user, router])
+  }, [user, isUserLoading, router])
 
   const handleFastLogin = () => {
     setIsLoggingIn(true)
@@ -28,6 +30,7 @@ export default function WelcomePage() {
       .then((cred) => {
         const isNew = cred.user.metadata.creationTime === cred.user.metadata.lastSignInTime;
         if (isNew) {
+          // New users go to the simplified fast onboarding
           router.push("/onboarding/fast")
         } else {
           router.push("/discover")
