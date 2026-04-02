@@ -2,8 +2,8 @@
 {
   "rules": {
     "users": {
+      ".read": "auth != null",
       "$uid": {
-        ".read": "auth != null",
         ".write": "auth.uid === $uid",
         "presence": {
           "online": { ".validate": "newData.isBoolean()" },
@@ -13,6 +13,7 @@
           ".validate": "newData.isNumber()"
         },
         "diamondBalance": {
+          ".write": "auth != null",
           ".validate": "newData.isNumber()"
         },
         "inCall": {
