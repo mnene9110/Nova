@@ -19,7 +19,9 @@ import {
   ShieldCheck,
   Compass,
   Zap,
-  Star
+  Star,
+  User,
+  Calendar
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -68,6 +70,18 @@ export default function ProfileDetailPage() {
       setPresence(val || { online: false })
     })
   }, [database, id])
+
+  const age = useMemo(() => {
+    if (!userProfile?.dateOfBirth) return null;
+    const birthDate = new Date(userProfile.dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  }, [userProfile?.dateOfBirth]);
 
   const presenceText = useMemo(() => {
     if (presence.online) return "Online";
@@ -247,7 +261,7 @@ export default function ProfileDetailPage() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <h1 className="text-4xl font-black font-headline text-gray-900 leading-tight">
-                {userProfile?.username}
+                {userProfile?.username}{age ? `, ${age}` : ''}
               </h1>
               {isVerified && <CheckCircle className="w-7 h-7 text-blue-500 fill-blue-500/10" />}
             </div>
@@ -292,17 +306,64 @@ export default function ProfileDetailPage() {
             </div>
           )}
 
-          {/* Bio Section */}
-          <div className="space-y-3">
-            <h3 className="text-[11px] font-black uppercase text-gray-400 tracking-[0.2em]">Biography</h3>
-            <p className="text-sm font-medium text-gray-600 leading-relaxed bg-gray-50/50 p-4 rounded-[1.5rem] border border-gray-100 italic">
-              "{userProfile?.bio || "This user is keeping a low profile."}"
-            </p>
+          {/* User Information Section */}
+          <div className="space-y-4">
+            <h3 className="text-[11px] font-black uppercase text-gray-400 tracking-[0.2em]">User Information</h3>
+            
+            <div className="grid grid-cols-1 gap-3">
+              {userProfile?.bio && (
+                <div className="bg-gray-50/50 p-5 rounded-[1.5rem] border border-gray-100">
+                  <p className="text-sm font-medium text-gray-600 leading-relaxed italic">
+                    "{userProfile.bio}"
+                  </p>
+                </div>
+              )}
+
+              <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
+                  <Calendar className="w-6 h-6" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Age</p>
+                  <p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{age ? `${age} years old` : "Not specified"}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
+                  <Compass className="w-6 h-6" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Zodiac Sign</p>
+                  <p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{userProfile?.horoscope || "Not set"}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
+                  <GraduationCap className="w-6 h-6" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Education</p>
+                  <p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{userProfile?.education || "Private"}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
+                  <Star className="w-6 h-6" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Goal</p>
+                  <p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{userProfile?.relationshipGoal || "Networking"}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Gallery Section - Only if extra photos exist */}
           {extraPhotos.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-4 pt-4">
               <h3 className="text-[11px] font-black uppercase text-gray-400 tracking-[0.2em]">Gallery</h3>
               <div className="grid grid-cols-2 gap-3">
                 {extraPhotos.map((url, index) => (
@@ -313,39 +374,6 @@ export default function ProfileDetailPage() {
               </div>
             </div>
           )}
-
-          {/* Detailed Stats */}
-          <div className="grid grid-cols-1 gap-4 pt-4">
-             <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm">
-                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
-                  <Compass className="w-6 h-6" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Zodiac Sign</p>
-                  <p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{userProfile?.horoscope || "Not set"}</p>
-                </div>
-             </div>
-
-             <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm">
-                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
-                  <GraduationCap className="w-6 h-6" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Education</p>
-                  <p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{userProfile?.education || "Private"}</p>
-                </div>
-             </div>
-
-             <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm">
-                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
-                  <Star className="w-6 h-6" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Goal</p>
-                  <p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{userProfile?.relationshipGoal || "Networking"}</p>
-                </div>
-             </div>
-          </div>
 
           {/* Interests */}
           {userProfile?.interests && userProfile.interests.length > 0 && (
