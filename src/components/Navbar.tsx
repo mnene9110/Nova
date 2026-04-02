@@ -43,7 +43,8 @@ export function Navbar() {
     "/recharge",
     "/settings",
     "/admin",
-    "/support"
+    "/support",
+    "/task-center"
   ]
   
   const shouldHide = 
