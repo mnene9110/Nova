@@ -409,9 +409,7 @@ function ChatDetailContent() {
                       <div className="flex items-center justify-between">
                         <div className="flex gap-6">
                           <button className="text-xs font-black uppercase tracking-widest border-b-2 border-primary pb-2">Gift</button>
-                          <button className="text-xs font-black uppercase tracking-widest text-zinc-500 pb-2">Privilege</button>
                         </div>
-                        <button onClick={() => setIsGiftSheetOpen(false)} className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center"><X className="w-4 h-4" /></button>
                       </div>
                     </SheetHeader>
                     

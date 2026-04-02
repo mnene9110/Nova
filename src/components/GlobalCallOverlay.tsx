@@ -77,7 +77,8 @@ export function GlobalCallOverlay() {
     const isCaller = data.callerId === currentUser?.uid;
 
     if (data.status === 'ringing') {
-      if (!isCaller && ringtoneRef.current) {
+      // Use ringtone.mp3 for both parties during ringing
+      if (ringtoneRef.current) {
         ringtoneRef.current.play().catch(() => {});
       }
       setCallStatus(isCaller ? 'ringing' : 'incoming');
@@ -99,6 +100,7 @@ export function GlobalCallOverlay() {
         clearTimeout(ringingTimerRef.current);
         ringingTimerRef.current = null;
       }
+      // Stop ringtone when call is connected
       if (ringtoneRef.current) {
         ringtoneRef.current.pause();
         ringtoneRef.current.currentTime = 0;
@@ -201,6 +203,7 @@ export function GlobalCallOverlay() {
       clearTimeout(ringingTimerRef.current);
       ringingTimerRef.current = null;
     }
+    // Ensure ringtone stops if call is ended during ringing
     if (ringtoneRef.current) {
       ringtoneRef.current.pause();
       ringtoneRef.current.currentTime = 0;
