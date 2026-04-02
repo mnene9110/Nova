@@ -24,6 +24,16 @@ export function clearDiscoverCache() {
   cachedInitialLoaded = false
 }
 
+// Utility to shuffle an array (Fisher-Yates)
+function shuffleArray<T>(array: T[]): T[] {
+  const newArr = [...array];
+  for (let i = newArr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+  }
+  return newArr;
+}
+
 export default function DiscoverPage() {
   const [activeTab, setActiveTab] = useState<'recommend' | 'nearby'>('recommend')
   const { firestore, database } = useFirebase()
@@ -35,6 +45,7 @@ export default function DiscoverPage() {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(cachedHasMore)
   const [isInitialLoading, setIsInitialLoading] = useState(!cachedInitialLoaded)
+  const [userPresenceMap, setUserPresenceMap] = useState<Record<string, boolean>>({})
 
   const currentUserRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser])
   const { data: currentUserProfile, isLoading: isProfileLoading } = useDoc(currentUserRef)
@@ -42,7 +53,6 @@ export default function DiscoverPage() {
   useEffect(() => {
     if (!database || !currentUser || isProfileLoading || !currentUserProfile) return;
 
-    // ECONOMY: Only sync if RTDB balance is missing
     const syncBalanceIfMissing = async () => {
       const rtdbRef = ref(database, `users/${currentUser.uid}`);
       const snap = await get(rtdbRef);
@@ -59,60 +69,91 @@ export default function DiscoverPage() {
     syncBalanceIfMissing();
   }, [database, currentUser, isProfileLoading, !!currentUserProfile]);
 
-  useEffect(() => {
-    if (!firestore || !currentUser || isProfileLoading || !currentUserProfile || cachedInitialLoaded) {
-      if (cachedInitialLoaded) setIsInitialLoading(false)
-      return
-    }
+  // Logic to process, check presence, and shuffle
+  const processAndShuffleUsers = async (fetchedUsers: any[]) => {
+    if (!database) return fetchedUsers;
+
+    const onlineStatusMap: Record<string, boolean> = { ...userPresenceMap };
     
-    async function fetchInitialUsers() {
-      setIsInitialLoading(true)
+    // Fetch presence snapshots for new users
+    await Promise.all(fetchedUsers.map(async (u) => {
+      if (onlineStatusMap[u.id] !== undefined) return;
       try {
-        const currentGender = (currentUserProfile?.gender || 'male').toLowerCase()
-        const targetGender = currentGender === 'male' ? 'female' : 'male'
-
-        const q = query(
-          collection(firestore, 'userProfiles'), 
-          where('gender', '==', targetGender),
-          orderBy('createdAt', 'desc'),
-          limit(20)
-        )
-        
-        const snap = await getDocs(q)
-        if (snap.empty) {
-          setHasMore(false)
-          cachedHasMore = false
-          setUsers([])
-          cachedUsers = []
-          return
-        }
-
-        const fetchedUsers = snap.docs
-          .map(doc => ({ id: doc.id, ...doc.data() }))
-          .filter(u => u.id !== currentUser?.uid && !u.isSupport)
-          .slice(0, 10)
-        
-        setUsers(fetchedUsers)
-        cachedUsers = fetchedUsers
-        
-        const last = snap.docs[snap.docs.length - 1]
-        setLastVisible(last)
-        cachedLastVisible = last
-        
-        const more = snap.docs.length >= 10
-        setHasMore(more)
-        cachedHasMore = more
-        
-        cachedInitialLoaded = true
-      } catch (error) {
-        console.error("Error fetching initial users:", error)
-      } finally {
-        setIsInitialLoading(false)
+        const pRef = ref(database, `users/${u.id}/presence/online`);
+        const snap = await get(pRef);
+        onlineStatusMap[u.id] = snap.val() === true;
+      } catch (e) {
+        onlineStatusMap[u.id] = false;
       }
+    }));
+
+    setUserPresenceMap(onlineStatusMap);
+
+    const onlineUsers = fetchedUsers.filter(u => onlineStatusMap[u.id]);
+    const offlineUsers = fetchedUsers.filter(u => !onlineStatusMap[u.id]);
+
+    return [...shuffleArray(onlineUsers), ...shuffleArray(offlineUsers)];
+  }
+
+  const fetchUsers = async (isRefresh = false) => {
+    if (!firestore || !currentUser || isProfileLoading || !currentUserProfile) return;
+    
+    if (isRefresh) {
+      setIsInitialLoading(true);
+    } else if (cachedInitialLoaded) {
+      setIsInitialLoading(false);
+      return;
     }
 
-    fetchInitialUsers()
-  }, [firestore, currentUser, isProfileLoading, currentUserProfile?.gender])
+    try {
+      const currentGender = (currentUserProfile?.gender || 'male').toLowerCase()
+      const targetGender = currentGender === 'male' ? 'female' : 'male'
+
+      const q = query(
+        collection(firestore, 'userProfiles'), 
+        where('gender', '==', targetGender),
+        orderBy('createdAt', 'desc'),
+        limit(20)
+      )
+      
+      const snap = await getDocs(q)
+      if (snap.empty) {
+        setHasMore(false);
+        cachedHasMore = false;
+        setUsers([]);
+        cachedUsers = [];
+        return;
+      }
+
+      const fetchedRaw = snap.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(u => u.id !== currentUser?.uid && !u.isSupport)
+      
+      const processed = await processAndShuffleUsers(fetchedRaw);
+      const displayBatch = processed.slice(0, 10);
+      
+      setUsers(displayBatch);
+      cachedUsers = displayBatch;
+      
+      const last = snap.docs[snap.docs.length - 1];
+      setLastVisible(last);
+      cachedLastVisible = last;
+      
+      const more = snap.docs.length >= 10;
+      setHasMore(more);
+      cachedHasMore = more;
+      
+      cachedInitialLoaded = true;
+    } catch (error) {
+      console.error("Error fetching users:", error)
+    } finally {
+      setIsInitialLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchUsers();
+  }, [firestore, currentUser, isProfileLoading, currentUserProfile?.gender]);
 
   const loadMore = async () => {
     if (!firestore || !lastVisible || isLoadingMore || !hasMore || !currentUserProfile) return
@@ -138,12 +179,13 @@ export default function DiscoverPage() {
         return
       }
 
-      const nextUsers = snap.docs
+      const fetchedRaw = snap.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
         .filter(u => u.id !== currentUser?.uid && !u.isSupport)
 
-      if (nextUsers.length > 0) {
-        const updatedUsers = [...users, ...nextUsers]
+      if (fetchedRaw.length > 0) {
+        const processed = await processAndShuffleUsers(fetchedRaw);
+        const updatedUsers = [...users, ...processed]
         setUsers(updatedUsers)
         cachedUsers = updatedUsers
         
@@ -162,16 +204,23 @@ export default function DiscoverPage() {
     }
   }
 
+  const handleRefresh = async () => {
+    clearDiscoverCache();
+    setUserPresenceMap({});
+    await fetchUsers(true);
+  }
+
   const mappedUsers = users.map(u => ({
     id: u.id,
     name: u.username || "Match",
     location: u.location || "Kenya",
     isVerified: !!u.isVerified,
+    isOnline: !!userPresenceMap[u.id],
     image: (u.profilePhotoUrls && u.profilePhotoUrls[0]) || `https://picsum.photos/seed/${u.id}/400/600`
   }))
 
-  const displayUsers = activeTab === 'nearby' 
-    ? mappedUsers.filter(u => u.location.toLowerCase().includes('kenya') || u.location.toLowerCase().includes('nearby'))
+  const displayUsers = activeTab === 'nearby' && currentUserProfile?.location
+    ? mappedUsers.filter(u => u.location.toLowerCase() === currentUserProfile.location.toLowerCase())
     : mappedUsers;
 
   const darkMaroon = "bg-[#5A1010]";
@@ -220,13 +269,10 @@ export default function DiscoverPage() {
             </button>
           </div>
           <button 
-            onClick={() => {
-              clearDiscoverCache();
-              window.location.reload();
-            }} 
+            onClick={handleRefresh} 
             className="w-14 h-14 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-center active:rotate-180 transition-all duration-500 shadow-lg shadow-black/5"
           >
-            <RotateCcw className="w-4 h-4 text-gray-400" />
+            {isInitialLoading ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : <RotateCcw className="w-4 h-4 text-gray-400" />}
           </button>
         </div>
       </div>
@@ -238,6 +284,13 @@ export default function DiscoverPage() {
               <Image src={user.image} alt={user.name} fill className="object-cover transition-transform group-hover:scale-110 duration-700" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
             </div>
+
+            {user.isOnline && (
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-1 bg-black/40 backdrop-blur-md rounded-full border border-white/10 z-10">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[7px] font-black text-white uppercase tracking-tighter">Online</span>
+              </div>
+            )}
 
             <button 
               onClick={(e) => { 
@@ -271,7 +324,7 @@ export default function DiscoverPage() {
         {!(isInitialLoading || isProfileLoading) && displayUsers.length === 0 && (
           <div className="col-span-2 flex flex-col items-center justify-center py-20 text-center opacity-40">
             <Globe className="w-12 h-12 text-white mb-4" />
-            <p className="text-[10px] font-black text-white uppercase tracking-[0.2em]">No more users to show</p>
+            <p className="text-[10px] font-black text-white uppercase tracking-[0.2em]">No users {activeTab === 'nearby' ? 'in your country' : ''} found</p>
           </div>
         )}
 
