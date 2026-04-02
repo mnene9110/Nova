@@ -4,7 +4,8 @@
 import { useState, useEffect, useRef } from "react"
 import { Phone, PhoneOff, Loader2 } from "lucide-react"
 import { useFirebase, useUser } from "@/firebase"
-import { ref, onValue, remove, update, push, serverTimestamp as rtdbTimestamp, off } from "firebase/database"
+import { ref, onValue, remove, update, push, serverTimestamp as rtdbTimestamp, off, runTransaction as runRtdbTransaction } from "firebase/database"
+import { doc, collection, setDoc, updateDoc as updateFirestoreDoc, increment as firestoreIncrement } from "firebase/firestore"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import { getAgoraToken } from "@/app/actions/agora"
@@ -14,13 +15,13 @@ let AgoraRTC: any = null;
 
 /**
  * @fileOverview Global Call Overlay for Agora-powered phone calls.
- * Features: Outgoing/Incoming ringing, instant connection, mirror mode, and ringtone.
- * Fix: Tightened media cleanup to prevent random camera/mic activation.
+ * Implements 10s free grace period, start-of-minute deductions, 
+ * and deferred hardware engagement until call is connected.
  */
 
 export function GlobalCallOverlay() {
   const { user: currentUser } = useUser()
-  const { database } = useFirebase()
+  const { database, firestore } = useFirebase()
   
   const [callData, setCallData] = useState<any>(null)
   const [callStatus, setCallStatus] = useState<'idle' | 'ringing' | 'incoming' | 'ongoing'>('idle')
@@ -67,7 +68,6 @@ export function GlobalCallOverlay() {
     const unsubscribeIncomingId = onValue(incomingCallRef, (snap) => {
       const chatId = snap.val();
       
-      // If the call ID changed or was removed, clean up existing detail listeners
       if (callDetailsUnsubscribe) {
         callDetailsUnsubscribe();
         callDetailsUnsubscribe = null;
@@ -77,7 +77,6 @@ export function GlobalCallOverlay() {
         activeChatIdRef.current = chatId;
         const callDetailsRef = ref(database, `calls/${chatId}`);
         
-        // Listen to specific call state
         const unsubscribeDetails = onValue(callDetailsRef, (detailsSnap) => {
           const data = detailsSnap.val();
           if (!data) {
@@ -90,7 +89,6 @@ export function GlobalCallOverlay() {
         
         callDetailsUnsubscribe = () => off(callDetailsRef, "value", unsubscribeDetails);
       } else {
-        // If no incoming call ID, definitely ensure hardware is released
         handleCleanup();
       }
     });
@@ -98,7 +96,7 @@ export function GlobalCallOverlay() {
     return () => {
       unsubscribeIncomingId();
       if (callDetailsUnsubscribe) callDetailsUnsubscribe();
-      handleCleanup(); // Final release on unmount
+      handleCleanup(); 
     };
   }, [database, currentUser]);
 
@@ -107,27 +105,18 @@ export function GlobalCallOverlay() {
     const isCaller = data.callerId === currentUser.uid;
 
     if (data.status === 'ringing') {
-      // Play ringtone for both caller and receiver
       if (ringtoneRef.current && ringtoneRef.current.paused) {
-        ringtoneRef.current.play().catch(() => {
-          console.warn("Ringtone playback requires user interaction.");
-        });
+        ringtoneRef.current.play().catch(() => {});
       }
       setCallStatus(isCaller ? 'ringing' : 'incoming');
       
-      // 40 second timeout logic
       if (isCaller && !ringingTimerRef.current) {
         ringingTimerRef.current = setTimeout(() => {
           handleTimeout();
         }, 40000);
       }
-
-      // Proactively engage hardware for caller
-      if (isCaller && !localTracksRef.current.audioTrack && !localTracksRef.current.videoTrack) {
-        engageHardware(data.callType);
-      }
+      // Note: Hardware engagement is deferred until 'accepted' phase
     } else if (data.status === 'accepted') {
-      // Stop ringtone immediately
       if (ringingTimerRef.current) {
         clearTimeout(ringingTimerRef.current);
         ringingTimerRef.current = null;
@@ -141,6 +130,8 @@ export function GlobalCallOverlay() {
       if (callStatus !== 'ongoing') {
         setCallStatus('ongoing');
         setIsConnecting(true);
+        // Engagement happens when call is connected
+        engageHardware(data.callType);
         initiateAgoraConnection(activeChatIdRef.current!, data.callType);
       }
     }
@@ -162,6 +153,44 @@ export function GlobalCallOverlay() {
       }
     } catch (e) {
       console.error("Hardware engagement failed:", e);
+    }
+  };
+
+  const deductCoins = async (amount: number) => {
+    if (!database || !currentUser || !activeChatIdRef.current || !firestore) return;
+    
+    const userCoinRef = ref(database, `users/${currentUser.uid}/coinBalance`);
+    
+    try {
+      const result = await runRtdbTransaction(userCoinRef, (current) => {
+        if (current === null) return current;
+        if (current < amount) return undefined;
+        return current - amount;
+      });
+
+      if (!result.committed) {
+        // Stop call immediately if balance is insufficient
+        handleEndCall();
+        return;
+      }
+
+      // Firestore Backup & Log
+      const profileRef = doc(firestore, "userProfiles", currentUser.uid);
+      updateFirestoreDoc(profileRef, {
+        coinBalance: firestoreIncrement(-amount),
+        updatedAt: new Date().toISOString()
+      });
+
+      const txRef = doc(collection(profileRef, "transactions"));
+      setDoc(txRef, {
+        id: txRef.id,
+        type: "deduction",
+        amount: -amount,
+        transactionDate: new Date().toISOString(),
+        description: `Call duration charge (${callData?.callType})`
+      });
+    } catch (error) {
+      console.error("Call billing failed:", error);
     }
   };
 
@@ -226,7 +255,6 @@ export function GlobalCallOverlay() {
       ringtoneRef.current.currentTime = 0;
     }
 
-    // CRITICAL: Explicitly close tracks to release hardware immediately
     if (localTracksRef.current.audioTrack) {
       localTracksRef.current.audioTrack.stop();
       localTracksRef.current.audioTrack.close();
@@ -263,20 +291,18 @@ export function GlobalCallOverlay() {
       ringtoneRef.current.pause();
       ringtoneRef.current.currentTime = 0;
     }
-    engageHardware(callData.callType);
     await update(ref(database, `calls/${activeChatIdRef.current}`), { status: 'accepted' });
   }
 
   const handleEndCall = async () => {
     if (!database || !activeChatIdRef.current) {
-      handleCleanup(); // Ensure cleanup even if DB fails
+      handleCleanup(); 
       return;
     }
     const cid = activeChatIdRef.current;
     const receiverId = callData?.receiverId;
     const callerId = callData?.callerId;
 
-    // Remove call nodes to trigger handleCleanup via listeners
     await remove(ref(database, `calls/${cid}`));
     if (receiverId) await remove(ref(database, `users/${receiverId}/incomingCallId`));
     if (callerId) await remove(ref(database, `users/${callerId}/incomingCallId`));
@@ -313,12 +339,27 @@ export function GlobalCallOverlay() {
         setCallDuration(prev => {
           const next = prev + 1;
           callDurationRef.current = next;
+          
+          // BILLING LOGIC: Caller pays
+          const isCaller = callData?.callerId === currentUser?.uid;
+          if (isCaller && !callData?.isFree) {
+            const cost = callData?.costPerMin || 0;
+            // First 10s free, deduct at 11th second
+            if (next === 11) {
+              deductCoins(cost);
+            } 
+            // From 2nd minute onwards, deduct at the start of each minute
+            else if (next > 11 && next % 60 === 0) {
+              deductCoins(cost);
+            }
+          }
+          
           return next;
         });
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [callStatus]);
+  }, [callStatus, callData, currentUser]);
 
   if (callStatus === 'idle') return null;
 
@@ -339,7 +380,7 @@ export function GlobalCallOverlay() {
       {/* Local Preview */}
       <div className={cn(
         "absolute top-12 right-6 w-32 aspect-[3/4] bg-zinc-900 rounded-2xl overflow-hidden border-2 border-white/10 z-50 shadow-2xl transition-all duration-500",
-        callStatus === 'ongoing' || callStatus === 'ringing' ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
+        callStatus === 'ongoing' ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
       )}>
         <div ref={previewVideoRef as any} className="w-full h-full object-cover scale-x-[-1] [&_video]:scale-x-[-1]" />
       </div>
@@ -376,7 +417,7 @@ export function GlobalCallOverlay() {
         </div>
       )}
 
-      {/* Timer */}
+      {/* Timer / Counter */}
       {callStatus === 'ongoing' && !isConnecting && (
         <div className="absolute top-12 left-6 z-50">
           <div className="px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-2">

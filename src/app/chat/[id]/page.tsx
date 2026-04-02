@@ -113,6 +113,8 @@ function ChatDetailContent() {
     const isFree = currentUserProfile.isAdmin || 
                    currentUserProfile.isSupport || 
                    currentUserProfile.isCoinseller ||
+                   otherUser.isSupport ||
+                   otherUser.isCoinseller ||
                    (currentUserProfile.gender === 'female' && otherUser?.gender === 'male');
 
     if (!isFree && userCoins < costPerMin) {
@@ -134,7 +136,9 @@ function ChatDetailContent() {
         status: 'ringing', 
         callType: type, 
         timestamp: Date.now(),
-        callerName: currentUserProfile.username || 'Someone'
+        callerName: currentUserProfile.username || 'Someone',
+        costPerMin: costPerMin,
+        isFree: isFree
       });
 
       await set(ref(database, `users/${otherUserId}/incomingCallId`), chatId);
