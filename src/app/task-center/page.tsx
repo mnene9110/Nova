@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { X, RotateCcw, Coins, Trophy, Loader2 } from "lucide-react"
+import { X, RotateCcw, Coins, Trophy, Loader2, ChevronLeft, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc, runTransaction, collection } from "firebase/firestore"
@@ -22,7 +22,7 @@ export default function TaskCenterPage() {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // CRITICAL: Set date on client only to prevent Hydration Mismatch
+    // Set date on client only to prevent Hydration Mismatch
     setTodayStr(new Date().toISOString().split('T')[0]);
     setMounted(true);
   }, []);
@@ -55,6 +55,7 @@ export default function TaskCenterPage() {
         yesterday.setDate(yesterday.getDate() - 1)
         const yesterdayStr = yesterday.toISOString().split('T')[0]
 
+        // If claimed yesterday, increment streak, else reset to 1
         if (lastDate === yesterdayStr) {
           newStreak = (currentStreak % 7) + 1
         }
@@ -94,58 +95,58 @@ export default function TaskCenterPage() {
     }
   }
 
-  // Prevent hydration mismatch by waiting for mount
+  const darkMaroon = "text-[#5A1010]";
+  const darkMaroonBg = "bg-[#5A1010]";
+
   if (!mounted || isLoading) {
     return (
-      <div className="flex h-svh items-center justify-center bg-zinc-950">
+      <div className="flex h-svh items-center justify-center bg-transparent">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-[#FF7A00]" />
-          <span className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.2em]">Preparing rewards...</span>
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <span className="text-[10px] font-black uppercase text-white/60 tracking-[0.2em]">Preparing rewards...</span>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col h-svh bg-zinc-950 text-white overflow-hidden font-body">
+    <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden font-body">
       <header className="px-6 pt-12 pb-6 flex items-center justify-between shrink-0 relative">
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={() => router.back()} 
-          className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 text-white/70 hover:bg-zinc-800"
+          className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 hover:bg-white/40"
         >
-          <X className="w-6 h-6" />
+          <ChevronLeft className="w-6 h-6" />
         </Button>
         
         <div className="text-center">
-          <h1 className="text-xl font-black font-headline tracking-wider uppercase">Task Center</h1>
-          <p className="text-[10px] font-black text-[#FF7A00] tracking-[0.2em] uppercase mt-1">Earn Rewards</p>
+          <h1 className={cn("text-xl font-black font-headline tracking-widest uppercase", darkMaroon)}>Task Center</h1>
+          <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mt-1">Daily Flow Rewards</p>
         </div>
 
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={() => window.location.reload()}
-          className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 text-white/70 hover:bg-zinc-800"
+          className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 hover:bg-white/40"
         >
           <RotateCcw className="w-5 h-5" />
         </Button>
       </header>
 
       <main className="flex-1 overflow-y-auto px-6 pb-20 space-y-8 scroll-smooth">
-        <section className="bg-zinc-900/50 rounded-[3rem] p-8 border border-zinc-800 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF7A00]/10 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
-          
+        <section className="bg-white/40 backdrop-blur-xl rounded-[3rem] p-8 border border-white/40 relative overflow-hidden shadow-2xl shadow-black/5">
           <div className="flex justify-between items-start mb-8">
             <div className="space-y-2">
-              <h2 className="text-3xl font-black font-headline leading-tight">Check-in</h2>
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest max-w-[150px]">
-                Flow streak for bonus coins
+              <h2 className={cn("text-3xl font-black font-headline leading-tight", darkMaroon)}>Daily Attendance</h2>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest max-w-[150px]">
+                Maintain your streak for massive bonuses
               </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-[#FF7A00]/10 border border-[#FF7A00]/20 flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-[#FF7A00]" />
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <Trophy className="w-5 h-5 text-primary" />
             </div>
           </div>
 
@@ -158,17 +159,17 @@ export default function TaskCenterPage() {
                 <div 
                   key={i}
                   className={cn(
-                    "aspect-square rounded-[1.75rem] border flex flex-col items-center justify-center gap-2 transition-all",
-                    isActive ? "bg-[#FF7A00] border-[#FF7A00] shadow-[0_0_20px_rgba(255,122,0,0.3)]" : 
-                    isCurrent ? "bg-zinc-800 border-[#FF7A00] animate-pulse" : "bg-zinc-800/50 border-zinc-700/50"
+                    "aspect-square rounded-[1.75rem] border flex flex-col items-center justify-center gap-2 transition-all duration-500",
+                    isActive ? "bg-[#5A1010] border-[#5A1010] shadow-lg shadow-[#5A1010]/20" : 
+                    isCurrent ? "bg-white/60 border-primary animate-pulse" : "bg-white/20 border-white/30"
                   )}
                 >
-                  <span className={cn("text-[8px] font-black uppercase tracking-widest", isActive ? "text-white/70" : "text-zinc-500")}>Day {dayNum}</span>
+                  <span className={cn("text-[8px] font-black uppercase tracking-widest", isActive ? "text-white/60" : "text-gray-400")}>Day {dayNum}</span>
                   <div className="flex flex-col items-center">
-                    <div className={cn("w-6 h-6 rounded-full flex items-center justify-center mb-0.5 shadow-inner", isActive ? "bg-white/20" : "bg-zinc-700")}>
-                      <span className={cn("font-black text-[10px] italic", isActive ? "text-white" : "text-[#FF7A00]")}>C</span>
+                    <div className={cn("w-6 h-6 rounded-full flex items-center justify-center mb-0.5", isActive ? "bg-white/20" : "bg-primary/10")}>
+                      {isActive ? <Check className="w-3 h-3 text-white stroke-[4]" /> : <span className="font-black text-[10px] text-primary italic">S</span>}
                     </div>
-                    <span className={cn("text-[10px] font-black", isActive ? "text-white" : "text-zinc-400")}>{reward}</span>
+                    <span className={cn("text-[10px] font-black", isActive ? "text-white" : "text-gray-900")}>{reward}</span>
                   </div>
                 </div>
               )
@@ -185,17 +186,20 @@ export default function TaskCenterPage() {
                   key={i}
                   className={cn(
                     "aspect-square rounded-[2rem] border flex flex-col items-center justify-center gap-2 transition-all relative",
-                    isActive ? "bg-[#FF7A00] border-[#FF7A00] shadow-[0_0_20px_rgba(255,122,0,0.3)]" : 
-                    isCurrent ? "bg-zinc-800 border-[#FF7A00] animate-pulse" : "bg-zinc-800/50 border-zinc-700/50"
+                    isActive ? "bg-[#5A1010] border-[#5A1010] shadow-lg shadow-[#5A1010]/20" : 
+                    isCurrent ? "bg-white/60 border-primary animate-pulse" : "bg-white/20 border-white/30"
                   )}
                 >
-                  <span className={cn("text-[10px] font-black uppercase tracking-widest", isActive ? "text-white/70" : "text-zinc-500")}>Day {dayNum}</span>
+                  <span className={cn("text-[10px] font-black uppercase tracking-widest", isActive ? "text-white/60" : "text-gray-400")}>Day {dayNum}</span>
                   <div className="flex flex-col items-center">
-                    <div className={cn("w-8 h-8 rounded-full flex items-center justify-center mb-1 shadow-inner", isActive ? "bg-white/20" : "bg-zinc-700")}>
-                      <span className={cn("font-black text-xs italic", isActive ? "text-white" : "text-[#FF7A00]")}>C</span>
+                    <div className={cn("w-8 h-8 rounded-full flex items-center justify-center mb-1", isActive ? "bg-white/20" : "bg-primary/10")}>
+                      {isActive ? <Check className="w-4 h-4 text-white stroke-[4]" /> : <span className="font-black text-xs text-primary italic">S</span>}
                     </div>
-                    <span className={cn("text-xs font-black", isActive ? "text-white" : "text-zinc-400")}>{reward}</span>
+                    <span className={cn("text-xs font-black", isActive ? "text-white" : "text-gray-900")}>{reward}</span>
                   </div>
+                  {dayNum === 7 && (
+                    <div className="absolute -top-2 -right-1 px-2 py-0.5 bg-primary rounded-full text-[7px] font-black text-white uppercase tracking-tighter shadow-sm">Super</div>
+                  )}
                 </div>
               )
             })}
@@ -205,33 +209,21 @@ export default function TaskCenterPage() {
             onClick={handleClaim}
             disabled={!canClaim || isClaiming}
             className={cn(
-              "w-full h-18 rounded-full text-zinc-950 text-xl font-black uppercase tracking-widest mt-10 shadow-[0_15px_40px_rgba(255,122,0,0.2)] transition-all active:scale-95",
-              canClaim ? "bg-[#FF7A00] hover:bg-[#FF7A00]/90" : "bg-zinc-700 text-zinc-500 cursor-not-allowed"
+              "w-full h-18 rounded-full text-white text-xl font-black uppercase tracking-widest mt-10 shadow-2xl transition-all active:scale-95",
+              canClaim ? cn(darkMaroonBg, "hover:opacity-90") : "bg-gray-200 text-gray-400 cursor-not-allowed"
             )}
           >
-            {isClaiming ? <Loader2 className="w-6 h-6 animate-spin" /> : canClaim ? "Claim Daily Coins" : "Already Claimed"}
+            {isClaiming ? <Loader2 className="w-6 h-6 animate-spin" /> : canClaim ? "Claim Reward" : "Already Claimed"}
           </Button>
         </section>
 
-        <section className="grid grid-cols-2 gap-4">
-           <div className="bg-zinc-900/50 rounded-[2.5rem] p-6 border border-zinc-800 flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                 <div className="w-5 h-5 rounded-lg bg-zinc-800 flex items-center justify-center">
-                    <Coins className="w-3 h-3 text-[#FF7A00]" />
-                 </div>
-                 <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Balance</span>
-              </div>
-              <p className="text-2xl font-black font-headline">{(profile?.coinBalance || 0).toLocaleString()}</p>
+        <section className="flex flex-col items-center justify-center gap-4 py-10 opacity-40">
+           <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center border border-white/30">
+              <RotateCcw className="w-5 h-5 text-gray-900" />
            </div>
-           
-           <div className="bg-zinc-900/50 rounded-[2.5rem] p-6 border border-zinc-800 flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                 <div className="w-5 h-5 rounded-lg bg-zinc-800 flex items-center justify-center">
-                    <RotateCcw className="w-3 h-3 text-[#FF7A00]" />
-                 </div>
-                 <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Streak</span>
-              </div>
-              <p className="text-2xl font-black font-headline">{streak} Days</p>
+           <div className="text-center space-y-1">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em]">Streak Count</p>
+              <p className="text-2xl font-black font-headline">{streak} Days Consecutively</p>
            </div>
         </section>
       </main>
