@@ -117,7 +117,7 @@ export default function GamesCenterPage() {
 
       if (!result.committed) throw new Error("INSUFFICIENT_COINS")
 
-      // 2. Determine Winner Index
+      // 2. Determine Winner Index (0-7)
       const winnerIndex = Math.floor(Math.random() * 8)
       const winAmount = currentWheelValues[winnerIndex]
 
@@ -135,17 +135,21 @@ export default function GamesCenterPage() {
       });
       await batch.commit();
 
-      // 4. Calculate Rotation (10 spins + offset to pointer)
+      // 4. Calculate Rotation for "several" full turns (15 rotations)
       // Canvas draws segment 0 at 0 radians (3 o'clock). 
-      // Pointer is at the top (270 degrees or -90 degrees).
-      // To get segment i to the top, we rotate by (270 - (i * 45 + 22.5))
-      const extraSpins = 10
+      // Pointer is at the top (270 degrees).
+      // We add a random sub-segment offset so it doesn't always land in the middle.
+      const extraSpins = 15 
       const segmentSize = 45
-      const currentRotationBase = Math.floor(rotation / 360) * 360
-      const targetAngle = (270 - (winnerIndex * segmentSize + segmentSize / 2))
-      const newRotation = currentRotationBase + (extraSpins * 360) + (targetAngle % 360)
+      const randomOffset = (Math.random() - 0.5) * (segmentSize * 0.7) // +/- 15 deg approx
       
-      setRotation(newRotation)
+      const targetLandingAngle = 270 - (winnerIndex * segmentSize + (segmentSize / 2)) + randomOffset
+      
+      // Calculate absolute next rotation to ensure wheel always spins forward
+      const currentRotation = rotation
+      const nextRotation = currentRotation + (extraSpins * 360) + ((targetLandingAngle - (currentRotation % 360) + 360) % 360)
+      
+      setRotation(nextRotation)
 
       const winData = { winner: winAmount > 0, pot: winAmount }
       setPendingResult(winData)
@@ -227,8 +231,8 @@ export default function GamesCenterPage() {
             {/* The Canvas Wheel */}
             <div 
               onTransitionEnd={handleAnimationEnd}
-              style={{ transform: `rotate(${rotation}deg)`, transitionTimingFunction: 'cubic-bezier(0.1, 0, 0.1, 1)' }}
-              className="w-full h-full transition-transform duration-[5000ms] shadow-2xl rounded-full overflow-hidden"
+              style={{ transform: `rotate(${rotation}deg)`, transitionTimingFunction: 'cubic-bezier(0.15, 0, 0.15, 1)' }}
+              className="w-full h-full transition-transform duration-[6000ms] shadow-2xl rounded-full overflow-hidden"
             >
               <canvas 
                 ref={canvasRef} 
@@ -259,7 +263,7 @@ export default function GamesCenterPage() {
 
         <div className="bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 space-y-2 opacity-60">
           <div className="flex items-center gap-2"><Sparkles className="w-3 h-3 text-blue-500" /><p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Lucky Spin Rules</p></div>
-          <p className="text-[10px] font-medium text-blue-400 leading-relaxed">Wheel values are pre-set based on your bet tier. Land on high-value segments to multiply your coins instantly!</p>
+          <p className="text-[10px] font-medium text-blue-400 leading-relaxed">The wheel makes 15 full rotations before slowing down. Land on a segment to claim those coins instantly!</p>
         </div>
       </main>
 
