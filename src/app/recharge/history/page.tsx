@@ -26,8 +26,8 @@ export default function CoinHistoryPage() {
   const { data: transactions, isLoading } = useCollection(transactionsQuery)
 
   return (
-    <div className="flex flex-col min-h-svh bg-transparent text-gray-900">
-      <header className="px-4 py-6 flex items-center sticky top-0 bg-transparent z-10">
+    <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden">
+      <header className="px-4 py-6 flex items-center sticky top-0 bg-transparent z-10 shrink-0">
         <Button 
           variant="ghost" 
           size="icon" 
@@ -39,14 +39,14 @@ export default function CoinHistoryPage() {
         <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-gray-900">Coin History</h1>
       </header>
 
-      <main className="flex-1 px-6 pb-20">
+      <main className="flex-1 px-6 pb-20 overflow-y-auto scroll-smooth">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Loading history...</span>
           </div>
         ) : transactions && transactions.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-3 pb-10">
             {transactions.map((tx: any) => {
               // Reliably determine if addition or deduction based on amount sign
               const isAddition = tx.amount > 0

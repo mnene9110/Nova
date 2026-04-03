@@ -89,8 +89,8 @@ function RechargeContent() {
   const darkMaroon = "bg-[#5A1010]";
 
   return (
-    <div className="flex flex-col min-h-svh bg-transparent text-gray-900">
-      <header className="px-4 py-6 flex items-center justify-between sticky top-0 bg-transparent z-10">
+    <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden">
+      <header className="px-4 py-6 flex items-center justify-between sticky top-0 bg-transparent z-10 shrink-0">
         <Button 
           variant="ghost" 
           size="icon" 
@@ -110,7 +110,7 @@ function RechargeContent() {
         </Button>
       </header>
 
-      <main className="flex-1 px-6 pt-4 pb-32">
+      <main className="flex-1 px-6 pt-4 pb-44 overflow-y-auto scroll-smooth">
         <section className="mb-8">
           <div className="flex items-center justify-between mb-3 px-2">
             <h2 className="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em]">Current Balance</h2>
@@ -164,7 +164,7 @@ function RechargeContent() {
           </div>
         </section>
 
-        <section className="mt-12 flex flex-col items-center">
+        <section className="mt-12 flex flex-col items-center pb-10">
           <button 
             onClick={() => router.push(`/recharge/coinsellers${selectedPackage ? `?amount=${selectedPackage.amount}` : ''}`)}
             className="text-[10px] font-black text-primary uppercase tracking-[0.3em] border-b border-primary/30 pb-1.5 active:opacity-50 transition-opacity"
