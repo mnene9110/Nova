@@ -3,6 +3,7 @@
 /**
  * @fileOverview Server actions for PesaPal V3 integration.
  * Handles authentication, IPN registration, and order submission.
+ * Updated to include mandatory billing fields for higher transaction amounts.
  */
 
 const PESAPAL_URL = 'https://pay.pesapal.com/v3';
@@ -62,15 +63,23 @@ export async function initializePesaPalTransaction(email: string, amount: number
 
     if (!ipnId) throw new Error('Could not register IPN ID');
 
+    // Use a unique but shorter reference ID
+    const shortId = Date.now().toString().slice(-10);
     const orderData = {
-      id: `MF-${Date.now()}`,
+      id: `MF${shortId}`,
       currency: 'KES',
-      amount: amount,
+      amount: Number(amount),
       description: `MatchFlow Coin Recharge (${metadata.packageAmount} coins)`,
       callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/recharge/callback/pesapal`,
       notification_id: ipnId,
       billing_address: {
         email_address: email,
+        // Mandatory for many gateways on higher amounts
+        first_name: "MatchFlow",
+        last_name: "Customer",
+        line_1: "Nairobi",
+        city: "Nairobi",
+        country_code: "KE"
       },
     };
 
@@ -90,7 +99,9 @@ export async function initializePesaPalTransaction(email: string, amount: number
     if (result.redirect_url) {
       return { redirect_url: result.redirect_url, order_tracking_id: result.order_tracking_id };
     } else {
-      return { error: result.message || 'Failed to submit order to PesaPal' };
+      // Return specific error from PesaPal if available
+      const errorMessage = result.message || (result.error ? result.error.message : 'Failed to submit order to PesaPal');
+      return { error: errorMessage };
     }
   } catch (error: any) {
     console.error('PesaPal Transaction Error:', error);
