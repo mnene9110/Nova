@@ -96,12 +96,12 @@ export default function GamesCenterPage() {
       const winnerIndex = Math.floor(Math.random() * 8)
       const winAmount = currentWheelValues[winnerIndex]
       
-      // Calculate Rotation (3000ms animation)
-      const extraSpins = 5 + Math.floor(Math.random() * 5)
+      // Calculate Rotation (4000ms animation for a free-spinning feel)
+      const extraSpins = 8 + Math.floor(Math.random() * 5)
       const newRotation = rotation + (extraSpins * 360) + (360 - (winnerIndex * 45))
       setRotation(newRotation)
 
-      // 3. Wait for Animation and Credit
+      // 3. Wait for Animation and then reveal result
       setTimeout(async () => {
         if (winAmount > 0) {
           await runRtdbTransaction(userRef, (curr) => (curr || 0) + winAmount)
@@ -119,7 +119,7 @@ export default function GamesCenterPage() {
 
         setGameResult({ winner: winAmount > 0, pot: winAmount })
         setIsSpinning(false)
-      }, 3000)
+      }, 4200) // Slightly longer than CSS transition to ensure visual stop
 
     } catch (e: any) {
       toast({ variant: "destructive", title: "Game Error", description: e.message })
@@ -176,9 +176,12 @@ export default function GamesCenterPage() {
 
           <div className="relative w-full aspect-square max-w-[280px] mx-auto group">
             <div 
-              style={{ transform: `rotate(${rotation}deg)` }}
+              style={{ 
+                transform: `rotate(${rotation}deg)`,
+                transitionTimingFunction: 'cubic-bezier(0.15, 0, 0.15, 1)' 
+              }}
               className={cn(
-                "w-full h-full rounded-full border-[10px] border-zinc-900 relative flex items-center justify-center shadow-2xl transition-transform duration-[3000ms] ease-[cubic-bezier(0.15,0,0.15,1)] overflow-hidden"
+                "w-full h-full rounded-full border-[10px] border-zinc-900 relative flex items-center justify-center shadow-2xl transition-transform duration-[4000ms] overflow-hidden"
               )}
             >
               <div className="absolute inset-0 bg-zinc-800" />
@@ -197,12 +200,13 @@ export default function GamesCenterPage() {
               ))}
               
               <div className="w-14 h-14 bg-zinc-900 rounded-full flex items-center justify-center border-4 border-amber-500/30 z-10 shadow-xl">
-                {isSpinning ? <Loader2 className="w-5 h-5 text-amber-500 animate-spin" /> : <Trophy className="w-5 h-5 text-amber-500" />}
+                <Trophy className={cn("w-5 h-5 text-amber-500 transition-transform", isSpinning && "scale-110 animate-pulse")} />
               </div>
             </div>
             
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-5 h-8 bg-zinc-900 rounded-full z-20 shadow-xl border-2 border-white flex items-center justify-center">
-               <div className="w-1 h-3 bg-amber-500 rounded-full animate-pulse" />
+            {/* The Pointer Arrow */}
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-10 bg-zinc-900 rounded-b-full z-20 shadow-xl border-2 border-white flex items-center justify-center">
+               <div className="w-1.5 h-4 bg-amber-500 rounded-full" />
             </div>
           </div>
 
@@ -232,7 +236,12 @@ export default function GamesCenterPage() {
               selectedBet && userCoins >= selectedBet ? darkMaroon : "bg-gray-200 text-gray-400"
             )}
           >
-            {isSpinning ? "SPINNING..." : "PLACE BET"}
+            {isSpinning ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>SPINNING...</span>
+              </div>
+            ) : "PLACE BET"}
           </Button>
         </section>
 
