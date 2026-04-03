@@ -79,16 +79,21 @@ export default function GamesCenterPage() {
         description: `Bet ${selectedBet} coins in Solo Spin`
       })
 
-      // 2. Calculate Winner Index
+      // 2. Calculate Winner Index (0 to 7)
       const winnerIndex = Math.floor(Math.random() * 8)
       const winAmount = currentWheelValues[winnerIndex]
       
-      // Calculate Rotation (4000ms animation for a free-spinning feel)
-      const extraSpins = 8 + Math.floor(Math.random() * 5)
-      const newRotation = rotation + (extraSpins * 360) + (360 - (winnerIndex * 45))
+      // Calculate Rotation: 6 full spins (2160 deg) + the specific angle to bring winnerIndex to top (0 deg)
+      // Since segments are drawn at i * 45, we need to rotate wheel by -i * 45 to align segment i with the top pointer
+      const extraSpins = 6
+      const segmentAngle = 45
+      const currentRotationBase = Math.floor(rotation / 360) * 360
+      const targetAngle = (360 - (winnerIndex * segmentAngle)) % 360
+      const newRotation = currentRotationBase + (extraSpins * 360) + targetAngle
+      
       setRotation(newRotation)
 
-      // 3. Wait for Animation and then reveal result
+      // 3. Wait for Animation (4000ms) and then reveal result
       setTimeout(async () => {
         if (winAmount > 0) {
           await runRtdbTransaction(userRef, (curr) => (curr || 0) + winAmount)
@@ -191,7 +196,7 @@ export default function GamesCenterPage() {
               </div>
             </div>
             
-            {/* The Pointer Arrow */}
+            {/* The Pointer Arrow (Top center) */}
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-10 bg-zinc-900 rounded-b-full z-20 shadow-xl border-2 border-white flex items-center justify-center">
                <div className="w-1.5 h-4 bg-amber-500 rounded-full" />
             </div>
