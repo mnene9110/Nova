@@ -1,17 +1,24 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Gamepad2, Coins, Trophy, Loader2, Star, Sparkles, Dice5, Users, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useFirebase, useUser, useCollection, useMemoFirebase } from "@/firebase"
+import { useFirebase, useUser, useMemoFirebase } from "@/firebase"
 import { doc, updateDoc, increment as firestoreIncrement, setDoc, collection } from "firebase/firestore"
 import { ref, onValue, runTransaction as runRtdbTransaction } from "firebase/database"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
 const GAME_BETS = [20, 50, 100, 200, 500]
+
+// Define wheel values based on bet amounts
+const WHEEL_CONFIGS = {
+  low: [5, 50, 10, 25, 2, 40, 15, 30],        // For bet < 50 (Max 50)
+  mid: [20, 300, 50, 150, 10, 250, 100, 200], // For bet 50-100 (Max 300)
+  high: [50, 1000, 150, 500, 25, 750, 250, 400] // For bet 200-500 (Max 1000)
+}
 
 export default function GamesCenterPage() {
   const router = useRouter()
@@ -22,15 +29,17 @@ export default function GamesCenterPage() {
   const [userCoins, setUserCoins] = useState(0)
   const [isSpinning, setIsSpinning] = useState(false)
   const [selectedBet, setSelectedBet] = useState<number | null>(null)
-  const [gameResult, setGameResult] = useState<{ winner: boolean; pot: number; multiplier: number } | null>(null)
-
-  // Fetch recent matches to challenge
-  const matchesQuery = useMemoFirebase(() => {
-    if (!database || !currentUser) return null
-    return ref(database, `users/${currentUser.uid}/chats`)
-  }, [database, currentUser])
-
+  const [rotation, setRotation] = useState(0)
+  const [gameResult, setGameResult] = useState<{ winner: boolean; pot: number } | null>(null)
   const [chats, setChats] = useState<any[]>([])
+
+  // Determine current wheel values based on selected bet
+  const currentWheelValues = useMemo(() => {
+    if (!selectedBet) return WHEEL_CONFIGS.low;
+    if (selectedBet < 50) return WHEEL_CONFIGS.low;
+    if (selectedBet <= 100) return WHEEL_CONFIGS.mid;
+    return WHEEL_CONFIGS.high;
+  }, [selectedBet]);
 
   useEffect(() => {
     if (!database || !currentUser) return
@@ -61,6 +70,7 @@ export default function GamesCenterPage() {
     setGameResult(null)
 
     try {
+      // 1. Deduct Bet
       const userRef = ref(database, `users/${currentUser.uid}/coinBalance`)
       const result = await runRtdbTransaction(userRef, (curr) => {
         if (curr === null) return curr
@@ -82,33 +92,36 @@ export default function GamesCenterPage() {
         description: `Bet ${selectedBet} coins in Solo Spin`
       })
 
+      // 2. Calculate Winner Index
+      // Logic: Pick a random index from the 8 segments
+      const winnerIndex = Math.floor(Math.random() * 8)
+      const winAmount = currentWheelValues[winnerIndex]
+      
+      // Calculate Rotation
+      // Each segment is 45 degrees. Index 0 is at top (0-45 deg range)
+      // To land Index X at the top (which is 0 degrees), we need to rotate:
+      // (360 - (X * 45)) + multiple full spins
+      const extraSpins = 5 + Math.floor(Math.random() * 5) // 5-10 full spins
+      const newRotation = rotation + (extraSpins * 360) + (360 - (winnerIndex * 45))
+      setRotation(newRotation)
+
+      // 3. Wait for Animation and Credit
       setTimeout(async () => {
-        const rand = Math.random()
-        let multiplier = 0
-        let won = false
-
-        if (rand > 0.6) { 
-          won = true
-          multiplier = rand > 0.95 ? 5 : 2
-        }
-
-        const pot = Math.floor(selectedBet * multiplier)
-
-        if (won) {
-          await runRtdbTransaction(userRef, (curr) => (curr || 0) + pot)
-          updateDoc(pRef, { coinBalance: firestoreIncrement(pot), updatedAt: new Date().toISOString() })
+        if (winAmount > 0) {
+          await runRtdbTransaction(userRef, (curr) => (curr || 0) + winAmount)
+          updateDoc(pRef, { coinBalance: firestoreIncrement(winAmount), updatedAt: new Date().toISOString() })
           
           const winTxRef = doc(collection(pRef, "transactions"))
           setDoc(winTxRef, {
             id: winTxRef.id,
             type: "game_win",
-            amount: pot,
+            amount: winAmount,
             transactionDate: new Date().toISOString(),
-            description: `Won ${pot} coins in Solo Spin!`
+            description: `Won ${winAmount} coins in Solo Spin!`
           })
         }
 
-        setGameResult({ winner: won, pot, multiplier })
+        setGameResult({ winner: winAmount > 0, pot: winAmount })
         setIsSpinning(false)
       }, 3000)
 
@@ -153,29 +166,50 @@ export default function GamesCenterPage() {
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
               <Dice5 className="w-4 h-4 text-purple-500" />
-              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Solo Practice Spin</h2>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Solo Lucky Spin</h2>
             </div>
             <div className="px-3 py-1 bg-purple-50 rounded-full border border-purple-100">
-              <span className="text-[8px] font-black text-purple-600 uppercase tracking-widest">Multipliers active</span>
+              <span className="text-[8px] font-black text-purple-600 uppercase tracking-widest">
+                Max Win: {selectedBet ? (selectedBet < 50 ? "50" : selectedBet <= 100 ? "300" : "1000") : "..."}
+              </span>
             </div>
           </div>
 
-          <div className="relative w-full aspect-square max-w-[280px] mx-auto group">
-            <div className={cn(
-              "w-full h-full rounded-full border-[12px] border-zinc-900 relative flex items-center justify-center shadow-xl transition-transform duration-[3000ms] ease-[cubic-bezier(0.15,0,0.15,1)]",
-              isSpinning && "rotate-[1800deg]"
-            )}>
-              <div className="absolute inset-0 bg-[conic-gradient(from_0deg,#5A1010,#18181b,#5A1010,#18181b)] rounded-full opacity-20" />
-              <div className="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center border-4 border-amber-500/30 z-10">
-                {isSpinning ? <Loader2 className="w-8 h-8 text-amber-500 animate-spin" /> : <Trophy className="w-8 h-8 text-amber-500" />}
-              </div>
-              {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
-                <div key={deg} className="absolute inset-0 flex justify-center py-4" style={{ transform: `rotate(${deg}deg)` }}>
-                  <Star className={cn("w-4 h-4", deg % 90 === 0 ? "text-amber-500" : "text-zinc-800")} fill="currentColor" />
+          {/* SPINNING WHEEL */}
+          <div className="relative w-full aspect-square max-w-[300px] mx-auto group">
+            <div 
+              style={{ transform: `rotate(${rotation}deg)` }}
+              className={cn(
+                "w-full h-full rounded-full border-[12px] border-zinc-900 relative flex items-center justify-center shadow-2xl transition-transform duration-[3000ms] ease-[cubic-bezier(0.15,0,0.15,1)] overflow-hidden"
+              )}
+            >
+              {/* Segments and Values */}
+              <div className="absolute inset-0 bg-zinc-800" />
+              {currentWheelValues.map((val, i) => (
+                <div 
+                  key={i} 
+                  className="absolute inset-0 flex justify-center pt-6 origin-center"
+                  style={{ transform: `rotate(${i * 45}deg)` }}
+                >
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-white font-black text-xs drop-shadow-md">{val}</span>
+                    <Coins className="w-2.5 h-2.5 text-amber-500/40" />
+                  </div>
+                  {/* Visual Divider */}
+                  <div className="absolute top-0 bottom-1/2 left-1/2 w-0.5 bg-zinc-900/30 -translate-x-1/2" />
                 </div>
               ))}
+              
+              {/* Center Hub */}
+              <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center border-4 border-amber-500/30 z-10 shadow-xl">
+                {isSpinning ? <Loader2 className="w-6 h-6 text-amber-500 animate-spin" /> : <Trophy className="w-6 h-6 text-amber-500" />}
+              </div>
             </div>
-            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-8 bg-zinc-900 rounded-full z-20 shadow-xl border-2 border-white" />
+            
+            {/* Top Pointer */}
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-6 h-10 bg-zinc-900 rounded-full z-20 shadow-xl border-2 border-white flex items-center justify-center">
+               <div className="w-1 h-4 bg-amber-500 rounded-full animate-pulse" />
+            </div>
           </div>
 
           <div className="grid grid-cols-5 gap-2">
@@ -243,10 +277,10 @@ export default function GamesCenterPage() {
         <div className="bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 space-y-2 opacity-60">
           <div className="flex items-center gap-2">
             <Sparkles className="w-3 h-3 text-blue-500" />
-            <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Duel Rules</p>
+            <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Lucky Spin Rules</p>
           </div>
           <p className="text-[10px] font-medium text-blue-400 leading-relaxed">
-            Duels require two players. Both must bet the same amount of coins. The winner takes the entire combined pot!
+            The wheel values change based on your bet amount. Higher bets unlock the potential for 1,000 coin jackpots!
           </p>
         </div>
       </main>
