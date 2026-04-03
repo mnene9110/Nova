@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useToast } from "@/hooks/use-toast"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
-import { doc, collection, setDoc, updateDoc as updateFirestoreDoc, increment as firestoreIncrement } from "firebase/firestore"
+import { doc, collection, writeBatch, increment as firestoreIncrement } from "firebase/firestore"
 import { ref, push, onValue, serverTimestamp as rtdbTimestamp, update, set, increment, runTransaction as runRtdbTransaction, remove } from "firebase/database"
 import { cn } from "@/lib/utils"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -29,8 +29,6 @@ export const GIFTS = [
   { id: 'soulmate', name: 'Soul mate 💖', emoji: '💖', price: 30 },
   { id: 'ufo', name: 'UFO 🛸', emoji: '🛸', price: 1990 },
 ]
-
-export const GAME_BETS = [20, 50, 100, 200, 500]
 
 function ChatDetailContent() {
   const params = useParams()
@@ -56,8 +54,7 @@ function ChatDetailContent() {
   const [selectedGift, setSelectedGift] = useState<typeof GIFTS[0] | null>(null)
   const [isSendingGift, setIsSendingGift] = useState(false)
 
-  // Game States
-  const [activeGame, setActiveGame] = useState<any>(null)
+  // Game States (Solo game handling)
   const [isSpinning, setIsGameSpinning] = useState(false)
   const [gameResult, setGameResult] = useState<any>(null)
 
@@ -85,28 +82,6 @@ function ChatDetailContent() {
     const coinRef = ref(database, `users/${currentUser.uid}/coinBalance`)
     return onValue(coinRef, (snap) => setUserCoins(snap.val() || 0))
   }, [database, currentUser])
-
-  // Game Duel Listener (Message-based duels)
-  useEffect(() => {
-    if (!database || !chatId) return
-    const gameRef = ref(database, `chats/${chatId}/activeDuel`)
-    return onValue(gameRef, (snap) => {
-      const data = snap.val()
-      setActiveGame(data)
-      if (data?.status === 'spinning') {
-        setIsGameSpinning(true)
-        setGameResult(null)
-      } else if (data?.status === 'finished') {
-        setIsGameSpinning(false)
-        setGameResult(data)
-        setTimeout(() => {
-          if (data.status === 'finished') setGameResult(null)
-        }, 5000)
-      } else {
-        setIsGameSpinning(false)
-      }
-    })
-  }, [database, chatId])
 
   useEffect(() => {
     if (initialMsg && currentUser && otherUserId && database && otherUser && !isSending) {
@@ -183,8 +158,10 @@ function ChatDetailContent() {
         isFree: isFree
       });
 
-      await set(ref(database, `users/${otherUserId}/incomingCallId`), chatId);
-      await set(ref(database, `users/${currentUser.uid}/incomingCallId`), chatId);
+      const updates: any = {}
+      updates[`users/${otherUserId}/incomingCallId`] = chatId;
+      updates[`users/${currentUser.uid}/incomingCallId`] = chatId;
+      await update(ref(database), updates);
 
     } catch (error: any) {
       toast({ variant: "destructive", title: "Call Failed", description: "Could not establish connection." });
@@ -240,19 +217,25 @@ function ChatDetailContent() {
 
         if (!result.committed) throw new Error("INSUFFICIENT_COINS");
 
-        updateFirestoreDoc(doc(firestore, "userProfiles", currentUser.uid), {
+        // ECONOMY: Batch Firestore balance update + transaction log
+        const batch = writeBatch(firestore);
+        const pRef = doc(firestore, "userProfiles", currentUser.uid);
+        const txRef = doc(collection(pRef, "transactions"));
+        
+        batch.update(pRef, {
           coinBalance: firestoreIncrement(-messageCost),
           updatedAt: new Date().toISOString()
         });
-
-        const txRef = doc(collection(firestore, "userProfiles", currentUser.uid, "transactions"));
-        setDoc(txRef, {
+        
+        batch.set(txRef, {
           id: txRef.id,
           type: "deduction",
           amount: -messageCost,
           transactionDate: new Date().toISOString(),
           description: `Message sent to ${otherUser?.username || 'user'}`
         });
+        
+        batch.commit();
       }
 
       const updates: any = {}
@@ -265,12 +248,15 @@ function ChatDetailContent() {
       }
       updates[`/chats/${chatId}/messages/${msgKey}`] = msgData
       updates[`/users/${currentUser.uid}/chats/${otherUserId}`] = { lastMessage: textToUse, timestamp: rtdbTimestamp(), otherUserId, chatId, unreadCount: 0, hidden: false }
+      
+      // Update receiver metadata in one go
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/lastMessage`] = textToUse
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/timestamp`] = rtdbTimestamp()
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/otherUserId`] = currentUser.uid
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/chatId`] = chatId
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/unreadCount`] = increment(1)
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/hidden`] = false
+      
       await update(ref(database), updates)
       if (!textOverride) setInputText("")
     } catch (error: any) {
@@ -286,93 +272,6 @@ function ChatDetailContent() {
         toast({ variant: "destructive", title: "Error", description: "Could not send message." });
       }
     } finally { setIsSending(false) }
-  }
-
-  const handleAcceptDuel = async (betAmount: number, duelId: string) => {
-    if (!currentUser || !otherUserId || !database || isSending) return;
-    if (userCoins < betAmount) {
-      toast({ variant: "destructive", title: "Insufficient Coins", description: `You need ${betAmount} coins to join this duel.` });
-      return;
-    }
-
-    setIsSending(true);
-    try {
-      const userRef = ref(database, `users/${currentUser.uid}/coinBalance`);
-      const otherUserBalanceRef = ref(database, `users/${otherUserId}/coinBalance`);
-
-      const myDeduction = await runRtdbTransaction(userRef, (curr) => {
-        if (curr === null) return curr;
-        if (curr < betAmount) return undefined;
-        return curr - betAmount;
-      });
-
-      if (!myDeduction.committed) throw new Error("INSUFFICIENT_COINS");
-
-      const otherDeduction = await runRtdbTransaction(otherUserBalanceRef, (curr) => {
-        if (curr === null) return curr;
-        if (curr < betAmount) return undefined;
-        return curr - betAmount;
-      });
-
-      if (!otherDeduction.committed) {
-        await runRtdbTransaction(userRef, (curr) => (curr || 0) + betAmount);
-        throw new Error("CHALLENGER_FUNDS_EXPIRED");
-      }
-
-      [currentUser.uid, otherUserId].forEach(uid => {
-        const pRef = doc(firestore, "userProfiles", uid);
-        updateFirestoreDoc(pRef, { coinBalance: firestoreIncrement(-betAmount), updatedAt: new Date().toISOString() });
-        const txRef = doc(collection(pRef, "transactions"));
-        setDoc(txRef, {
-          id: txRef.id,
-          type: "game_bet",
-          amount: -betAmount,
-          transactionDate: new Date().toISOString(),
-          description: `Bet ${betAmount} coins in 1v1 Spin Duel`
-        });
-      });
-
-      const duelRef = ref(database, `chats/${chatId}/activeDuel`);
-      await set(duelRef, {
-        status: 'spinning',
-        bet: betAmount,
-        players: [currentUser.uid, otherUserId],
-        startTime: Date.now()
-      });
-
-      setTimeout(async () => {
-        const winnerId = Math.random() > 0.5 ? currentUser.uid : otherUserId;
-        const totalPot = betAmount * 2;
-
-        const winnerCoinRef = ref(database, `users/${winnerId}/coinBalance`);
-        await runRtdbTransaction(winnerCoinRef, (curr) => (curr || 0) + totalPot);
-
-        const winnerProfileRef = doc(firestore, "userProfiles", winnerId);
-        updateFirestoreDoc(winnerProfileRef, { coinBalance: firestoreIncrement(totalPot), updatedAt: new Date().toISOString() });
-        
-        const winnerTxRef = doc(collection(winnerProfileRef, "transactions"));
-        setDoc(winnerTxRef, {
-          id: winnerTxRef.id,
-          type: "game_win",
-          amount: totalPot,
-          transactionDate: new Date().toISOString(),
-          description: `Won ${totalPot} coins in 1v1 Duel Spin!`
-        });
-
-        await update(duelRef, {
-          status: 'finished',
-          winner: winnerId,
-          pot: totalPot
-        });
-
-        setTimeout(() => remove(duelRef), 6000);
-      }, 3000);
-
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Duel Failed", description: error.message === "CHALLENGER_FUNDS_EXPIRED" ? "Challenger no longer has sufficient coins." : "An error occurred." });
-    } finally {
-      setIsSending(false);
-    }
   }
 
   const handleSendGift = async (giftOverride?: typeof GIFTS[0]) => {
@@ -396,23 +295,29 @@ function ChatDetailContent() {
       const receiverDiamondRef = ref(database, `users/${otherUserId}/diamondBalance`);
       await runRtdbTransaction(receiverDiamondRef, (current) => (current || 0) + diamondGain);
 
-      updateFirestoreDoc(doc(firestore, "userProfiles", currentUser.uid), {
+      // ECONOMY: Batch multiple Firestore updates into one commit
+      const batch = writeBatch(firestore);
+      const senderRef = doc(firestore, "userProfiles", currentUser.uid);
+      const receiverRef = doc(firestore, "userProfiles", otherUserId);
+      const targetTxRef = doc(collection(receiverRef, "transactions"));
+
+      batch.update(senderRef, {
         coinBalance: firestoreIncrement(-giftPrice),
         updatedAt: new Date().toISOString()
       });
-      updateFirestoreDoc(doc(firestore, "userProfiles", otherUserId), {
+      batch.update(receiverRef, {
         diamondBalance: firestoreIncrement(diamondGain),
         updatedAt: new Date().toISOString()
       });
-
-      const targetTxRef = doc(collection(firestore, "userProfiles", otherUserId, "transactions"));
-      setDoc(targetTxRef, {
+      batch.set(targetTxRef, {
         id: targetTxRef.id,
         type: "diamond_received",
         diamondAmount: diamondGain,
         transactionDate: new Date().toISOString(),
         description: `Received a ${gift.name} from ${currentUserProfile.username || 'user'}`
       });
+
+      await batch.commit();
 
       const giftMessage = `🎁 Sent a gift: ${gift.name}`;
       const updates: any = {}
@@ -505,7 +410,6 @@ function ChatDetailContent() {
             const isMe = msg.senderId === currentUser?.uid
             const isCallLog = msg.isCallLog === true
             const isGift = msg.isGift === true
-            const isGameChallenge = msg.isGameChallenge === true
             const statusText = msg.status === 'seen' ? 'Seen' : 'Sent'
             
             return (
@@ -514,7 +418,7 @@ function ChatDetailContent() {
                   <div className={cn(
                     "max-w-[80%] px-4 py-3 text-[13px] font-medium leading-relaxed shadow-sm transition-all", 
                     isMe ? "bg-primary text-white rounded-[1.5rem] rounded-tr-none" : "bg-gray-100 text-gray-900 rounded-[1.5rem] rounded-tl-none",
-                    (isGift || isGameChallenge) && "bg-white border border-gray-100 p-0 overflow-hidden rounded-2xl shadow-md min-w-[180px] text-gray-900",
+                    isGift && "bg-white border border-gray-100 p-0 overflow-hidden rounded-2xl shadow-md min-w-[180px] text-gray-900",
                     isCallLog && "bg-transparent shadow-none border-none py-1 px-2 font-black text-[10px] tracking-widest text-gray-300 uppercase"
                   )}>
                     {isGift ? (
@@ -536,29 +440,6 @@ function ChatDetailContent() {
                           </button>
                         )}
                       </div>
-                    ) : isGameChallenge ? (
-                      <div className="flex flex-col">
-                        <div className="p-6 flex flex-col items-center justify-center bg-zinc-900 text-white relative">
-                          <Dice5 className="w-12 h-12 text-primary mb-2 animate-bounce" />
-                          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Spin Duel</span>
-                          <span className="text-lg font-black font-headline mt-1">{msg.betAmount} COINS</span>
-                          <p className="text-[8px] font-bold text-zinc-500 mt-2 uppercase tracking-tighter">Winner takes {msg.betAmount * 2} pot</p>
-                        </div>
-                        {!isMe && (
-                          <button 
-                            onClick={() => handleAcceptDuel(msg.betAmount, msg.duelId)}
-                            disabled={isSending}
-                            className="w-full h-12 bg-zinc-900 text-white font-black text-[10px] uppercase tracking-widest border-t border-zinc-800 hover:bg-black transition-all active:scale-95 disabled:opacity-50"
-                          >
-                            {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : `Bet ${msg.betAmount} & Accept`}
-                          </button>
-                        )}
-                        {isMe && (
-                          <div className="w-full h-10 bg-zinc-800 flex items-center justify-center">
-                             <span className="text-[8px] font-black uppercase tracking-widest text-zinc-500">Waiting for {otherUser.username}</span>
-                          </div>
-                        )}
-                      </div>
                     ) : (
                       <p className="whitespace-pre-wrap">{msg.messageText}</p>
                     )}
@@ -575,45 +456,6 @@ function ChatDetailContent() {
           <div ref={scrollRef} className="h-4" />
         </div>
       </ScrollArea>
-
-      {(isSpinning || gameResult) && (
-        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
-          <div className="relative w-64 h-64 flex items-center justify-center">
-            <div className={cn(
-              "w-full h-full rounded-full border-8 border-primary/20 bg-zinc-900 relative flex items-center justify-center overflow-hidden",
-              isSpinning && "animate-[spin_1s_linear_infinite]"
-            )}>
-              <div className="absolute inset-0 bg-[conic-gradient(from_0deg,#B36666,#18181b,#B36666,#18181b)] opacity-50" />
-              <Trophy className="w-20 h-20 text-primary relative z-10 drop-shadow-[0_0_20px_rgba(179,102,102,0.5)]" />
-            </div>
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-4 h-8 bg-white rounded-full z-20 shadow-xl" />
-          </div>
-
-          <div className="mt-12 text-center space-y-4">
-            {isSpinning ? (
-              <>
-                <h2 className="text-3xl font-black font-headline text-white uppercase tracking-widest">Spinning Pot</h2>
-                <p className="text-primary font-black text-xl italic">{activeGame?.bet * 2} COINS</p>
-              </>
-            ) : gameResult && (
-              <div className="animate-in zoom-in-95 duration-500">
-                {gameResult.winner === currentUser?.uid ? (
-                  <div className="space-y-2">
-                    <h2 className="text-5xl font-black font-headline text-green-500 uppercase tracking-tighter">YOU WIN!</h2>
-                    <p className="text-white font-bold text-lg">+{gameResult.pot} Coins added</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2 opacity-70">
-                    <h2 className="text-4xl font-black font-headline text-red-500 uppercase tracking-widest">YOU LOST</h2>
-                    <p className="text-white/60 font-bold uppercase tracking-widest text-[10px]">Better luck next time</p>
-                  </div>
-                )}
-                <Button onClick={() => setGameResult(null)} className="mt-8 rounded-full bg-white/10 text-white border border-white/20 px-10 h-14 uppercase font-black text-xs tracking-widest">Close</Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       <footer className="px-5 py-5 pb-8 space-y-4 bg-white border-t border-gray-50">
         {isBlocked ? (

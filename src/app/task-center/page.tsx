@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -5,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { RotateCcw, Trophy, Loader2, ChevronLeft, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useFirestore, useUser, useDoc, useMemoFirebase, useFirebase } from "@/firebase"
-import { doc, updateDoc, increment as firestoreIncrement, setDoc, collection, runTransaction as runFirestoreTransaction } from "firebase/firestore"
+import { doc, writeBatch, increment as firestoreIncrement, collection } from "firebase/firestore"
 import { ref, runTransaction as runRtdbTransaction } from "firebase/database"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
@@ -53,26 +54,30 @@ export default function TaskCenterPage() {
       }
       const rewardAmount = REWARDS[newStreak - 1]
 
-      // 1. RTDB Transaction
+      // 1. RTDB Transaction (Primary)
       const coinRef = ref(database, `users/${user.uid}/coinBalance`);
       await runRtdbTransaction(coinRef, (current) => (current || 0) + rewardAmount);
 
-      // 2. Firestore Backup
-      await updateDoc(userRef, {
+      // 2. ECONOMY: Consolidated Firestore Update (Batch)
+      const batch = writeBatch(firestore);
+      const txRef = doc(collection(userRef, "transactions"));
+      
+      batch.update(userRef, {
         coinBalance: firestoreIncrement(rewardAmount),
         lastCheckInDate: todayStr,
         checkInStreak: newStreak,
         updatedAt: new Date().toISOString()
       });
 
-      const txRef = doc(collection(userRef, "transactions"));
-      await setDoc(txRef, {
+      batch.set(txRef, {
         id: txRef.id,
         type: "check-in",
         amount: rewardAmount,
         transactionDate: new Date().toISOString(),
         description: `Daily check-in reward (Day ${newStreak})`
       });
+
+      await batch.commit();
 
       toast({ title: "Coins Claimed!", description: `You've received ${rewardAmount} coins.` })
     } catch (error: any) {
