@@ -19,10 +19,7 @@ const COIN_PACKAGES = [
   { amount: 2000, price: 240, label: "240" },
   { amount: 5000, price: 600, label: "600" },
   { amount: 10000, price: 1200, label: "1,200" },
-  { amount: 20000, price: 2400, label: "2,400" },
-  { amount: 50000, price: 6000, label: "6,000" },
-  { amount: 100000, price: 12000, label: "12,000" },
-  { amount: 150000, price: 18000, label: "18,000" },
+  { amount: 12500, price: 1500, label: "1,500" },
 ]
 
 function RechargeContent() {
