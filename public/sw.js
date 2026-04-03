@@ -1,22 +1,19 @@
-// Simple service worker to satisfy PWA installability requirements
-const CACHE_NAME = 'matchflow-v1';
+/**
+ * MatchFlow Service Worker
+ * Basic skeleton to satisfy PWA requirements and handle future caching logic.
+ */
+
+const CACHE_NAME = 'mf-cache-v1';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([
-        '/',
-        '/welcome',
-        '/manifest.json'
-      ]);
-    })
-  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
-    })
-  );
+  // Currently acting as a network-first pass-through
+  event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
 });
