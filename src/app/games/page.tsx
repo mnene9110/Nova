@@ -19,9 +19,9 @@ const SEGMENT_COLORS = [
 ]
 
 const WHEEL_CONFIGS = {
-  low: [5, 50, 10, 25, 2, 40, 15, 30],        // For bet < 50
-  mid: [20, 300, 50, 150, 10, 250, 100, 200], // For bet 50-100
-  high: [25, 1000, 50, 500, 100, 750, 150, 350] // For bet 200-500
+  low: [5, 0, 10, 50, 2, 0, 15, 30],        // For bet < 50
+  mid: [20, 0, 50, 300, 10, 0, 100, 200], // For bet 50-100
+  high: [25, 0, 50, 1000, 100, 0, 150, 500] // For bet 200-500
 }
 
 export default function GamesCenterPage() {
@@ -135,13 +135,12 @@ export default function GamesCenterPage() {
       });
       await batch.commit();
 
-      // 4. Calculate Rotation for "several" full turns (15 rotations)
+      // 4. Calculate Rotation for physical momentum (15 full rotations)
       // Canvas draws segment 0 at 0 radians (3 o'clock). 
       // Pointer is at the top (270 degrees).
-      // We add a random sub-segment offset so it doesn't always land in the middle.
       const extraSpins = 15 
       const segmentSize = 45
-      const randomOffset = (Math.random() - 0.5) * (segmentSize * 0.7) // +/- 15 deg approx
+      const randomOffset = (Math.random() - 0.5) * (segmentSize * 0.7) // Random settle point within segment
       
       const targetLandingAngle = 270 - (winnerIndex * segmentSize + (segmentSize / 2)) + randomOffset
       
@@ -263,7 +262,7 @@ export default function GamesCenterPage() {
 
         <div className="bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 space-y-2 opacity-60">
           <div className="flex items-center gap-2"><Sparkles className="w-3 h-3 text-blue-500" /><p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Lucky Spin Rules</p></div>
-          <p className="text-[10px] font-medium text-blue-400 leading-relaxed">The wheel makes 15 full rotations before slowing down. Land on a segment to claim those coins instantly!</p>
+          <p className="text-[10px] font-medium text-blue-400 leading-relaxed">The wheel makes 15 full rotations before slowing down. Land on a segment to claim those coins instantly! Beware of the 0 segments.</p>
         </div>
       </main>
 
@@ -273,7 +272,7 @@ export default function GamesCenterPage() {
             {gameResult.winner ? (
               <><div className="w-32 h-32 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto border-4 border-amber-500 animate-bounce"><Trophy className="w-16 h-16 text-amber-500" /></div><div className="space-y-2"><h2 className="text-5xl font-black font-headline text-green-500 uppercase tracking-tighter">WON!</h2><p className="text-white font-bold text-xl">{gameResult.pot} COINS</p></div></>
             ) : (
-              <><div className="w-32 h-32 bg-red-500/10 rounded-full flex items-center justify-center mx-auto border-4 border-red-500/20"><Dice5 className="w-16 h-16 text-red-500/40" /></div><div className="space-y-2"><h2 className="text-4xl font-black font-headline text-white/40 uppercase tracking-widest">LOST</h2></div></>
+              <><div className="w-32 h-32 bg-red-500/10 rounded-full flex items-center justify-center mx-auto border-4 border-red-500/20"><Dice5 className="w-16 h-16 text-red-500/40" /></div><div className="space-y-2"><h2 className="text-4xl font-black font-headline text-white/40 uppercase tracking-widest">LOST</h2><p className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">Better luck next time!</p></div></>
             )}
             <Button onClick={() => setGameResult(null)} className="mt-10 rounded-full bg-white text-zinc-900 px-12 h-14 font-black uppercase text-xs tracking-widest">CLOSE</Button>
           </div>
