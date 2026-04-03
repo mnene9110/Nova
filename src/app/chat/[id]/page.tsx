@@ -117,7 +117,6 @@ function ChatDetailContent() {
                    otherUser.isCoinseller ||
                    (currentUserProfile.gender === 'female' && otherUser?.gender === 'male');
 
-    // STRICT: Must have at least 1 minute worth of coins to start the ringing phase
     if (!isFree && userCoins < costPerMin) {
       toast({
         variant: "destructive",
@@ -242,11 +241,12 @@ function ChatDetailContent() {
     } finally { setIsSending(false) }
   }
 
-  const handleSendGift = async () => {
-    if (!selectedGift || !currentUser || !otherUserId || isSendingGift || !currentUserProfile || !database) return;
+  const handleSendGift = async (giftOverride?: typeof GIFTS[0]) => {
+    const gift = giftOverride || selectedGift;
+    if (!gift || !currentUser || !otherUserId || isSendingGift || !currentUserProfile || !database) return;
     
     setIsSendingGift(true);
-    const giftPrice = selectedGift.price;
+    const giftPrice = gift.price;
     const diamondGain = Math.floor(giftPrice * 0.6);
 
     try {
@@ -271,10 +271,16 @@ function ChatDetailContent() {
         updatedAt: new Date().toISOString()
       });
 
-      const giftMessage = `🎁 Sent a gift: ${selectedGift.name}`;
+      const giftMessage = `🎁 Sent a gift: ${gift.name}`;
       const updates: any = {}
       const msgKey = push(ref(database, `chats/${chatId}/messages`)).key
-      const msgData = { messageText: giftMessage, senderId: currentUser.uid, sentAt: rtdbTimestamp(), isGift: true }
+      const msgData = { 
+        messageText: giftMessage, 
+        senderId: currentUser.uid, 
+        sentAt: rtdbTimestamp(), 
+        isGift: true,
+        giftId: gift.id 
+      }
       updates[`/chats/${chatId}/messages/${msgKey}`] = msgData
       updates[`/users/${currentUser.uid}/chats/${otherUserId}/lastMessage`] = giftMessage
       updates[`/users/${currentUser.uid}/chats/${otherUserId}/timestamp`] = rtdbTimestamp()
@@ -285,7 +291,7 @@ function ChatDetailContent() {
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/hidden`] = false
       await update(ref(database), updates)
 
-      toast({ title: "Gift Sent!", description: `You sent a ${selectedGift.name}.` });
+      toast({ title: "Gift Sent!", description: `You sent a ${gift.name}.` });
       setIsGiftSheetOpen(false);
       setSelectedGift(null);
     } catch (error: any) {
@@ -360,16 +366,39 @@ function ChatDetailContent() {
           {messages.map((msg) => {
             const isMe = msg.senderId === currentUser?.uid
             const isCallLog = msg.isCallLog === true
+            const isGift = msg.isGift === true
+            
             return (
               <div key={msg.id} className="flex w-full flex-col">
                 <div className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
                   <div className={cn(
-                    "max-w-[80%] px-4 py-3 text-[13px] font-medium leading-relaxed shadow-sm", 
+                    "max-w-[80%] px-4 py-3 text-[13px] font-medium leading-relaxed shadow-sm transition-all", 
                     isMe ? "bg-primary text-white rounded-[1.5rem] rounded-tr-none" : "bg-gray-100 text-gray-900 rounded-[1.5rem] rounded-tl-none",
-                    msg.isGift && "border-2 border-amber-400/30 bg-gradient-to-br from-amber-50 to-white text-amber-900 shadow-amber-100",
+                    isGift && "bg-white border border-gray-100 p-0 overflow-hidden rounded-2xl shadow-md min-w-[180px] text-gray-900",
                     isCallLog && "bg-transparent shadow-none border-none py-1 px-2 font-black text-[10px] tracking-widest text-gray-300 uppercase"
                   )}>
-                    <p className="whitespace-pre-wrap">{msg.messageText}</p>
+                    {isGift ? (
+                      <div className="flex flex-col">
+                        <div className="p-6 flex flex-col items-center justify-center bg-gray-50/50 relative">
+                          <div className="text-5xl mb-2 drop-shadow-sm">{GIFTS.find(g => g.id === msg.giftId)?.emoji || '🎁'}</div>
+                          <div className="absolute bottom-4 right-4 italic font-black text-sky-500 text-2xl">x 1</div>
+                        </div>
+                        {isMe && (
+                          <button 
+                            onClick={() => {
+                              const gift = GIFTS.find(g => g.id === msg.giftId);
+                              if (gift) handleSendGift(gift);
+                            }}
+                            disabled={isSendingGift}
+                            className="w-full h-12 bg-[#00AEEF] hover:bg-[#009EDF] text-white font-black text-sm uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                          >
+                            {isSendingGift ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send one more"}
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="whitespace-pre-wrap">{msg.messageText}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -444,7 +473,7 @@ function ChatDetailContent() {
                         </div>
                       </div>
                       <Button 
-                        onClick={handleSendGift}
+                        onClick={() => handleSendGift()}
                         disabled={!selectedGift || isSendingGift}
                         className="h-12 px-10 rounded-full bg-primary text-white font-black uppercase text-xs tracking-widest shadow-xl active:scale-95 transition-all"
                       >
