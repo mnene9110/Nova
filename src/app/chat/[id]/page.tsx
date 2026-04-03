@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useMemo, Suspense } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { ChevronLeft, Video, Send, Phone, Loader2, Gift, Ban, CheckCircle, UserX, Gamepad2, Trophy, Dice5 } from "lucide-react"
+import { ChevronLeft, Video, Send, Phone, Loader2, Gift, Ban, CheckCircle, UserX } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc, collection, writeBatch, increment as firestoreIncrement } from "firebase/firestore"
-import { ref, push, onValue, serverTimestamp as rtdbTimestamp, update, set, increment, runTransaction as runRtdbTransaction, remove } from "firebase/database"
+import { ref, push, onValue, serverTimestamp as rtdbTimestamp, update, set, increment, runTransaction as runRtdbTransaction } from "firebase/database"
 import { cn } from "@/lib/utils"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 
@@ -53,10 +53,6 @@ function ChatDetailContent() {
   const [isGiftSheetOpen, setIsGiftSheetOpen] = useState(false)
   const [selectedGift, setSelectedGift] = useState<typeof GIFTS[0] | null>(null)
   const [isSendingGift, setIsSendingGift] = useState(false)
-
-  // Game States (Solo game handling)
-  const [isSpinning, setIsGameSpinning] = useState(false)
-  const [gameResult, setGameResult] = useState<any>(null)
 
   const chatId = currentUser && otherUserId ? [currentUser.uid, otherUserId].sort().join("_") : ""
   
@@ -217,7 +213,6 @@ function ChatDetailContent() {
 
         if (!result.committed) throw new Error("INSUFFICIENT_COINS");
 
-        // ECONOMY: Batch Firestore balance update + transaction log
         const batch = writeBatch(firestore);
         const pRef = doc(firestore, "userProfiles", currentUser.uid);
         const txRef = doc(collection(pRef, "transactions"));
@@ -249,7 +244,6 @@ function ChatDetailContent() {
       updates[`/chats/${chatId}/messages/${msgKey}`] = msgData
       updates[`/users/${currentUser.uid}/chats/${otherUserId}`] = { lastMessage: textToUse, timestamp: rtdbTimestamp(), otherUserId, chatId, unreadCount: 0, hidden: false }
       
-      // Update receiver metadata in one go
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/lastMessage`] = textToUse
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/timestamp`] = rtdbTimestamp()
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/otherUserId`] = currentUser.uid
@@ -283,6 +277,7 @@ function ChatDetailContent() {
     const diamondGain = Math.floor(giftPrice * 0.6);
 
     try {
+      // 1. DEDUCT COINS (RTDB - Primary Source)
       const senderCoinRef = ref(database, `users/${currentUser.uid}/coinBalance`);
       const result = await runRtdbTransaction(senderCoinRef, (current) => {
         if (current === null) return current;
@@ -292,33 +287,32 @@ function ChatDetailContent() {
 
       if (!result.committed) throw new Error("INSUFFICIENT_COINS");
 
+      // 2. ADD DIAMONDS (RTDB - Primary Source)
       const receiverDiamondRef = ref(database, `users/${otherUserId}/diamondBalance`);
       await runRtdbTransaction(receiverDiamondRef, (current) => (current || 0) + diamondGain);
 
-      // ECONOMY: Batch multiple Firestore updates into one commit
+      // 3. LOG TRANSACTION (Firestore - Audit Trail)
+      // Note: We only update the sender's collection because rules block writing to other users' profiles.
       const batch = writeBatch(firestore);
       const senderRef = doc(firestore, "userProfiles", currentUser.uid);
-      const receiverRef = doc(firestore, "userProfiles", otherUserId);
-      const targetTxRef = doc(collection(receiverRef, "transactions"));
+      const senderTxRef = doc(collection(senderRef, "transactions"));
 
       batch.update(senderRef, {
         coinBalance: firestoreIncrement(-giftPrice),
         updatedAt: new Date().toISOString()
       });
-      batch.update(receiverRef, {
-        diamondBalance: firestoreIncrement(diamondGain),
-        updatedAt: new Date().toISOString()
-      });
-      batch.set(targetTxRef, {
-        id: targetTxRef.id,
-        type: "diamond_received",
-        diamondAmount: diamondGain,
+      
+      batch.set(senderTxRef, {
+        id: senderTxRef.id,
+        type: "gift_sent",
+        amount: -giftPrice,
         transactionDate: new Date().toISOString(),
-        description: `Received a ${gift.name} from ${currentUserProfile.username || 'user'}`
+        description: `Sent a ${gift.name} to ${otherUser?.username || 'user'}`
       });
 
       await batch.commit();
 
+      // 4. SEND CHAT NOTIFICATION
       const giftMessage = `🎁 Sent a gift: ${gift.name}`;
       const updates: any = {}
       const msgKey = push(ref(database, `chats/${chatId}/messages`)).key
@@ -343,7 +337,7 @@ function ChatDetailContent() {
       if (error.message === "INSUFFICIENT_COINS") {
         toast({ variant: "destructive", title: "Insufficient Coins", description: "Please recharge to send this gift." });
       } else {
-        toast({ variant: "destructive", title: "Error", description: "Could not send gift." });
+        toast({ variant: "destructive", title: "Error", description: "Could not send gift. Please check your connection." });
       }
     } finally { setIsSendingGift(false) }
   }

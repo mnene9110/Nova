@@ -14,8 +14,7 @@ let AgoraRTC: any = null;
 
 /**
  * @fileOverview Global Call Overlay for Agora-powered calls.
- * Implements [Timeout], [Cancelled], [Rejected], and duration logging.
- * Added: Stale Call Protection to prevent "ghost" calls on app start.
+ * Optimized for reliable UI display and robust status management.
  */
 
 export function GlobalCallOverlay() {
@@ -41,6 +40,7 @@ export function GlobalCallOverlay() {
   const activeChatIdRef = useRef<string | null>(null)
   const logRecordedRef = useRef(false)
 
+  // Use a ref to track the current status for logic inside callbacks
   const statusRef = useRef<'idle' | 'ringing' | 'incoming' | 'ongoing'>('idle')
 
   useEffect(() => {
@@ -100,13 +100,10 @@ export function GlobalCallOverlay() {
             return;
           }
 
-          // STALE CALL PROTECTION
-          // If the call record exists but is older than 60 seconds and still ringing, ignore it
+          // STALE CALL PROTECTION: Ignore calls older than 60s
           const now = Date.now();
           const callAge = now - (data.timestamp || 0);
           if (data.status === 'ringing' && callAge > 60000) {
-            console.log("Stale call detected, cleaning up...");
-            // Silently remove the stale ID from current user record to stop the loop
             remove(ref(database, `users/${currentUser.uid}/incomingCallId`));
             handleCleanup();
             return;
@@ -136,8 +133,7 @@ export function GlobalCallOverlay() {
       }
       
       if (statusRef.current === 'idle') {
-        const nextStatus = isCaller ? 'ringing' : 'incoming';
-        setCallStatus(nextStatus);
+        setCallStatus(isCaller ? 'ringing' : 'incoming');
         engageHardware(data.callType);
         
         getAgoraToken(activeChatIdRef.current!, currentUser.uid)
@@ -174,9 +170,7 @@ export function GlobalCallOverlay() {
     try {
       if (!localTracksRef.current.audioTrack) {
         localTracksRef.current.audioTrack = await AgoraRTC.createMicrophoneAudioTrack({
-          ANS: true,
-          AEC: true,
-          AGC: true
+          ANS: true, AEC: true, AGC: true
         });
       }
       
@@ -398,10 +392,7 @@ export function GlobalCallOverlay() {
           const isCaller = callData?.callerId === currentUser?.uid;
           if (isCaller && !callData?.isFree) {
             const cost = callData?.costPerMin || 0;
-            if (next === 11) {
-              deductCoins(cost);
-            } 
-            else if (next > 11 && next % 60 === 0) {
+            if (next === 11 || (next > 11 && next % 60 === 0)) {
               deductCoins(cost);
             }
           }
@@ -419,7 +410,7 @@ export function GlobalCallOverlay() {
   const otherUserImage = `https://picsum.photos/seed/${isCaller ? callData?.receiverId : callData?.callerId}/400/600`
 
   return (
-    <div className="fixed inset-0 z-[1000] bg-zinc-950 flex flex-col overflow-hidden text-white font-body">
+    <div className="fixed inset-0 z-[1000] bg-zinc-950 flex flex-col overflow-hidden text-white font-body pointer-events-auto">
       <div 
         ref={remoteContainerRef} 
         className={cn(
