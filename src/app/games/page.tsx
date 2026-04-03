@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Gamepad2, Coins, Trophy, Loader2, Star, Sparkles, Dice5, Users, MessageCircle } from "lucide-react"
+import { ChevronLeft, Gamepad2, Coins, Trophy, Loader2, Star, Sparkles, Dice5, Users, MessageCircle, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useFirebase, useUser, useMemoFirebase } from "@/firebase"
 import { doc, updateDoc, increment as firestoreIncrement, setDoc, collection } from "firebase/firestore"
@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
 
 const GAME_BETS = [20, 50, 100, 200, 500]
 
-// Define wheel values based on bet amounts
+// Define wheel values based on bet amounts as per user request
 const WHEEL_CONFIGS = {
   low: [5, 50, 10, 25, 2, 40, 15, 30],        // For bet < 50 (Max 50)
   mid: [20, 300, 50, 150, 10, 250, 100, 200], // For bet 50-100 (Max 300)
@@ -53,7 +53,7 @@ export default function GamesCenterPage() {
         const list = Object.entries(data).map(([key, val]: [string, any]) => ({
           otherUserId: key,
           ...val
-        })).slice(0, 5)
+        })).slice(0, 10)
         setChats(list)
       }
     })
@@ -93,15 +93,11 @@ export default function GamesCenterPage() {
       })
 
       // 2. Calculate Winner Index
-      // Logic: Pick a random index from the 8 segments
       const winnerIndex = Math.floor(Math.random() * 8)
       const winAmount = currentWheelValues[winnerIndex]
       
-      // Calculate Rotation
-      // Each segment is 45 degrees. Index 0 is at top (0-45 deg range)
-      // To land Index X at the top (which is 0 degrees), we need to rotate:
-      // (360 - (X * 45)) + multiple full spins
-      const extraSpins = 5 + Math.floor(Math.random() * 5) // 5-10 full spins
+      // Calculate Rotation (3000ms animation)
+      const extraSpins = 5 + Math.floor(Math.random() * 5)
       const newRotation = rotation + (extraSpins * 360) + (360 - (winnerIndex * 45))
       setRotation(newRotation)
 
@@ -134,7 +130,7 @@ export default function GamesCenterPage() {
   const darkMaroon = "bg-[#5A1010]";
 
   return (
-    <div className="flex flex-col h-svh bg-transparent text-gray-900">
+    <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden relative">
       <header className="px-4 py-6 flex items-center sticky top-0 bg-transparent z-50 shrink-0">
         <Button 
           variant="ghost" 
@@ -147,8 +143,10 @@ export default function GamesCenterPage() {
         <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase">Games Center</h1>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 pb-32 space-y-10 scroll-smooth">
-        <section className="bg-zinc-900 rounded-[3rem] p-8 text-white shadow-2xl relative overflow-hidden">
+      {/* Main Scrollable Area */}
+      <main className="flex-1 overflow-y-auto px-6 pt-2 pb-40 space-y-10 scroll-smooth">
+        {/* Balance Card */}
+        <section className="bg-zinc-900 rounded-[3rem] p-8 text-white shadow-2xl relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 p-6 opacity-10"><Gamepad2 className="w-32 h-32" /></div>
           <div className="relative z-10 space-y-4">
             <div className="flex items-center gap-3">
@@ -162,6 +160,7 @@ export default function GamesCenterPage() {
           </div>
         </section>
 
+        {/* Solo Spinning Wheel Section */}
         <section className="space-y-6">
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
@@ -175,15 +174,13 @@ export default function GamesCenterPage() {
             </div>
           </div>
 
-          {/* SPINNING WHEEL */}
-          <div className="relative w-full aspect-square max-w-[300px] mx-auto group">
+          <div className="relative w-full aspect-square max-w-[280px] mx-auto group">
             <div 
               style={{ transform: `rotate(${rotation}deg)` }}
               className={cn(
-                "w-full h-full rounded-full border-[12px] border-zinc-900 relative flex items-center justify-center shadow-2xl transition-transform duration-[3000ms] ease-[cubic-bezier(0.15,0,0.15,1)] overflow-hidden"
+                "w-full h-full rounded-full border-[10px] border-zinc-900 relative flex items-center justify-center shadow-2xl transition-transform duration-[3000ms] ease-[cubic-bezier(0.15,0,0.15,1)] overflow-hidden"
               )}
             >
-              {/* Segments and Values */}
               <div className="absolute inset-0 bg-zinc-800" />
               {currentWheelValues.map((val, i) => (
                 <div 
@@ -195,20 +192,17 @@ export default function GamesCenterPage() {
                     <span className="text-white font-black text-xs drop-shadow-md">{val}</span>
                     <Coins className="w-2.5 h-2.5 text-amber-500/40" />
                   </div>
-                  {/* Visual Divider */}
-                  <div className="absolute top-0 bottom-1/2 left-1/2 w-0.5 bg-zinc-900/30 -translate-x-1/2" />
+                  <div className="absolute top-0 bottom-1/2 left-1/2 w-px bg-zinc-900/30 -translate-x-1/2" />
                 </div>
               ))}
               
-              {/* Center Hub */}
-              <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center border-4 border-amber-500/30 z-10 shadow-xl">
-                {isSpinning ? <Loader2 className="w-6 h-6 text-amber-500 animate-spin" /> : <Trophy className="w-6 h-6 text-amber-500" />}
+              <div className="w-14 h-14 bg-zinc-900 rounded-full flex items-center justify-center border-4 border-amber-500/30 z-10 shadow-xl">
+                {isSpinning ? <Loader2 className="w-5 h-5 text-amber-500 animate-spin" /> : <Trophy className="w-5 h-5 text-amber-500" />}
               </div>
             </div>
             
-            {/* Top Pointer */}
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-6 h-10 bg-zinc-900 rounded-full z-20 shadow-xl border-2 border-white flex items-center justify-center">
-               <div className="w-1 h-4 bg-amber-500 rounded-full animate-pulse" />
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-5 h-8 bg-zinc-900 rounded-full z-20 shadow-xl border-2 border-white flex items-center justify-center">
+               <div className="w-1 h-3 bg-amber-500 rounded-full animate-pulse" />
             </div>
           </div>
 
@@ -242,10 +236,17 @@ export default function GamesCenterPage() {
           </Button>
         </section>
 
+        {/* 1v1 DUEL SECTION */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-2">
             <Users className="w-4 h-4 text-primary" />
             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Play Duels with Matches</h2>
+          </div>
+
+          <div className="bg-zinc-900/5 p-6 rounded-[2.5rem] border border-zinc-100 mb-4">
+             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-relaxed">
+               Challenge a user to a <span className="text-primary">Spin Duel</span>. To play, both players must place the <span className="text-zinc-900">same bet amount</span>. The winner takes the entire pot!
+             </p>
           </div>
 
           <div className="space-y-3">
@@ -261,19 +262,20 @@ export default function GamesCenterPage() {
                   </div>
                   <div className="flex flex-col items-start">
                     <span className="text-xs font-black uppercase tracking-tight">Challenge Match</span>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Open chat to start duel</span>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Tap to start 1v1 duel</span>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-gray-300" />
               </button>
             )) : (
-              <div className="p-8 text-center bg-white/20 rounded-[2rem] border border-white/30 border-dashed opacity-50">
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">No recent matches to duel</p>
+              <div className="p-10 text-center bg-white/20 rounded-[2rem] border border-white/30 border-dashed opacity-50">
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">No recent matches found</p>
               </div>
             )}
           </div>
         </section>
 
+        {/* Rules Footer */}
         <div className="bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 space-y-2 opacity-60">
           <div className="flex items-center gap-2">
             <Sparkles className="w-3 h-3 text-blue-500" />
@@ -285,6 +287,7 @@ export default function GamesCenterPage() {
         </div>
       </main>
 
+      {/* Result Overlay */}
       {gameResult && (
         <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
           <div className="text-center space-y-6">
