@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils"
 import { initializePesaPalTransaction } from "@/app/actions/pesapal"
 
 const COIN_PACKAGES = [
-  { amount: 500, price: 60, label: "60" },
+  { amount: 500, price: 70, label: "70" },
   { amount: 1000, price: 120, label: "120" },
   { amount: 2000, price: 240, label: "240" },
   { amount: 5000, price: 600, label: "600" },
