@@ -85,8 +85,8 @@ export default function GamesCenterPage() {
       const winnerIndex = Math.floor(Math.random() * 8)
       const winAmount = currentWheelValues[winnerIndex]
       
-      // 3. Start Animation (6 full spins + target)
-      const extraSpins = 6
+      // 3. Start Animation (10 full spins + target)
+      const extraSpins = 10
       const segmentAngle = 45
       const currentRotationBase = Math.floor(rotation / 360) * 360
       const targetAngle = (360 - (winnerIndex * segmentAngle)) % 360
@@ -181,7 +181,7 @@ export default function GamesCenterPage() {
                 transitionTimingFunction: 'cubic-bezier(0.1, 0, 0.1, 1)' 
               }}
               className={cn(
-                "w-full h-full rounded-full border-[10px] border-zinc-900 relative flex items-center justify-center shadow-2xl transition-transform duration-[4000ms] overflow-hidden"
+                "w-full h-full rounded-full border-[10px] border-zinc-900 relative flex items-center justify-center shadow-2xl transition-transform duration-[5000ms] overflow-hidden"
               )}
             >
               <div className="absolute inset-0 bg-zinc-800" />
