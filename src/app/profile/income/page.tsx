@@ -1,11 +1,10 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Gem, Coins, ArrowRightLeft, Loader2, Info, ArrowUpRight, History, ArrowDownLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useUser, useDoc, useFirestore, useMemoFirebase, useFirebase, useCollection } from "@/firebase"
+import { useUser, useFirestore, useMemoFirebase, useFirebase, useCollection } from "@/firebase"
 import { doc, updateDoc, increment as firestoreIncrement, setDoc, collection, query, where, orderBy, limit } from "firebase/firestore"
 import { ref, onValue, runTransaction as runRtdbTransaction } from "firebase/database"
 import { useToast } from "@/hooks/use-toast"
@@ -21,18 +20,19 @@ export default function IncomePage() {
   const [isExchanging, setIsExchanging] = useState(false)
   const [diamondBalance, setDiamondBalance] = useState(0)
 
+  // DIAMONDS IN REALTIME: Listen to RTDB balance
   useEffect(() => {
     if (!database || !currentUser) return
     const diamondRef = ref(database, `users/${currentUser.uid}/diamondBalance`)
     return onValue(diamondRef, (snap) => setDiamondBalance(snap.val() || 0))
   }, [database, currentUser])
 
-  // Fetch Diamond Transactions
+  // Fetch Diamond Transactions History from Firestore
   const historyQuery = useMemoFirebase(() => {
     if (!firestore || !currentUser) return null
     return query(
       collection(firestore, "userProfiles", currentUser.uid, "transactions"),
-      where("type", "in", ["diamond_exchange", "diamond_received"]),
+      where("type", "in", ["diamond_exchange", "diamond_received", "gift_received"]),
       orderBy("transactionDate", "desc"),
       limit(20)
     )
@@ -51,7 +51,7 @@ export default function IncomePage() {
     const coinsToGain = blocks * 150
 
     try {
-      // 1. RTDB Atomic Transaction (Primary)
+      // 1. RTDB Atomic Transaction (Primary Source for Balances)
       const userRef = ref(database, `users/${currentUser.uid}`)
       await runRtdbTransaction(userRef, (current) => {
         if (!current) return current;
@@ -63,7 +63,7 @@ export default function IncomePage() {
         }
       });
 
-      // 2. Firestore Backup Sync & Log
+      // 2. Firestore Backup Sync & Log (Secondary Audit)
       const profileRef = doc(firestore, "userProfiles", currentUser.uid);
       updateDoc(profileRef, {
         diamondBalance: firestoreIncrement(-diamondsToDeduct),
@@ -95,7 +95,7 @@ export default function IncomePage() {
     <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden">
       <header className="px-4 py-8 flex items-center sticky top-0 bg-transparent z-10 shrink-0">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-gray-900 h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
-        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase">Income Center</h1>
+        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-gray-900">Income Center</h1>
       </header>
 
       <main className="flex-1 px-6 pb-20 space-y-8 overflow-y-auto scroll-smooth">
@@ -107,7 +107,7 @@ export default function IncomePage() {
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400">Total Diamonds</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-6xl font-black font-headline tracking-tighter">{diamondBalance.toLocaleString()}</span>
+              <span className="text-6xl font-black font-headline tracking-tighter text-white">{diamondBalance.toLocaleString()}</span>
               <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-2">Earned from gifts and rewards</p>
             </div>
           </div>
@@ -154,8 +154,8 @@ export default function IncomePage() {
               </div>
             ) : transactions && transactions.length > 0 ? (
               transactions.map((tx: any) => {
-                const isGain = tx.type === "diamond_received"
-                const amount = tx.diamondAmount || (isGain ? Math.floor((tx.amount || 0) / 0.6) : 0)
+                const isGain = tx.type === "diamond_received" || tx.type === "gift_received"
+                const amount = Math.abs(tx.diamondAmount || (isGain ? Math.floor((tx.amount || 0) / 0.6) : 0))
                 
                 return (
                   <div key={tx.id} className="bg-white/40 backdrop-blur-md border border-white/40 p-5 rounded-[2rem] flex items-center gap-4 shadow-sm">
@@ -176,7 +176,7 @@ export default function IncomePage() {
                         "flex items-center justify-end gap-1 text-sm font-black font-headline",
                         isGain ? "text-blue-500" : "text-red-500"
                       )}>
-                        {isGain ? "+" : ""}{amount.toLocaleString()}
+                        {isGain ? "+" : "-"}{amount.toLocaleString()}
                         <Gem className="w-3 h-3 opacity-40" />
                       </div>
                       <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest">Diamonds</span>

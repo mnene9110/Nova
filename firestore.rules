@@ -37,20 +37,16 @@ service cloud.firestore {
 
       allow update: if (
         isOwner(userId) && (
-          // Allow updates to profile fields including balance sync from RTDB, but block role changes
           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'isCoinseller', 'isSupport'])
         )
-      ) || (
-        isAdmin()
-      ) || (
-        isCoinseller() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['coinBalance', 'updatedAt'])
-      );
+      ) || isAdmin();
 
       allow delete: if isOwner(userId) || isAdmin();
 
       match /transactions/{transactionId} {
-        allow read: if isOwner(userId) || isAdmin() || isSupport();
-        allow create: if isOwner(userId) || isAdmin() || isCoinseller();
+        // Robust permission check for transactions subcollection
+        allow get, list: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || isSupport());
+        allow create: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || isCoinseller());
       }
 
       match /blockedUsers/{blockedId} {
@@ -65,7 +61,6 @@ service cloud.firestore {
       allow read, delete: if isAdmin() || isSupport();
     }
 
-    // Call sessions moved to RTDB primary, keeping Firestore path for potential archive
     match /calls/{chatId} {
       allow read, write: if isAuthenticated() && (
         chatId.split('_')[0] == request.auth.uid ||
