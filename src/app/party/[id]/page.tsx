@@ -19,7 +19,7 @@ export default function PartyRoomPage() {
   const params = useParams()
   const roomId = params?.id as string
   const router = useRouter()
-  const { user: currentUser } = useUser()
+  const { user: currentUser, isUserLoading } = useUser()
   const { database } = useFirebase()
   const { toast } = useToast()
 
@@ -27,6 +27,7 @@ export default function PartyRoomPage() {
   const [isJoined, setIsJoined] = useState(false)
   const [isConnecting, setIsConnecting] = useState(true)
   const [isMicOn, setIsMicOn] = useState(true)
+  const [engineLoaded, setEngineLoaded] = useState(false)
   const [remoteUsers, setRemoteUsers] = useState<any[]>([])
   const [messages, setMessages] = useState<any[]>([
     { id: 'system-1', sender: 'System', text: 'Welcome to MatchFlow! Please respect others and chat politely. Let\'s have fun together!', type: 'system' }
@@ -36,6 +37,7 @@ export default function PartyRoomPage() {
   const localStreamRef = useRef<MediaStream | null>(null)
   const hasIncrementedRef = useRef(false)
   const roomLoadedRef = useRef(false)
+  const initStartedRef = useRef(false)
 
   useEffect(() => {
     if (!database || !roomId) return
@@ -47,7 +49,6 @@ export default function PartyRoomPage() {
         setRoom(data)
         roomLoadedRef.current = true
       } else if (roomLoadedRef.current) {
-        // Room was deleted while we were inside
         toast({ title: "Room Closed", description: "The host has closed this room." })
         router.push('/party')
       }
@@ -59,19 +60,24 @@ export default function PartyRoomPage() {
   }, [database, roomId, router, toast])
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && !engineLoaded) {
       import('zego-express-engine-webrtc').then((module) => {
         ZegoExpressEngine = module.ZegoExpressEngine;
-        initZego();
+        setEngineLoaded(true)
       });
     }
-    return () => {
-      handleLeave();
-    };
   }, []);
 
+  // Trigger initialization only when user and engine are ready
+  useEffect(() => {
+    if (engineLoaded && currentUser && roomId && !isJoined && !initStartedRef.current) {
+      initZego();
+    }
+  }, [engineLoaded, !!currentUser, roomId, isJoined]);
+
   const initZego = async () => {
-    if (!currentUser || !roomId || !ZegoExpressEngine) return;
+    if (!currentUser || !roomId || !ZegoExpressEngine || initStartedRef.current) return;
+    initStartedRef.current = true;
 
     try {
       const config = await getZegoConfig();
@@ -116,7 +122,12 @@ export default function PartyRoomPage() {
 
     } catch (error: any) {
       console.error("Zego Join Error:", error);
-      toast({ variant: "destructive", title: "Join Failed", description: "Could not establish connection." });
+      toast({ 
+        variant: "destructive", 
+        title: "Join Failed", 
+        description: error.message || "Could not establish connection. Please check your microphone permissions." 
+      });
+      setIsConnecting(false);
       router.back();
     }
   }
@@ -152,13 +163,12 @@ export default function PartyRoomPage() {
       hasIncrementedRef.current = false
     }
     
-    // Check path to avoid recursive routing if already leaving
     if (window.location.pathname.includes(`/party/${roomId}`)) {
       router.push('/party');
     }
   }
 
-  if (!room || isConnecting) {
+  if (!room || isConnecting || isUserLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-svh bg-zinc-950 text-white space-y-6">
         <div className="relative">
@@ -169,7 +179,9 @@ export default function PartyRoomPage() {
         </div>
         <div className="text-center space-y-1">
           <h2 className="text-xl font-black font-headline uppercase tracking-widest">Entering Room</h2>
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Connecting to Zego Audio...</p>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+            {isUserLoading ? "Verifying Session..." : "Connecting to Audio..."}
+          </p>
         </div>
       </div>
     )
@@ -180,7 +192,6 @@ export default function PartyRoomPage() {
 
   return (
     <div className="flex flex-col h-svh bg-zinc-950 text-white overflow-hidden relative">
-      {/* Dynamic Scenic Background */}
       <div className="absolute inset-0 z-0">
         <img 
           src="https://picsum.photos/seed/nightsky/1080/1920" 
@@ -191,7 +202,6 @@ export default function PartyRoomPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
       </div>
 
-      {/* Top Header */}
       <header className="relative z-10 px-4 pt-12 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-3 bg-black/20 backdrop-blur-md px-3 py-2 rounded-full border border-white/10 max-w-[60%]">
           <Avatar className="w-8 h-8 border-2 border-white/20">
@@ -224,13 +234,9 @@ export default function PartyRoomPage() {
         </div>
       </header>
 
-      {/* Main Content: Seats Grid + Chat */}
       <ScrollArea className="flex-1 relative z-10 px-4 pt-4">
         <div className="flex flex-col gap-8 pb-40">
-          
-          {/* Seats Section */}
           <div className="flex flex-col items-center gap-6 mt-4">
-            {/* Host Seat */}
             <div className="flex flex-col items-center gap-2">
               <div className="relative group">
                 <div className="absolute -inset-1 bg-amber-500/20 rounded-full blur-md" />
@@ -248,7 +254,6 @@ export default function PartyRoomPage() {
               <span className="text-[10px] font-black uppercase text-amber-500 tracking-widest">{room.hostName}</span>
             </div>
 
-            {/* Participants Grid */}
             <div className="grid grid-cols-4 gap-x-6 gap-y-8 w-full max-w-sm px-2">
               {seats.map((num, idx) => {
                 const userOnSeat = occupiedSeats[idx];
@@ -279,7 +284,6 @@ export default function PartyRoomPage() {
             </div>
           </div>
 
-          {/* Chat Section */}
           <div className="space-y-3 mt-4">
             {messages.map((msg, i) => (
               <div key={i} className="flex flex-col items-start gap-1 max-w-[85%]">
@@ -296,7 +300,6 @@ export default function PartyRoomPage() {
         </div>
       </ScrollArea>
 
-      {/* Bottom Interaction Bar */}
       <footer className="relative z-20 px-4 py-6 bg-gradient-to-t from-zinc-950 via-zinc-950/90 to-transparent flex items-center gap-3">
         <div className="flex-1 h-12 bg-white/10 backdrop-blur-xl rounded-full border border-white/10 flex items-center px-4 gap-3 active:bg-white/20 transition-all cursor-text">
           <MessageSquare className="w-4 h-4 text-white/40" />

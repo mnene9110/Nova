@@ -32,7 +32,6 @@ export default function CreatePartyPage() {
     coverPhoto: ""
   })
 
-  // Photo Crop State
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [imageToCrop, setImageToCrop] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
@@ -164,7 +163,6 @@ export default function CreatePartyPage() {
       </header>
 
       <main className="flex-1 px-6 space-y-10 pt-4">
-        {/* Party Cover Section */}
         <section className="space-y-4">
           <h2 className="text-xl font-black font-headline">Party Cover</h2>
           <div 
@@ -180,49 +178,45 @@ export default function CreatePartyPage() {
           </div>
         </section>
 
-        {/* Party Name Section */}
         <section className="space-y-4">
           <h2 className="text-xl font-black font-headline">Party Name</h2>
           <div className="relative">
             <Input 
               placeholder="Create a name for your party" 
               value={formData.title}
-              onChange={(e) => setFormData(p => ({ ...prev, title: e.target.value.slice(0, 20) }))}
+              onChange={(e) => setFormData(p => ({ ...p, title: e.target.value.slice(0, 20) }))}
               className="h-14 rounded-full bg-gray-50 border-none px-6 text-sm font-medium pr-16"
             />
             <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-300 uppercase">{formData.title.length}/20</span>
           </div>
         </section>
 
-        {/* Party Tag Section */}
         <section className="space-y-4">
           <h2 className="text-xl font-black font-headline">Party Tag</h2>
           <div className="relative">
             <Input 
               placeholder="Set tags for your party" 
               value={formData.tags}
-              onChange={(e) => setFormData(p => ({ ...prev, tags: e.target.value.slice(0, 10) }))}
+              onChange={(e) => setFormData(p => ({ ...p, tags: e.target.value.slice(0, 10) }))}
               className="h-14 rounded-full bg-gray-50 border-none px-6 text-sm font-medium pr-16"
             />
             <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-300 uppercase">{formData.tags.length}/10</span>
           </div>
         </section>
 
-        {/* Party Announcement Section */}
         <section className="space-y-4">
           <h2 className="text-xl font-black font-headline">Party Announcement</h2>
           <div className="relative">
             <Textarea 
               placeholder="Write an Announcement for your Party" 
               value={formData.announcement}
-              onChange={(e) => setFormData(p => ({ ...prev, announcement: e.target.value.slice(0, 200) }))}
+              onChange={(e) => setFormData(p => ({ ...p, announcement: e.target.value.slice(0, 200) }))}
               className="min-h-[140px] rounded-[2rem] bg-gray-50 border-none p-6 text-sm font-medium resize-none pb-10"
             />
             <span className="absolute bottom-4 right-6 text-[10px] font-bold text-gray-300 uppercase">{formData.announcement.length}/200</span>
           </div>
         </section>
 
-        {/* Review Method Section */}
         <section className="flex items-center justify-between py-2 cursor-not-allowed opacity-60">
           <h2 className="text-xl font-black font-headline">Review Method</h2>
           <div className="flex items-center gap-2">
@@ -231,7 +225,6 @@ export default function CreatePartyPage() {
           </div>
         </section>
 
-        {/* Footer Info & Button */}
         <div className="pt-10 flex flex-col items-center gap-6">
           <div className="flex items-center gap-2">
             <p className="text-sm font-bold text-gray-900">Creating a party consumes: {ROOM_CREATION_COST}</p>
@@ -248,7 +241,6 @@ export default function CreatePartyPage() {
         </div>
       </main>
 
-      {/* Photo Cropper Dialog */}
       <Dialog open={!!imageToCrop} onOpenChange={(open) => !open && !isCropping && setImageToCrop(null)}>
         <DialogContent className="rounded-[2.5rem] bg-white border-none p-0 max-w-[95%] mx-auto shadow-2xl overflow-hidden">
           <DialogHeader className="p-6"><DialogTitle className="text-xl font-black font-headline text-center uppercase tracking-widest">Crop Cover</DialogTitle></DialogHeader>
