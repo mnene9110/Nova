@@ -15,7 +15,6 @@ import {
   LayoutGrid,
   UserPlus,
   Search,
-  UserCheck,
   ShieldCheck
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -47,13 +46,11 @@ export default function HostCenterPage() {
   const [activeRooms, setActiveRooms] = useState<any[]>([])
   const [isRoomsLoading, setIsRoomsLoading] = useState(true)
   
-  // Assistant Management State
   const [assistantId, setAssistantId] = useState("")
   const [isSearchingAssistant, setIsSearchingAssistant] = useState(false)
   const [foundAssistant, setFoundAssistant] = useState<any>(null)
   const [isAppointing, setIsUpdatingAssistant] = useState(false)
 
-  // Settings Dialog State
   const [editingRoom, setEditingRoom] = useState<any | null>(null)
   const [newCapacity, setNewCapacity] = useState<string>("")
 
@@ -142,7 +139,7 @@ export default function HostCenterPage() {
       </header>
 
       <main className="px-6 space-y-8 pt-4">
-        {/* Host Stats */}
+        {/* Statistics */}
         <section className="grid grid-cols-2 gap-3">
           <div className="bg-zinc-900 rounded-[2.5rem] p-6 text-white shadow-xl flex flex-col gap-3 relative overflow-hidden">
             <div className="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center border border-blue-500/10">
@@ -150,7 +147,7 @@ export default function HostCenterPage() {
             </div>
             <div>
               <p className="text-[20px] font-black font-headline">{(profile?.diamondBalance || 0).toLocaleString()}</p>
-              <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Room Earnings</p>
+              <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Diamond Earnings</p>
             </div>
           </div>
 
@@ -165,19 +162,19 @@ export default function HostCenterPage() {
           </div>
         </section>
 
-        {/* Room Management */}
+        {/* Live Rooms */}
         <section className="space-y-4">
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
               <LayoutGrid className="w-4 h-4 text-primary/40" />
-              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Live Rooms</h2>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Your Active Rooms</h2>
             </div>
             <Button 
               onClick={() => router.push('/party/create')}
               className="h-8 px-4 rounded-full bg-primary/10 text-primary font-black text-[9px] uppercase tracking-widest gap-2"
             >
               <Plus className="w-3.5 h-3.5" />
-              New Room
+              Host New
             </Button>
           </div>
 
@@ -198,7 +195,7 @@ export default function HostCenterPage() {
                     <div className="flex flex-col">
                       <h3 className="text-sm font-black text-gray-900">{room.title}</h3>
                       <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mt-0.5">
-                        {room.maxSeats} Seats • {room.isLocked ? "Private" : "Public"}
+                        {room.maxSeats} Max Seats • {room.isLocked ? "Locked" : "Public"}
                       </span>
                     </div>
                   </div>
@@ -226,7 +223,7 @@ export default function HostCenterPage() {
           ) : (
             <div className="p-10 bg-white/20 rounded-[2.5rem] border-2 border-dashed border-white/40 flex flex-col items-center justify-center text-center space-y-4">
               <div className="w-16 h-16 bg-white/40 rounded-[2rem] flex items-center justify-center"><Music className="w-8 h-8 text-gray-200" /></div>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">No Active Rooms</p>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">No Active Parties</p>
             </div>
           )}
         </section>
@@ -235,11 +232,11 @@ export default function HostCenterPage() {
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-2">
             <UserPlus className="w-4 h-4 text-primary/40" />
-            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Manage Assistants</h2>
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Appoint Assistants</h2>
           </div>
           <div className="bg-white/60 backdrop-blur-xl border border-white p-6 rounded-[2.5rem] shadow-xl space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Appoint Assistant by ID</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Assistant Numeric ID</label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
@@ -297,7 +294,7 @@ export default function HostCenterPage() {
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center"><ShieldCheck className="w-5 h-5 text-blue-500" /></div>
               <div className="text-left">
                 <p className="text-[11px] font-black text-gray-900 uppercase tracking-tight">Verified Host Status</p>
-                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Permanent Access Unlocked</p>
+                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Permanent Room Control</p>
               </div>
             </div>
           </div>
@@ -308,20 +305,20 @@ export default function HostCenterPage() {
       <Dialog open={!!editingRoom} onOpenChange={(open) => !open && setEditingRoom(null)}>
         <DialogContent className="rounded-[2.5rem] bg-white border-none p-8 max-w-[85%] mx-auto shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-black font-headline text-gray-900 text-center uppercase tracking-widest">Room Settings</DialogTitle>
+            <DialogTitle className="text-xl font-black font-headline text-gray-900 text-center uppercase tracking-widest">Seat Capacity</DialogTitle>
           </DialogHeader>
           <div className="py-6 space-y-6">
             <div className="space-y-2">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] text-center">Seat Capacity</p>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] text-center">Select Available Seats</p>
               <Select value={newCapacity} onValueChange={setNewCapacity}>
                 <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none font-bold text-sm">
                   <SelectValue placeholder="Select Seats" />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl border-none shadow-2xl">
-                  <SelectItem value="4" className="font-bold">4 Seats</SelectItem>
-                  <SelectItem value="8" className="font-bold">8 Seats</SelectItem>
-                  <SelectItem value="12" className="font-bold">12 Seats</SelectItem>
-                  <SelectItem value="16" className="font-bold">16 Seats</SelectItem>
+                  <SelectItem value="5" className="font-bold">5 Seats</SelectItem>
+                  <SelectItem value="10" className="font-bold">10 Seats</SelectItem>
+                  <SelectItem value="15" className="font-bold">15 Seats</SelectItem>
+                  <SelectItem value="20" className="font-bold">20 Seats (Max)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
