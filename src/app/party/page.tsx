@@ -31,8 +31,6 @@ export default function PartyListPage() {
 
     const partiesRef = ref(database, 'partyRooms')
     
-    // Use a variable to track if we've ever successfully loaded data to prevent 
-    // showing connection errors during transient disconnects
     let hasSuccessfullyLoaded = false;
 
     const unsubscribe = onValue(partiesRef, (snapshot) => {
@@ -50,7 +48,6 @@ export default function PartyListPage() {
       }
       setIsPartiesLoading(false)
     }, (error) => {
-      // Only show error if we haven't managed to load anything yet or if it's a hard permission error
       if (!hasSuccessfullyLoaded) {
         console.error("Party Rooms listener failed:", error)
         setIsPartiesLoading(false)
@@ -127,7 +124,7 @@ export default function PartyListPage() {
                     <div className="flex items-center gap-3">
                       <Avatar className="w-14 h-14 border-2 border-white shadow-md">
                         <AvatarImage src={party.coverPhoto || party.hostPhoto || `https://picsum.photos/seed/${party.hostId}/100/100`} className="object-cover" />
-                        <AvatarFallback className="bg-primary text-white font-black text-xs">{party.hostName[0]}</AvatarFallback>
+                        <AvatarFallback className="bg-primary text-white font-black text-xs">{party.hostName?.[0] || 'P'}</AvatarFallback>
                       </Avatar>
                       <div>
                         <h3 className="text-sm font-black text-gray-900 leading-tight group-hover:text-primary transition-colors">{party.title}</h3>
@@ -166,6 +163,11 @@ export default function PartyListPage() {
       {/* Party Details Preview Sheet */}
       <Sheet open={!!selectedParty} onOpenChange={(open) => !open && setSelectedParty(null)}>
         <SheetContent side="bottom" className="rounded-t-[3rem] p-0 border-none bg-white overflow-hidden flex flex-col max-h-[85svh]">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Party Details</SheetTitle>
+            <SheetDescription>Preview party room information and join the conversation.</SheetDescription>
+          </SheetHeader>
+          
           <div className="relative h-48 w-full shrink-0">
             <img 
               src={selectedParty?.coverPhoto || selectedParty?.hostPhoto || `https://picsum.photos/seed/${selectedParty?.id}/600/400`} 
