@@ -82,6 +82,25 @@ export default function PartyRoomPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
+  // Cleanup function to kill all media hardware
+  const killHardware = () => {
+    if (zpRef.current) {
+      try {
+        zpRef.current.destroy();
+      } catch (e) {}
+      zpRef.current = null;
+    }
+    // Force stop any orphan browser tracks
+    if (typeof window !== 'undefined' && navigator.mediaDevices) {
+      navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+        .then(stream => {
+          stream.getTracks().forEach(track => track.stop());
+        })
+        .catch(() => {}); // Ignore if already closed
+    }
+    isJoinedRef.current = false;
+  };
+
   // 1. Room Data & Seating Sync
   useEffect(() => {
     if (!database || !roomId || !currentUser || !profile) return
@@ -120,7 +139,6 @@ export default function PartyRoomPage() {
       }
     })
 
-    // Presence Logic
     const participantRef = ref(database, `partyRooms/${roomId}/participants/${currentUser.uid}`)
     set(participantRef, {
       userId: currentUser.uid,
@@ -129,7 +147,6 @@ export default function PartyRoomPage() {
       joinedAt: Date.now()
     })
 
-    // System Join Message
     const joinMsgRef = push(ref(database, `partyRooms/${roomId}/messages`))
     set(joinMsgRef, {
       text: `${profile.username} joined the party`,
@@ -147,7 +164,6 @@ export default function PartyRoomPage() {
     return () => {
       if (currentUser) {
         remove(participantRef)
-        // Cleanup seat if user leaves
         runTransaction(seatsRef, (currentSeats) => {
           if (!currentSeats) return currentSeats;
           Object.keys(currentSeats).forEach(key => {
@@ -158,10 +174,7 @@ export default function PartyRoomPage() {
           return currentSeats;
         });
       }
-      if (zpRef.current) {
-        zpRef.current.destroy()
-        isJoinedRef.current = false
-      }
+      killHardware();
     }
   }, [database, roomId, currentUser?.uid, !!profile])
 
@@ -195,13 +208,20 @@ export default function PartyRoomPage() {
             }
           },
           showPreJoinView: false,
-          turnOnMicrophoneWhenJoining: false,
-          turnOnCameraWhenJoining: false,
-          showMyCameraToggleButton: false,
+          turnOnMicrophoneWhenJoining: false, // CRITICAL: NEVER ON BY DEFAULT
+          turnOnCameraWhenJoining: false,    // CRITICAL: NEVER ON
+          showMyCameraToggleButton: false,   // CRITICAL: DISABLE CAMERA UI
           showAudioVideoSettingsButton: false,
           showScreenSharingButton: false,
           showUserList: false,
         })
+
+        // Double enforcement: Mute immediately after join
+        zp.on('roomStateUpdate', (state) => {
+          if (state === 'CONNECTED') {
+            zp.mutePublishStreamAudio(true);
+          }
+        });
 
         zp.on('soundLevelUpdate', (levels: any[]) => {
           const active: Record<string, boolean> = {}
@@ -242,12 +262,15 @@ export default function PartyRoomPage() {
       label: currentSeat?.label || ""
     })
 
+    // Now, and ONLY now, activate the mic
     setIsMicMuted(false)
     if (zpRef.current) zpRef.current.mutePublishStreamAudio(false)
   }
 
   const handleLeaveSeat = async () => {
     if (mySeatIndex === null || !database) return
+    
+    // Kill audio streams before unseating
     if (zpRef.current) zpRef.current.mutePublishStreamAudio(true)
     setIsMicMuted(true)
     setIsPlaying(false)
