@@ -231,7 +231,7 @@ function ChatDetailContent() {
           description: `Message sent to ${otherUser?.username || 'user'}`
         });
         
-        batch.commit();
+        await batch.commit();
       }
 
       const updates: any = {}

@@ -6,8 +6,8 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function getUserData(userId) {
-      return get(/databases/$(database)/documents/userProfiles/$(userId)).data;
+    function getUserData(uid) {
+      return get(/databases/$(database)/documents/userProfiles/$(uid)).data;
     }
 
     function isAdmin() {
@@ -18,12 +18,8 @@ service cloud.firestore {
       return isAuthenticated() && exists(/databases/$(database)/documents/userProfiles/$(request.auth.uid)) && getUserData(request.auth.uid).get('isSupport', false) == true;
     }
 
-    function isCoinseller() {
-      return isAuthenticated() && exists(/databases/$(database)/documents/userProfiles/$(request.auth.uid)) && getUserData(request.auth.uid).get('isCoinseller', false) == true;
-    }
-
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
     }
 
     match /userProfiles/{userId} {
@@ -37,8 +33,9 @@ service cloud.firestore {
       }
 
       match /blockedUsers/{blockedId} {
-        // Allow a user to read if they are the one who blocked OR the one who was blocked
-        allow read: if isOwner(userId) || isOwner(blockedId);
+        // Allow a user to read the block status if they are the blocker OR the blocked individual
+        allow get: if isAuthenticated() && (request.auth.uid == userId || request.auth.uid == blockedId);
+        allow list: if isAuthenticated() && request.auth.uid == userId;
         allow write: if isOwner(userId);
       }
     }
