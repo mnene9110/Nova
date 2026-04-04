@@ -1,9 +1,8 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { Sparkles, ClipboardList, RotateCcw, Globe, Loader2, CheckCircle } from "lucide-react"
+import { RotateCcw, Globe, Loader2, CheckCircle } from "lucide-react"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { collection, query, limit, getDocs, startAfter, orderBy, DocumentData, QueryDocumentSnapshot, where, doc } from "firebase/firestore"
 import { ref, update, get } from "firebase/database"
@@ -227,28 +226,6 @@ export default function DiscoverPage() {
 
   return (
     <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32">
-      <div className="pt-4 px-4 grid grid-cols-2 gap-3 shrink-0">
-        <button 
-          onClick={() => router.push('/mystery-note')}
-          className={cn("flex flex-col items-center justify-center gap-2 rounded-[2rem] py-6 shadow-xl group active:scale-95 transition-all", darkMaroon)}
-        >
-          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-white font-black text-[9px] tracking-[0.1em] uppercase">Mystery Note</span>
-        </button>
-
-        <button 
-          onClick={() => router.push('/task-center')}
-          className="flex flex-col items-center justify-center gap-2 bg-white/40 backdrop-blur-md border border-white/20 rounded-[2rem] py-6 group active:scale-95 transition-all"
-        >
-          <div className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center">
-            <ClipboardList className="w-5 h-5 text-[#5A1010]" />
-          </div>
-          <span className="text-[#5A1010] font-black text-[9px] tracking-[0.1em] uppercase">Task Center</span>
-        </button>
-      </div>
-
       <div className="sticky top-0 z-30 px-4 py-6 bg-transparent shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex-1 h-14 bg-white/40 backdrop-blur-md border border-white/30 rounded-full p-1 flex items-center shadow-lg shadow-black/5">

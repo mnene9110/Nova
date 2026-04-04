@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -10,27 +9,24 @@ import {
   Pencil,
   ShieldCheck,
   Settings as SettingsIcon,
-  ShieldAlert,
   Loader2,
   CheckCircle,
-  ClipboardList,
   Award,
   Zap,
   Gem,
   ArrowDownToLine,
   Gamepad2,
-  LayoutDashboard,
-  Star
+  ShieldAlert,
+  ClipboardList
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
-import { useUser, useDoc, useFirestore, useMemoFirebase, useFirebase } from "@/firebase"
+import { useUser, useDoc, useFirestore, useMemoFirebase, useFirebase, useCollection } from "@/firebase"
 import { doc, collection, query, where, getDocs, limit } from "firebase/firestore"
 import { ref, onValue } from "firebase/database"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { useCollection } from "@/firebase"
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -99,7 +95,6 @@ export default function ProfilePage() {
   const userImage = (userProfile?.profilePhotoUrls && userProfile?.profilePhotoUrls[0]) || ""
   const darkMaroon = "bg-[#5A1010]";
   const isVerified = !!userProfile?.isVerified
-  const isPartyAdmin = !!userProfile?.isPartyAdmin
 
   return (
     <div className="flex flex-col h-svh w-full bg-transparent text-gray-900 overflow-y-auto scroll-smooth">
@@ -154,52 +149,6 @@ export default function ProfilePage() {
             <Button onClick={() => router.push('/profile/income')} className="w-full h-10 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center active:bg-blue-500/20"><span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">Income</span></Button>
           </div>
         </div>
-
-        {/* Host Section */}
-        {isPartyAdmin ? (
-          <section className="bg-zinc-900 rounded-[2.5rem] p-6 text-white shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-6 opacity-10"><LayoutDashboard className="w-24 h-24" /></div>
-            <div className="relative z-10 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-amber-500/20 flex items-center justify-center">
-                    <Award className="w-5 h-5 text-amber-500" />
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500">Host Console</span>
-                </div>
-                <div className="px-3 py-1 bg-white/10 rounded-full border border-white/5">
-                  <span className="text-[8px] font-black text-white/60 uppercase">Official Host</span>
-                </div>
-              </div>
-              <div className="flex flex-col gap-1">
-                <h3 className="text-xl font-black font-headline">Manage Your Rooms</h3>
-                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-relaxed">Customize your space and moderate your party community</p>
-              </div>
-              <Button 
-                onClick={() => router.push('/profile/host-center')}
-                className="w-full h-12 rounded-full bg-amber-500 hover:bg-amber-600 text-zinc-900 font-black uppercase text-[10px] tracking-widest mt-2"
-              >
-                Open Host Center
-              </Button>
-            </div>
-          </section>
-        ) : (
-          <button 
-            onClick={() => router.push('/profile/subscribe-host')}
-            className="w-full bg-white/40 backdrop-blur-md border border-white/40 rounded-[2.5rem] p-6 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all group"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-                <Star className="w-7 h-7 text-primary group-hover:scale-110 transition-transform" />
-              </div>
-              <div className="text-left">
-                <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">Become a Host</h3>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-0.5">Start your own party and earn diamonds</p>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-primary transition-colors" />
-          </button>
-        )}
 
         <div className="flex flex-col gap-3">
           <button onClick={() => router.push('/games')} className="w-full h-16 rounded-[2rem] bg-purple-500/10 border border-purple-500/20 flex items-center px-6 gap-4 active:scale-[0.98] transition-all shadow-sm">
