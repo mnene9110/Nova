@@ -9,7 +9,12 @@ import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { ref, onValue, off, remove } from "firebase/database"
 import { doc } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
-import { getZegoAppId } from "@/app/actions/zego"
+import { getZegoConfig } from "@/app/actions/zego"
+
+/**
+ * @fileOverview Party Room Page using ZegoCloud Prebuilt UI.
+ * Fixed: Token authentication error by using real serverSecret from env.
+ */
 
 export default function PartyRoomPage() {
   const params = useParams()
@@ -45,21 +50,22 @@ export default function PartyRoomPage() {
 
   // 2. Initialize Zego Prebuilt UI
   useEffect(() => {
-    if (!roomId || !currentUser || !profile || !containerRef.current || zpRef.current) return;
+    if (!roomId || !currentUser || !profile || !containerRef.current || zpRef.current || !room) return;
 
     const initZego = async () => {
       try {
-        const appID = await getZegoAppId();
-        if (!appID) throw new Error("AppID missing");
+        const config = await getZegoConfig();
+        if (!config.appID || !config.serverSecret) {
+          throw new Error("Zego Configuration (AppID or ServerSecret) is missing in environment variables.");
+        }
 
         // Dynamically import the Prebuilt SDK
         const { ZegoUIKitPrebuilt } = await import('@zegocloud/zego-uikit-prebuilt');
 
-        // Note: In a real app, generate the token on your server. 
-        // For development/prototype, we use the test token generator.
+        // Generate the kitToken using the real serverSecret
         const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-          appID,
-          "00000000000000000000000000000000", // Placeholder: Prebuilt handles this if AppID is valid in dev
+          config.appID,
+          config.serverSecret,
           roomId,
           currentUser.uid,
           profile.username || "User"
@@ -68,17 +74,20 @@ export default function PartyRoomPage() {
         const zp = ZegoUIKitPrebuilt.create(kitToken);
         zpRef.current = zp;
 
+        const isHost = room.hostId === currentUser.uid;
+
         zp.joinRoom({
           container: containerRef.current,
           scenario: {
             mode: ZegoUIKitPrebuilt.LiveAudioRoom,
             config: {
-              role: room?.hostId === currentUser.uid ? ZegoUIKitPrebuilt.Host : ZegoUIKitPrebuilt.Audience,
+              role: isHost ? ZegoUIKitPrebuilt.Host : ZegoUIKitPrebuilt.Audience,
             }
           },
           showPreJoinView: false,
           turnOnMicrophoneWhenJoining: false,
-          showMyMicrophoneToggleButton: true,
+          turnOnCameraWhenJoining: false,
+          showMyCameraToggleButton: false,
           showAudioVideoSettingsButton: false,
           showScreenSharingButton: false,
           showUserList: true,
@@ -88,10 +97,14 @@ export default function PartyRoomPage() {
         });
 
         setIsInitializing(false);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Zego Prebuilt Error:", error);
-        toast({ variant: "destructive", title: "Connection Failed", description: "Could not start audio room." });
-        router.back();
+        toast({ 
+          variant: "destructive", 
+          title: "Login Failed", 
+          description: error.message || "Token authentication error. Check your Zego AppID and ServerSecret." 
+        });
+        setIsInitializing(false);
       }
     };
 
