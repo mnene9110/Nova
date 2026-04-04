@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Music, Plus, Users, Loader2, Search, Heart, Sparkles, X, ArrowRight, ShieldCheck, Info } from "lucide-react"
+import { Music, Plus, Users, Loader2, Search, Heart, Sparkles, X, ArrowRight, ShieldCheck, Info, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useUser, useDoc, useMemoFirebase, useFirebase } from "@/firebase"
@@ -30,9 +30,6 @@ export default function PartyListPage() {
     if (!database || !currentUser) return
 
     const partiesRef = ref(database, 'partyRooms')
-    
-    let hasSuccessfullyLoaded = false;
-
     const unsubscribe = onValue(partiesRef, (snapshot) => {
       const data = snapshot.val()
       if (data) {
@@ -42,25 +39,14 @@ export default function PartyListPage() {
         })).filter(p => p.status === 'active')
         list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
         setParties(list)
-        hasSuccessfullyLoaded = true;
       } else {
         setParties([])
       }
       setIsPartiesLoading(false)
-    }, (error) => {
-      if (!hasSuccessfullyLoaded) {
-        console.error("Party Rooms listener failed:", error)
-        setIsPartiesLoading(false)
-        toast({
-          variant: "destructive",
-          title: "Connection Error",
-          description: "Could not sync with the party server. Please check your internet."
-        })
-      }
     })
 
     return () => off(partiesRef, "value", unsubscribe)
-  }, [database, currentUser, toast])
+  }, [database, currentUser])
 
   const handleHostClick = () => {
     if (!profile?.isPartyAdmin && !profile?.isAdmin) {
@@ -70,8 +56,12 @@ export default function PartyListPage() {
     router.push('/party/create')
   }
 
-  const handleJoin = (partyId: string) => {
-    router.push(`/party/${partyId}`)
+  const handleJoin = (party: any) => {
+    if (party.isLocked && party.hostId !== currentUser?.uid && !party.admins?.[currentUser?.uid || ""]) {
+      toast({ variant: "destructive", title: "Room Locked", description: "This room is currently private." })
+      return
+    }
+    router.push(`/party/${party.id}`)
     setSelectedParty(null)
   }
 
@@ -102,10 +92,6 @@ export default function PartyListPage() {
               <Users className="w-4 h-4 text-primary/40" />
               <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Available Rooms</h2>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-primary/5 rounded-full border border-primary/10">
-              <Sparkles className="w-3 h-3 text-primary" />
-              <span className="text-[8px] font-black text-primary uppercase tracking-widest">Live Now</span>
-            </div>
           </div>
 
           {isPartiesLoading ? (
@@ -123,115 +109,77 @@ export default function PartyListPage() {
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-14 h-14 border-2 border-white shadow-md">
-                        <AvatarImage src={party.coverPhoto || party.hostPhoto || `https://picsum.photos/seed/${party.hostId}/100/100`} className="object-cover" />
+                        <AvatarImage src={party.coverPhoto || party.hostPhoto} className="object-cover" />
                         <AvatarFallback className="bg-primary text-white font-black text-xs">{party.hostName?.[0] || 'P'}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <h3 className="text-sm font-black text-gray-900 leading-tight group-hover:text-primary transition-colors">{party.title}</h3>
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="text-sm font-black text-gray-900 leading-tight group-hover:text-primary transition-colors">{party.title}</h3>
+                          {party.isLocked && <Lock className="w-3 h-3 text-amber-500" />}
+                        </div>
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Host: {party.hostName}</p>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="flex items-center gap-1.5 bg-green-50 px-3 py-1.5 rounded-full">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-[9px] font-black text-green-600 uppercase tracking-tighter">{party.memberCount || 0} Online</span>
-                      </div>
-                      {party.tags && (
-                        <span className="text-[8px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest">#{party.tags}</span>
-                      )}
+                    <div className="flex items-center gap-1.5 bg-green-50 px-3 py-1.5 rounded-full">
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                      <span className="text-[9px] font-black text-green-600 uppercase tracking-tighter">{party.memberCount || 0}</span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-24 text-center space-y-4 opacity-30">
-              <div className="w-20 h-20 bg-gray-50 rounded-[2.5rem] flex items-center justify-center border border-gray-100">
-                <Music className="w-8 h-8 text-gray-300" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-black text-gray-900 uppercase">No Active Parties</h3>
-                <p className="text-[10px] font-bold text-gray-400 max-w-[180px] mx-auto uppercase tracking-tighter">
-                  Check back later or start your own party!
-                </p>
-              </div>
+            <div className="flex flex-col items-center justify-center py-24 text-center opacity-30">
+              <Music className="w-12 h-12 mb-4" />
+              <p className="text-[10px] font-black uppercase tracking-widest">No Active Parties</p>
             </div>
           )}
         </section>
       </main>
 
-      {/* Party Details Preview Sheet */}
       <Sheet open={!!selectedParty} onOpenChange={(open) => !open && setSelectedParty(null)}>
         <SheetContent side="bottom" className="rounded-t-[3rem] p-0 border-none bg-white overflow-hidden flex flex-col max-h-[85svh]">
           <SheetHeader className="sr-only">
             <SheetTitle>Party Details</SheetTitle>
-            <SheetDescription>Preview party room information and join the conversation.</SheetDescription>
+            <SheetDescription>Preview room info</SheetDescription>
           </SheetHeader>
           
           <div className="relative h-48 w-full shrink-0">
-            <img 
-              src={selectedParty?.coverPhoto || selectedParty?.hostPhoto || `https://picsum.photos/seed/${selectedParty?.id}/600/400`} 
-              className="w-full h-full object-cover"
-              alt="Party Cover"
-            />
+            <img src={selectedParty?.coverPhoto || `https://picsum.photos/seed/${selectedParty?.id}/600/400`} className="w-full h-full object-cover" alt="Cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/30" />
-            <button 
-              onClick={() => setSelectedParty(null)}
-              className="absolute top-6 right-6 w-10 h-10 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white active:scale-90 transition-transform"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <button onClick={() => setSelectedParty(null)} className="absolute top-6 right-6 w-10 h-10 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white"><X className="w-5 h-5" /></button>
           </div>
 
           <div className="flex-1 px-8 pt-6 pb-10 space-y-8 overflow-y-auto">
             <div className="flex justify-between items-start">
               <div className="space-y-1">
-                <h2 className="text-2xl font-black font-headline tracking-tight text-gray-900">{selectedParty?.title}</h2>
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1.5 bg-green-50 px-2.5 py-1 rounded-full border border-green-100">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[10px] font-black text-green-600 uppercase tracking-tighter">{selectedParty?.memberCount || 0} Online</span>
-                  </div>
-                  {selectedParty?.tags && (
-                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">#{selectedParty.tags}</span>
-                  )}
+                  <h2 className="text-2xl font-black font-headline text-gray-900">{selectedParty?.title}</h2>
+                  {selectedParty?.isLocked && <Lock className="w-5 h-5 text-amber-500" />}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-green-600 uppercase bg-green-50 px-2.5 py-1 rounded-full">{selectedParty?.memberCount || 0} Online</span>
                 </div>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Music className="w-6 h-6 text-primary" />
-              </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-gray-400">
-                <span className="text-[10px] font-black uppercase tracking-widest">Party Announcement</span>
-              </div>
-              <div className="bg-gray-50/80 p-6 rounded-[2rem] border border-gray-100">
-                <p className="text-sm font-medium text-gray-600 leading-relaxed italic">
-                  "{selectedParty?.announcement || "Welcome to the party! Let's have a great time and respect everyone in the room."}"
-                </p>
-              </div>
+            <div className="bg-gray-50/80 p-6 rounded-[2rem] border border-gray-100">
+              <p className="text-sm font-medium text-gray-600 leading-relaxed italic">"{selectedParty?.announcement || "Welcome to the party!"}"</p>
             </div>
 
-            <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2.25rem] shadow-sm">
-              <Avatar className="w-14 h-14 border-2 border-white shadow-md">
-                <AvatarImage src={selectedParty?.hostPhoto} className="object-cover" />
-                <AvatarFallback className="bg-zinc-100 text-zinc-400 font-black text-sm">{selectedParty?.hostName?.[0]}</AvatarFallback>
-              </Avatar>
+            <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2.25rem]">
+              <Avatar className="w-14 h-14 border-2 border-white shadow-md"><AvatarImage src={selectedParty?.hostPhoto} /><AvatarFallback>P</AvatarFallback></Avatar>
               <div className="flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[13px] font-black text-gray-900">{selectedParty?.hostName}</span>
-                  <ShieldCheck className="w-3.5 h-3.5 text-blue-500" />
-                </div>
+                <span className="text-[13px] font-black text-gray-900 block">{selectedParty?.hostName}</span>
                 <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Party Host</span>
               </div>
             </div>
           </div>
 
-          <div className="p-8 bg-white border-t border-gray-50 shrink-0">
+          <div className="p-8 bg-white border-t border-gray-50">
             <Button 
-              onClick={() => handleJoin(selectedParty.id)}
-              className="w-full h-16 rounded-full bg-zinc-900 text-white font-black text-lg shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3"
+              onClick={() => handleJoin(selectedParty)}
+              className="w-full h-16 rounded-full bg-zinc-900 text-white font-black text-lg shadow-2xl active:scale-95 flex items-center justify-center gap-3"
             >
               Join Room
               <ArrowRight className="w-5 h-5" />
