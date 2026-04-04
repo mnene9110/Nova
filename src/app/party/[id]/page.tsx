@@ -113,10 +113,6 @@ export default function PartyRoomPage() {
     onValue(roomRef, (snap) => {
       const data = snap.val()
       if (data) {
-        if (data.isLocked && !isHost && !data.admins?.[currentUser.uid]) {
-           // If user is already inside and it locks, we might let them stay, 
-           // but entry is blocked in the list page
-        }
         setRoom(data)
       } else {
         toast({ title: "Room Closed", description: "The host has ended this party." })
@@ -246,9 +242,37 @@ export default function PartyRoomPage() {
     initZego()
   }, [roomId, currentUser, !!profile, !!room])
 
+  const handleToggleSeatLock = async (index: number) => {
+    if (!isAdmin || !database) return;
+    const currentSeat = seats[index];
+    
+    // If someone is on the seat, we might want to kick them? 
+    // Usually, you lock empty seats. 
+    // If it's empty, toggle the lock state.
+    if (!currentSeat) {
+      await set(ref(database, `partyRooms/${roomId}/seats/${index}`), {
+        isLocked: true
+      });
+    } else if (currentSeat.isLocked) {
+      await remove(ref(database, `partyRooms/${roomId}/seats/${index}`));
+    }
+  }
+
   const handleMountSeat = async (index: number) => {
     if (!database || !currentUser || !profile) return
-    if (seats[index]) return 
+    const currentSeat = seats[index];
+    
+    if (currentSeat?.isLocked) {
+      if (isAdmin) {
+        // Admins can unlock by clicking
+        await handleToggleSeatLock(index);
+      } else {
+        toast({ variant: "destructive", title: "Seat Locked", description: "This seat has been locked by a moderator." })
+      }
+      return
+    }
+
+    if (currentSeat?.userId) return // Occupied
 
     if (mySeatIndex !== null) {
       await remove(ref(database, `partyRooms/${roomId}/seats/${mySeatIndex}`))
@@ -319,7 +343,6 @@ export default function PartyRoomPage() {
     if (!isAdmin || targetId === room?.hostId) return
     await update(ref(database, `partyRooms/${roomId}/kickedUsers`), { [targetId]: true })
     await remove(ref(database, `partyRooms/${roomId}/participants/${targetId}`))
-    // Also remove from seat if they were on one
     const seatToClear = Object.entries(seats).find(([_, s]: any) => s.userId === targetId)
     if (seatToClear) {
       await remove(ref(database, `partyRooms/${roomId}/seats/${seatToClear[0]}`))
@@ -485,11 +508,11 @@ export default function PartyRoomPage() {
               onClick={() => handleMountSeat(0)}
               className={cn(
                 "w-24 h-24 rounded-full border-4 flex items-center justify-center relative transition-all duration-500 cursor-pointer shadow-2xl overflow-visible",
-                seats[0] ? "border-amber-400 ring-4 ring-amber-400/20" : "border-white/10 bg-black/40",
+                seats[0]?.userId ? "border-amber-400 ring-4 ring-amber-400/20" : "border-white/10 bg-black/40",
                 speakers[seats[0]?.userId] && "after:absolute after:inset-[-8px] after:rounded-full after:border-2 after:border-amber-400/40 after:animate-ping"
               )}
             >
-              {seats[0] ? (
+              {seats[0]?.userId ? (
                 <Avatar className="w-full h-full">
                   <AvatarImage src={seats[0].photo} className="object-cover" />
                   <AvatarFallback className="text-xl font-black">{seats[0].username?.[0]}</AvatarFallback>
@@ -497,7 +520,7 @@ export default function PartyRoomPage() {
               ) : (
                 <Armchair className="w-8 h-8 opacity-40" />
               )}
-              {seats[0] && <div className="absolute -bottom-2 px-3 py-0.5 bg-amber-400 rounded-full text-zinc-900 text-[8px] font-black uppercase shadow-md">{seats[0].username}</div>}
+              {seats[0]?.userId && <div className="absolute -bottom-2 px-3 py-0.5 bg-amber-400 rounded-full text-zinc-900 text-[8px] font-black uppercase shadow-md">{seats[0].username}</div>}
             </div>
           </div>
 
@@ -505,36 +528,43 @@ export default function PartyRoomPage() {
             {Array.from({ length: room?.maxSeats || 8 }).map((_, i) => {
               const index = i + 1;
               const occupant = seats[index];
+              const isLocked = occupant?.isLocked === true;
               const isSpeaking = speakers[occupant?.userId];
+              
               return (
                 <div key={index} className="flex flex-col items-center gap-2">
                   <div 
                     onClick={() => handleMountSeat(index)}
                     className={cn(
                       "w-14 h-14 rounded-full border-2 flex items-center justify-center relative transition-all cursor-pointer overflow-visible",
-                      occupant ? "border-primary shadow-lg" : "border-white/5 bg-black/30",
+                      occupant?.userId ? "border-primary shadow-lg" : isLocked ? "border-amber-500/50 bg-amber-500/10" : "border-white/5 bg-black/30",
                       isSpeaking && "after:absolute after:inset-[-4px] after:rounded-full after:border-2 after:border-primary/60 after:animate-ping"
                     )}
                   >
-                    {occupant ? (
+                    {occupant?.userId ? (
                       <Avatar className="w-full h-full">
                         <AvatarImage src={occupant.photo} className="object-cover" />
                         <AvatarFallback className="text-xs font-black">{occupant.username?.[0]}</AvatarFallback>
                       </Avatar>
+                    ) : isLocked ? (
+                      <div className="flex flex-col items-center gap-0.5 text-amber-500">
+                        <Lock className="w-4 h-4" />
+                      </div>
                     ) : (
                       <div className="flex flex-col items-center gap-0.5 opacity-20">
                         <Armchair className="w-4 h-4" />
                         <span className="text-[7px] font-black">{index}</span>
                       </div>
                     )}
+                    
                     {occupant?.isMicOn && (
                       <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-[#0a1a1a] shadow-sm">
                         <Mic className="w-2.5 h-2.5 text-white" />
                       </div>
                     )}
                   </div>
-                  <span className={cn("text-[8px] font-black uppercase tracking-tighter truncate w-full text-center px-1", occupant ? "text-white" : "text-white/20")}>
-                    {occupant ? occupant.username : "Mount"}
+                  <span className={cn("text-[8px] font-black uppercase tracking-tighter truncate w-full text-center px-1", occupant?.userId ? "text-white" : isLocked ? "text-amber-500" : "text-white/20")}>
+                    {occupant?.userId ? occupant.username : isLocked ? "Locked" : "Mount"}
                   </span>
                 </div>
               )
@@ -578,7 +608,7 @@ export default function PartyRoomPage() {
             <SheetContent side="bottom" className="bg-zinc-900 border-none text-white rounded-t-[3rem] h-[60svh]">
               <SheetHeader className="p-6"><SheetTitle className="text-white font-black text-lg uppercase text-center">Send Gift to</SheetTitle></SheetHeader>
               <div className="grid grid-cols-4 gap-4 p-6 overflow-y-auto">
-                {Object.values(seats).map((s: any) => (
+                {Object.values(seats).filter((s: any) => s.userId).map((s: any) => (
                   <div key={s.userId} className="flex flex-col items-center gap-2">
                     <Avatar className="w-16 h-16 border-2 border-primary shadow-xl"><AvatarImage src={s.photo} className="object-cover" /><AvatarFallback>{s.username?.[0]}</AvatarFallback></Avatar>
                     <span className="text-[10px] font-black uppercase text-white/60 truncate w-full text-center">{s.username}</span>
