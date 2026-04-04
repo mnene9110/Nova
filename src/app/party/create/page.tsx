@@ -3,7 +3,7 @@
 
 import { useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Plus, Loader2, X, Camera } from "lucide-react"
+import { ChevronLeft, Plus, Loader2, X, Camera, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils"
 import Image from "next/image"
 import Cropper from "react-easy-crop"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const ROOM_CREATION_COST = 4000
 
@@ -30,7 +31,8 @@ export default function CreatePartyPage() {
     title: "",
     tags: "",
     announcement: "",
-    coverPhoto: ""
+    coverPhoto: "",
+    maxSeats: "8"
   })
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -107,6 +109,7 @@ export default function CreatePartyPage() {
         tags: formData.tags,
         announcement: formData.announcement,
         coverPhoto: formData.coverPhoto,
+        maxSeats: Number(formData.maxSeats),
         hostId: currentUser.uid,
         hostName: profile.username || "User",
         hostPhoto: (profile.profilePhotoUrls && profile.profilePhotoUrls[0]) || "",
@@ -189,6 +192,21 @@ export default function CreatePartyPage() {
               onChange={(e) => setFormData(p => ({ ...p, title: e.target.value.slice(0, 20) }))}
               className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner focus-visible:ring-primary/30"
             />
+          </div>
+
+          <div className="space-y-3">
+            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Capacity</Label>
+            <Select value={formData.maxSeats} onValueChange={(v) => setFormData(p => ({ ...p, maxSeats: v }))}>
+              <SelectTrigger className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner focus:ring-primary/30">
+                <SelectValue placeholder="Select Seat Count" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border-none shadow-2xl">
+                <SelectItem value="4" className="font-bold">4 Seats (Small)</SelectItem>
+                <SelectItem value="8" className="font-bold">8 Seats (Standard)</SelectItem>
+                <SelectItem value="12" className="font-bold">12 Seats (Large)</SelectItem>
+                <SelectItem value="16" className="font-bold">16 Seats (Pro)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-3">

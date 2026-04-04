@@ -24,7 +24,8 @@ import {
   Trophy,
   MoreVertical,
   Maximize2,
-  Briefcase
+  Briefcase,
+  Settings
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -47,13 +48,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 let ZegoExpressEngine: any = null;
-
-/**
- * @fileOverview High-fidelity Party Room overhaul.
- * Matches 'Bibo' style with atmospheric background, 9-seat grid, and premium chat.
- */
 
 export default function PartyRoomPage() {
   const params = useParams()
@@ -72,11 +69,8 @@ export default function PartyRoomPage() {
   const [seats, setSeats] = useState<Record<string, any>>({})
   const [mySeatIndex, setMySeatIndex] = useState<number | null>(null)
   
-  // Simulated rich chat messages for UI demo (in production these come from RTDB)
   const [messages] = useState<any[]>([
-    { id: 'sys-1', sender: 'System', text: 'Welcome to Bibo! Please respect others and chat politely. Let\'s have fun together!', type: 'system' },
-    { id: 'm-1', sender: 'Micmash Melow🍑', text: 'Love is in the air you feeling it😉😉😉', type: 'user', vip: 'VIP6', color: 'gold' },
-    { id: 'm-2', sender: 'Chica🖤💕', text: 'eh fastisha naingia 🤤🔥', type: 'user', vip: 'VIP2', color: 'green', replyTo: 'black🖤' }
+    { id: 'sys-1', sender: 'System', text: 'Welcome to MatchFlow! Please respect others and chat politely. Let\'s have fun together!', type: 'system' },
   ])
 
   const zegoEngineRef = useRef<any>(null)
@@ -117,8 +111,8 @@ export default function PartyRoomPage() {
 
   useEffect(() => {
     if (!currentUser) return
-    const index = Object.entries(seats).find(([_, seat]) => seat.userId === currentUser.uid)?.[0]
-    setMySeatIndex(index ? parseInt(index) : null)
+    const indexStr = Object.entries(seats).find(([_, seat]) => seat.userId === currentUser.uid)?.[0]
+    setMySeatIndex(indexStr ? parseInt(indexStr) : null)
   }, [seats, currentUser])
 
   useEffect(() => {
@@ -131,10 +125,10 @@ export default function PartyRoomPage() {
   }, []);
 
   useEffect(() => {
-    if (engineLoaded && currentUser && roomId && profile && !isJoined && !initStartedRef.current) {
+    if (engineLoaded && currentUser && roomId && profile && !isJoined && !initStartedRef.current && room) {
       initZego();
     }
-  }, [engineLoaded, !!currentUser, roomId, isJoined, !!profile]);
+  }, [engineLoaded, !!currentUser, roomId, isJoined, !!profile, !!room]);
 
   const initZego = async () => {
     if (!currentUser || !roomId || !ZegoExpressEngine || !profile || initStartedRef.current) return;
@@ -209,6 +203,12 @@ export default function PartyRoomPage() {
     } catch (e) {}
   }
 
+  const updateSeatCount = async (count: number) => {
+    if (!database || !roomId) return
+    await update(ref(database, `partyRooms/${roomId}`), { maxSeats: count })
+    toast({ title: "Capacity Updated", description: `Room capacity changed to ${count} seats.` })
+  }
+
   const toggleMic = () => {
     if (!zegoEngineRef.current || !localStreamRef.current) return;
     const zg = zegoEngineRef.current;
@@ -230,12 +230,24 @@ export default function PartyRoomPage() {
     router.push('/party');
   }
 
+  const handleDeleteRoom = async () => {
+    if (!database || !roomId || !room) return
+    await remove(ref(database, `partyRooms/${roomId}`))
+    router.push('/party')
+  }
+
   if (isConnecting || !room || !profile) {
-    return <div className="flex flex-col items-center justify-center h-svh bg-zinc-950 text-white"><Loader2 className="w-10 h-10 animate-spin text-primary" /><p className="text-[10px] font-black uppercase text-zinc-500 mt-4 tracking-widest">Entering Room...</p></div>
+    return (
+      <div className="flex flex-col items-center justify-center h-svh bg-zinc-950 text-white">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <p className="text-[10px] font-black uppercase text-zinc-500 mt-4 tracking-widest">Waking Engine...</p>
+      </div>
+    )
   }
 
   const isHost = currentUser && room.hostId === currentUser.uid
-  const memberSeats = [1, 2, 3, 4, 5, 6, 7, 8];
+  const maxSeats = room.maxSeats || 8;
+  const memberSeatsArray = Array.from({ length: maxSeats }, (_, i) => i + 1);
 
   return (
     <div className="flex flex-col h-svh bg-zinc-950 text-white overflow-hidden relative font-body">
@@ -254,40 +266,112 @@ export default function PartyRoomPage() {
           </Avatar>
           <div className="flex flex-col min-w-0">
             <h1 className="text-[11px] font-black truncate">{room.title}</h1>
-            <span className="text-[8px] font-bold text-white/60 uppercase">ID: {roomId.split('_')[1] || '753613119'}</span>
+            <span className="text-[8px] font-bold text-white/60 uppercase">ID: {roomId.split('_').pop()}</span>
           </div>
           <Heart className="w-3.5 h-3.5 text-white/40 ml-1" />
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-black/20 backdrop-blur-md rounded-lg border border-white/10 flex items-center justify-center"><Briefcase className="w-4 h-4 text-white/60" /></div>
-          <button onClick={handleLeave} className="w-8 h-8 bg-black/20 backdrop-blur-md rounded-lg border border-white/10 flex items-center justify-center"><Maximize2 className="w-4 h-4 text-white/60" /></button>
+          {isHost && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-8 h-8 bg-black/20 backdrop-blur-md rounded-lg border border-white/10 flex items-center justify-center active:scale-95">
+                  <Settings className="w-4 h-4 text-white/60" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 rounded-2xl bg-zinc-900 border-zinc-800 text-white p-2">
+                <DropdownMenuLabel className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Seat Capacity</DropdownMenuLabel>
+                {[4, 8, 12, 16].map(count => (
+                  <DropdownMenuItem 
+                    key={count} 
+                    onClick={() => updateSeatCount(count)}
+                    className={cn("rounded-xl font-bold text-xs py-2.5 px-4 cursor-pointer", maxSeats === count ? "bg-primary/20 text-primary" : "")}
+                  >
+                    {count} Seats
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator className="bg-zinc-800" />
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="rounded-xl font-bold text-xs py-2.5 px-4 text-red-500 cursor-pointer">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Close Party
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="rounded-[2.5rem] bg-zinc-900 border-none shadow-2xl text-white">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-xl font-black font-headline text-center">End Party?</AlertDialogTitle>
+                      <AlertDialogDescription className="text-zinc-400 text-center">This will permanently close the room and disconnect all participants.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="flex flex-col gap-2">
+                      <AlertDialogAction onClick={handleDeleteRoom} className="rounded-full h-14 bg-red-500 hover:bg-red-600 font-black">Close Permanently</AlertDialogAction>
+                      <AlertDialogCancel className="rounded-full h-14 bg-zinc-800 border-none text-zinc-400 font-black">Cancel</AlertDialogCancel>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          <button onClick={handleLeave} className="w-8 h-8 bg-black/20 backdrop-blur-md rounded-lg border border-white/10 flex items-center justify-center active:scale-95"><Maximize2 className="w-4 h-4 text-white/60" /></button>
         </div>
       </header>
 
       {/* Stats Bar */}
       <div className="px-4 flex items-center justify-between z-10 mb-4">
         <div className="flex items-center gap-1">
-          {[1, 2, 3].map(i => (
-            <Avatar key={i} className="w-6 h-6 border border-white/20 -ml-1.5 first:ml-0">
-              <AvatarImage src={`https://picsum.photos/seed/p${i}/100/100`} />
-            </Avatar>
-          ))}
+          <Avatar className="w-6 h-6 border border-white/20">
+            <AvatarImage src={room.hostPhoto} />
+          </Avatar>
           <div className="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center ml-1"><Trophy className="w-3 h-3 text-amber-500" /></div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 bg-black/20 backdrop-blur-md px-2 py-1 rounded-md border border-white/5">
-            <Users className="w-3 h-3 text-white/60" />
-            <span className="text-[9px] font-black">{participants.length}</span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-black/20 backdrop-blur-md px-2 py-1 rounded-md border border-white/5">
-            <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-[9px] font-black uppercase tracking-tighter">Record</span>
-          </div>
-        </div>
+        
+        <Sheet>
+          <SheetTrigger asChild>
+            <div className="flex items-center gap-3 cursor-pointer active:opacity-70 transition-opacity">
+              <div className="flex items-center gap-1.5 bg-black/20 backdrop-blur-md px-2 py-1 rounded-md border border-white/5">
+                <Users className="w-3 h-3 text-white/60" />
+                <span className="text-[9px] font-black">{participants.length}</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-black/20 backdrop-blur-md px-2 py-1 rounded-md border border-white/5">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-[9px] font-black uppercase tracking-tighter">Live</span>
+              </div>
+            </div>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="rounded-t-[3rem] h-[60svh] bg-zinc-950 border-none p-0 flex flex-col overflow-hidden">
+            <SheetHeader className="p-8 shrink-0">
+              <SheetTitle className="text-white font-black uppercase tracking-widest text-xs flex items-center gap-2">
+                Participants ({participants.length})
+              </SheetTitle>
+            </SheetHeader>
+            <ScrollArea className="flex-1 px-8 pb-10">
+              <div className="space-y-4">
+                {participants.map((p) => (
+                  <div key={p.id} className="flex items-center justify-between py-2">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="w-12 h-12 border border-white/10">
+                        <AvatarImage src={p.photo} className="object-cover" />
+                        <AvatarFallback>{p.username?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-white">{p.username}</span>
+                        {p.id === room.hostId && <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">Room Host</span>}
+                      </div>
+                    </div>
+                    {Object.values(seats).some(s => s.userId === p.id) && (
+                      <div className="bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20">
+                        <Mic className="w-3 h-3 text-emerald-500" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </SheetContent>
+        </Sheet>
       </div>
 
-      {/* 9-Seat Grid */}
+      {/* Dynamic Seat Grid */}
       <ScrollArea className="flex-1 px-4">
         <div className="flex flex-col gap-8 pb-40">
           {/* Host Premium Seat */}
@@ -299,7 +383,10 @@ export default function PartyRoomPage() {
               {seats['0'] ? (
                 <Avatar className="w-full h-full"><AvatarImage src={seats['0'].photo} className="object-cover" /><AvatarFallback>{seats['0'].username?.[0]}</AvatarFallback></Avatar>
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-1 opacity-40">
+                <div 
+                  onClick={() => isHost && handleTakeSeat(0)}
+                  className="w-full h-full flex flex-col items-center justify-center gap-1 opacity-40 cursor-pointer"
+                >
                   <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center"><Crown className="w-5 h-5 text-white" /></div>
                 </div>
               )}
@@ -307,9 +394,12 @@ export default function PartyRoomPage() {
             </div>
           </div>
 
-          {/* Member 8-Grid */}
-          <div className="grid grid-cols-4 gap-x-4 gap-y-10 w-full max-w-sm mx-auto">
-            {memberSeats.map((idx) => {
+          {/* Dynamic Grid */}
+          <div className={cn(
+            "grid gap-x-4 gap-y-10 w-full max-w-sm mx-auto",
+            maxSeats <= 8 ? "grid-cols-4" : "grid-cols-4" // Maintain 4 columns for consistency, rows will expand
+          )}>
+            {memberSeatsArray.map((idx) => {
               const seatedUser = seats[idx.toString()];
               const isMeOnThisSeat = seatedUser && seatedUser.userId === currentUser?.uid;
               return (
@@ -345,75 +435,45 @@ export default function PartyRoomPage() {
             })}
           </div>
 
-          {/* Rich Chat Feed */}
+          {/* Chat Feed */}
           <div className="space-y-3 mt-4">
             {messages.map((msg) => (
               <div key={msg.id} className="flex flex-col items-start gap-1 max-w-[90%]">
-                {msg.type === 'system' ? (
-                  <div className="bg-[#1A4D4D]/60 backdrop-blur-md px-4 py-2 rounded-2xl border border-[#2A6D6D]/40 text-[11px] font-medium text-emerald-300 leading-relaxed shadow-lg">
-                    {msg.text}
-                  </div>
-                ) : (
-                  <div className="flex items-start gap-2">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1.5">
-                        {msg.vip && (
-                          <span className={cn(
-                            "px-1.5 py-0.5 rounded-sm text-[7px] font-black uppercase tracking-tighter text-white",
-                            msg.vip === 'VIP6' ? "bg-gradient-to-r from-amber-500 to-orange-600 shadow-[0_0_8px_rgba(245,158,11,0.5)]" : "bg-gradient-to-r from-emerald-500 to-green-600"
-                          )}>{msg.vip}</span>
-                        )}
-                        <span className="text-[10px] font-black text-white/80">{msg.sender}</span>
-                      </div>
-                      <div className={cn(
-                        "px-4 py-2 rounded-2xl text-[11px] font-medium leading-relaxed shadow-xl border backdrop-blur-md",
-                        msg.color === 'gold' ? "bg-amber-500/10 border-amber-500/30 text-amber-100" : "bg-white/5 border-white/10 text-white"
-                      )}>
-                        {msg.replyTo && <span className="text-amber-500 mr-1.5">@{msg.replyTo}</span>}
-                        {msg.text}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <div className="bg-white/5 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 text-[11px] font-medium text-white/80 leading-relaxed shadow-lg">
+                  {msg.text}
+                </div>
               </div>
             ))}
           </div>
         </div>
       </ScrollArea>
 
-      {/* Bottom Interaction Bar */}
+      {/* Bottom Bar */}
       <footer className="px-4 py-6 bg-gradient-to-t from-black/90 to-transparent flex flex-col gap-4 z-50">
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-11 bg-white/10 backdrop-blur-xl rounded-full border border-white/10 flex items-center px-4 gap-3 active:bg-white/20 shadow-inner">
-            <span className="text-[12px] font-medium text-white/40">Let's Show Your Voice...</span>
+          <div className="flex-1 h-11 bg-white/10 backdrop-blur-xl rounded-full border border-white/10 flex items-center px-4 gap-3 active:bg-white/20">
+            <span className="text-[12px] font-medium text-white/40">Say something...</span>
             <Smile className="w-5 h-5 text-white/40 ml-auto" />
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="w-11 h-11 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center active:scale-90 transition-all shadow-lg border border-white/10">
-              <Gamepad2 className="w-5 h-5 text-white" />
-            </button>
             <button className="w-11 h-11 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center active:scale-90 transition-all shadow-lg border border-white/10">
               <Gift className="w-5 h-5 text-white" />
             </button>
             <button 
-              onClick={mySeatIndex !== null ? toggleMic : () => handleTakeSeat(memberSeats.find(i => !seats[i.toString()]) || 1)}
+              onClick={mySeatIndex !== null ? toggleMic : () => handleTakeSeat(memberSeatsArray.find(i => !seats[i.toString()]) || 1)}
               className={cn(
                 "w-11 h-11 rounded-full flex items-center justify-center active:scale-90 transition-all shadow-lg border",
                 isMicOn ? "bg-emerald-500 border-emerald-400" : "bg-white/10 border-white/10"
               )}
             >
-              {isMicOn ? <Mic className="w-5 h-5 text-white" /> : <div className="w-5 h-5 rounded-md border-2 border-white/40" />}
+              {isMicOn ? <Mic className="w-5 h-5 text-white" /> : <MicOff className="w-5 h-5 text-white/40" />}
             </button>
             <div className="relative">
               <button className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 flex items-center justify-center active:scale-90 transition-all">
                 <MessageSquare className="w-5 h-5 text-white/60" />
               </button>
-              <div className="absolute -top-1 -right-1 bg-red-500 px-1 py-0.5 rounded-full text-[7px] font-black border border-black shadow-lg">99+</div>
             </div>
-            <button className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 flex items-center justify-center active:scale-90 transition-all">
-              <LayoutGrid className="w-5 h-5 text-white/60" />
-            </button>
           </div>
         </div>
       </footer>

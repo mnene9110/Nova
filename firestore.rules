@@ -2,63 +2,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    function getUserData(uid) {
-      return get(/databases/$(database)/documents/userProfiles/$(uid)).data;
-    }
-
-    function isAdmin() {
-      return isAuthenticated() && exists(/databases/$(database)/documents/userProfiles/$(request.auth.uid)) && getUserData(request.auth.uid).get('isAdmin', false) == true;
-    }
-
-    function isSupport() {
-      return isAuthenticated() && exists(/databases/$(database)/documents/userProfiles/$(request.auth.uid)) && getUserData(request.auth.uid).get('isSupport', false) == true;
-    }
-
-    function isOwner(uid) {
-      return isAuthenticated() && request.auth.uid == uid;
-    }
-
-    match /userProfiles/{userId} {
-      allow read: if isAuthenticated();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || isAdmin();
-
-      match /transactions/{transactionId} {
-        allow read: if isOwner(userId) || isAdmin() || isSupport();
-        allow create: if isAuthenticated();
-      }
-
-      match /blockedUsers/{blockedId} {
-        // Allow a user to read the block status if they are the blocker OR the blocked individual
-        allow get: if isAuthenticated() && (request.auth.uid == userId || request.auth.uid == blockedId);
-        allow list: if isAuthenticated() && request.auth.uid == userId;
-        allow write: if isOwner(userId);
-      }
-    }
-
-    match /reports/{reportId} {
-      allow create: if isAuthenticated();
-      allow read, delete: if isAdmin() || isSupport();
-    }
-
-    match /calls/{chatId} {
-      allow read, write: if isAuthenticated() && (
-        chatId.split('_')[0] == request.auth.uid ||
-        chatId.split('_')[1] == request.auth.uid
-      );
-    }
-
-    match /partyRooms/{roomId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
-    }
-
     match /{path=**} {
-      allow read, write: if false;
+      allow read, write: if true;
     }
   }
 }
