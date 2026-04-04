@@ -7,16 +7,11 @@ import {
   ChevronLeft, 
   Mic, 
   MicOff, 
-  Video, 
-  VideoOff, 
   LogOut, 
   Loader2, 
   Users, 
   Crown, 
   Heart, 
-  ShoppingBag, 
-  Maximize2, 
-  MoreHorizontal, 
   Send, 
   Smile, 
   Gift, 
@@ -51,6 +46,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 
 let ZegoExpressEngine: any = null;
 
+/**
+ * @fileOverview Party Room implementation.
+ * Strictly adheres to Audio-Only constraints (no camera, no screen sharing).
+ * Fixed: 'Join Failed' error and selective microphone logic.
+ */
+
 export default function PartyRoomPage() {
   const params = useParams()
   const roomId = params?.id as string
@@ -64,12 +65,11 @@ export default function PartyRoomPage() {
   const [isConnecting, setIsConnecting] = useState(true)
   const [isMicOn, setIsMicOn] = useState(false)
   const [engineLoaded, setEngineLoaded] = useState(false)
-  const [remoteUsers, setRemoteUsers] = useState<any[]>([])
   const [participants, setParticipants] = useState<any[]>([])
   const [seats, setSeats] = useState<Record<string, any>>({})
   const [mySeatIndex, setMySeatIndex] = useState<number | null>(null)
   
-  const [messages, setMessages] = useState<any[]>([
+  const [messages] = useState<any[]>([
     { id: 'system-1', sender: 'System', text: 'Welcome to MatchFlow! Please respect others and chat politely.', type: 'system' }
   ])
 
@@ -118,7 +118,7 @@ export default function PartyRoomPage() {
     })
   }, [database, roomId])
 
-  // Track my seat index locally for UI speed
+  // Track my seat index locally
   useEffect(() => {
     if (!currentUser) return
     const index = Object.entries(seats).find(([_, seat]) => seat.userId === currentUser.uid)?.[0]
@@ -152,10 +152,6 @@ export default function PartyRoomPage() {
       zg.on('roomStreamUpdate', async (roomID: string, updateType: string, streamList: any[]) => {
         if (updateType === 'ADD') {
           streamList.forEach(stream => {
-            setRemoteUsers(prev => {
-              if (prev.find(u => u.streamID === stream.streamID)) return prev;
-              return [...prev, { streamID: stream.streamID, userId: stream.user.userID, userName: stream.user.userName }];
-            });
             zg.startPlayingStream(stream.streamID).then((remoteStream: MediaStream) => {
               const audio = new Audio();
               audio.srcObject = remoteStream;
@@ -165,19 +161,17 @@ export default function PartyRoomPage() {
         } else if (updateType === 'DELETE') {
           streamList.forEach(stream => {
             zg.stopPlayingStream(stream.streamID);
-            setRemoteUsers(prev => prev.filter(u => u.streamID !== stream.streamID));
           });
         }
       });
 
+      // Join Room
       await zg.loginRoom(roomId, currentUser.uid, { userName: profile.username || 'User' }, { userUpdate: true });
       
-      // ENTER AS LISTENER: No local stream created here anymore to avoid "Join Failed" hardware errors on entry.
       setIsJoined(true);
       setIsConnecting(false);
 
       if (database) {
-        // Add self to participants list
         const myPartRef = ref(database, `partyRooms/${roomId}/participants/${currentUser.uid}`);
         set(myPartRef, {
           username: profile.username,
@@ -195,7 +189,7 @@ export default function PartyRoomPage() {
 
     } catch (error: any) {
       console.error("Zego Join Error:", error);
-      toast({ variant: "destructive", title: "Connection Error", description: error.message });
+      toast({ variant: "destructive", title: "Connection Failed", description: error.message || "Could not join audio room." });
       setIsConnecting(false);
       router.back();
     }
@@ -209,16 +203,15 @@ export default function PartyRoomPage() {
     }
 
     try {
-      // 1. Get Hardware Access (User Gesture context)
       const zg = zegoEngineRef.current;
+      
+      // Strict Audio-Only Stream
       const localStream = await zg.createStream({ camera: { audio: true, video: false } });
       localStreamRef.current = localStream;
       
-      // 2. Publish to Room
       zg.startPublishingStream(`stream_${currentUser.uid}`, localStream);
       setIsMicOn(true);
 
-      // 3. Update RTDB Seat
       const seatRef = ref(database, `partyRooms/${roomId}/seats/${index}`);
       await set(seatRef, {
         userId: currentUser.uid,
@@ -227,9 +220,10 @@ export default function PartyRoomPage() {
       });
       onDisconnect(seatRef).remove();
 
-      toast({ title: "Mounted Seat", description: "You are now on the mic!" });
+      toast({ title: "Joined Seat", description: "You are now live on the mic!" });
     } catch (e: any) {
-      toast({ variant: "destructive", title: "Mic Error", description: "Please allow microphone access to speak." });
+      console.error("Mic Access Error:", e);
+      toast({ variant: "destructive", title: "Microphone Required", description: "Please allow microphone access to speak." });
     }
   }
 
@@ -248,7 +242,7 @@ export default function PartyRoomPage() {
       const seatRef = ref(database, `partyRooms/${roomId}/seats/${mySeatIndex}`);
       await remove(seatRef);
       
-      toast({ title: "Unmounted", description: "You are now just listening." });
+      toast({ title: "Left Seat", description: "You are now just listening." });
     } catch (e) {}
   }
 
@@ -293,7 +287,7 @@ export default function PartyRoomPage() {
         zegoEngineRef.current.logoutRoom(roomId);
       }
       await remove(ref(database, `partyRooms/${roomId}`))
-      toast({ title: "Room Deleted", description: "Party closed permanently." })
+      toast({ title: "Party Closed", description: "Room has been permanently deleted." })
       router.replace('/party')
     } catch (error) {
       toast({ variant: "destructive", title: "Delete Failed", description: "Could not close the room." })
@@ -310,8 +304,8 @@ export default function PartyRoomPage() {
           <Loader2 className="absolute -bottom-2 -right-2 w-8 h-8 text-primary animate-spin" />
         </div>
         <div className="text-center space-y-1">
-          <h2 className="text-xl font-black font-headline uppercase tracking-widest">Joining Party</h2>
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Securing Connection...</p>
+          <h2 className="text-xl font-black font-headline uppercase tracking-widest">Entering Party</h2>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Optimizing Audio Engine...</p>
         </div>
       </div>
     )

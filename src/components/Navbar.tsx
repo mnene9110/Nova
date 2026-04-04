@@ -47,7 +47,8 @@ export function Navbar() {
     "/support",
     "/task-center",
     "/games",
-    "/mystery-note"
+    "/mystery-note",
+    "/party/create"
   ]
   
   const shouldHide = 
