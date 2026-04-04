@@ -223,26 +223,26 @@ export default function DiscoverPage() {
   return (
     <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32">
       <div className="sticky top-0 z-30 px-4 py-8 bg-transparent shrink-0 space-y-6">
-        {/* Mystery Note and Task Center Row */}
+        {/* Mystery Note and Task Center Row - Reduced Height */}
         <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4 duration-700">
           <button 
             onClick={() => router.push('/mystery-note')}
-            className="flex flex-col items-center justify-center gap-4 h-44 bg-[#8B0000] rounded-[3.5rem] shadow-2xl shadow-black/20 active:scale-95 transition-all group"
+            className="flex flex-col items-center justify-center gap-3 h-32 bg-[#8B0000] rounded-[2.5rem] shadow-2xl shadow-black/20 active:scale-95 transition-all group"
           >
-            <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center transition-transform group-hover:scale-110">
-              <Sparkles className="w-7 h-7 text-white" />
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center transition-transform group-hover:scale-110">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white">Mystery Note</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Mystery Note</span>
           </button>
           
           <button 
             onClick={() => router.push('/task-center')}
-            className="flex flex-col items-center justify-center gap-4 h-44 bg-[#F2DADA] rounded-[3.5rem] shadow-2xl shadow-black/5 active:scale-95 transition-all group"
+            className="flex flex-col items-center justify-center gap-3 h-32 bg-[#F2DADA] rounded-[2.5rem] shadow-2xl shadow-black/5 active:scale-95 transition-all group"
           >
-            <div className="w-14 h-14 rounded-full bg-[#8B0000]/10 flex items-center justify-center transition-transform group-hover:scale-110">
-              <ClipboardList className="w-7 h-7 text-[#8B0000]" />
+            <div className="w-10 h-10 rounded-full bg-[#8B0000]/10 flex items-center justify-center transition-transform group-hover:scale-110">
+              <ClipboardList className="w-5 h-5 text-[#8B0000]" />
             </div>
-            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#8B0000]">Task Center</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B0000]">Task Center</span>
           </button>
         </div>
 
