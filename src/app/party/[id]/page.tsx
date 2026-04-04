@@ -6,8 +6,8 @@ import { useParams, useRouter } from "next/navigation"
 import { ChevronLeft, Mic, MicOff, Video, VideoOff, LogOut, Loader2, Users, Crown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
-import { doc, updateDoc, increment as firestoreIncrement } from "firebase/firestore"
+import { useFirebase, useUser } from "@/firebase"
+import { ref, onValue, update, runTransaction as runRtdbTransaction } from "firebase/database"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { getZegoConfig } from "@/app/actions/zego"
@@ -19,9 +19,10 @@ export default function PartyRoomPage() {
   const roomId = params?.id as string
   const router = useRouter()
   const { user: currentUser } = useUser()
-  const { firestore } = useFirebase()
+  const { database } = useFirebase()
   const { toast } = useToast()
 
+  const [room, setRoom] = useState<any>(null)
   const [isJoined, setIsJoined] = useState(false)
   const [isConnecting, setIsConnecting] = useState(true)
   const [isMicOn, setIsMicOn] = useState(true)
@@ -29,9 +30,20 @@ export default function PartyRoomPage() {
 
   const zegoEngineRef = useRef<any>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
+  const hasIncrementedRef = useRef(false)
 
-  const roomRef = useMemoFirebase(() => roomId ? doc(firestore, "partyRooms", roomId) : null, [firestore, roomId])
-  const { data: room, isLoading: isRoomLoading } = useDoc(roomRef)
+  useEffect(() => {
+    if (!database || !roomId) return
+    const roomRef = ref(database, `partyRooms/${roomId}`)
+    return onValue(roomRef, (snap) => {
+      const data = snap.val()
+      if (data) setRoom(data)
+      else if (isJoined) {
+        toast({ title: "Room Closed", description: "The host has closed this room." })
+        router.push('/party')
+      }
+    })
+  }, [database, roomId, isJoined])
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -61,7 +73,6 @@ export default function PartyRoomPage() {
               if (prev.find(u => u.streamID === stream.streamID)) return prev;
               return [...prev, { streamID: stream.streamID, userId: stream.user.userID }];
             });
-            // Auto-play remote audio
             zg.startPlayingStream(stream.streamID).then((remoteStream: MediaStream) => {
               const audio = new Audio();
               audio.srcObject = remoteStream;
@@ -87,16 +98,16 @@ export default function PartyRoomPage() {
       setIsJoined(true);
       setIsConnecting(false);
 
-      if (roomRef) {
-        updateDoc(roomRef, { 
-          memberCount: firestoreIncrement(1),
-          updatedAt: new Date().toISOString()
-        }).catch(e => console.error("Failed to update member count", e));
+      // Increment Member Count in RTDB
+      if (!hasIncrementedRef.current && database) {
+        const countRef = ref(database, `partyRooms/${roomId}/memberCount`)
+        runRtdbTransaction(countRef, (current) => (current || 0) + 1)
+        hasIncrementedRef.current = true
       }
 
     } catch (error: any) {
       console.error("Zego Join Error:", error);
-      toast({ variant: "destructive", title: "Join Failed", description: "Check your ZegoCloud configuration or camera permissions." });
+      toast({ variant: "destructive", title: "Join Failed", description: "Could not establish connection." });
       router.back();
     }
   }
@@ -126,11 +137,10 @@ export default function PartyRoomPage() {
       } catch (e) {}
     }
     
-    if (roomRef && isJoined) {
-      updateDoc(roomRef, { 
-        memberCount: firestoreIncrement(-1),
-        updatedAt: new Date().toISOString()
-      }).catch(e => console.warn("Failed to decrement member count", e));
+    if (hasIncrementedRef.current && database && roomId) {
+      const countRef = ref(database, `partyRooms/${roomId}/memberCount`)
+      runRtdbTransaction(countRef, (current) => Math.max(0, (current || 1) - 1))
+      hasIncrementedRef.current = false
     }
     
     if (window.location.pathname.includes(`/party/${roomId}`)) {
@@ -138,7 +148,7 @@ export default function PartyRoomPage() {
     }
   }
 
-  if (isRoomLoading || isConnecting) {
+  if (!room || isConnecting) {
     return (
       <div className="flex flex-col items-center justify-center h-svh bg-zinc-950 text-white space-y-6">
         <div className="relative">
@@ -175,7 +185,6 @@ export default function PartyRoomPage() {
       </header>
 
       <main className="flex-1 overflow-y-auto px-6 grid grid-cols-2 gap-4 pb-32 pt-4">
-        {/* Host Tile */}
         <div className="aspect-[3/4] bg-zinc-900 rounded-[2.5rem] border border-white/5 flex flex-col items-center justify-center p-6 text-center space-y-4 shadow-2xl relative overflow-hidden">
           <Avatar className="w-20 h-20 border-4 border-primary/20">
             <AvatarImage src={room?.hostPhoto} className="object-cover" />
@@ -190,7 +199,6 @@ export default function PartyRoomPage() {
           </div>
         </div>
 
-        {/* Local User Tile */}
         <div className="aspect-[3/4] bg-zinc-900 rounded-[2.5rem] border border-white/5 flex flex-col items-center justify-center p-6 text-center space-y-4 shadow-2xl">
           <Avatar className="w-20 h-20 border-4 border-zinc-800">
             <AvatarImage src={currentUser?.photoURL || ""} className="object-cover" />
@@ -202,7 +210,6 @@ export default function PartyRoomPage() {
           </div>
         </div>
 
-        {/* Remote Users */}
         {remoteUsers.map(u => (
           <div key={u.streamID} className="aspect-[3/4] bg-zinc-900 rounded-[2.5rem] border border-white/5 flex flex-col items-center justify-center p-6 text-center space-y-4 animate-in fade-in zoom-in-95">
             <Avatar className="w-20 h-20 border-4 border-zinc-800">

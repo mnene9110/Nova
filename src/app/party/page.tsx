@@ -1,16 +1,15 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Music, Plus, Users, Loader2, Search, Heart, Sparkles, X, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from "@/firebase"
-import { collection, query, where, orderBy, doc, writeBatch, increment as firestoreIncrement, setDoc } from "firebase/firestore"
-import { ref, runTransaction as runRtdbTransaction } from "firebase/database"
-import { useFirebase } from "@/firebase"
+import { useUser, useDoc, useMemoFirebase, useFirebase } from "@/firebase"
+import { doc, writeBatch, increment as firestoreIncrement, collection } from "firebase/firestore"
+import { ref, onValue, update, runTransaction as runRtdbTransaction, serverTimestamp as rtdbTimestamp } from "firebase/database"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import {
@@ -33,16 +32,30 @@ export default function PartyListPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [roomTitle, setRoomTitle] = useState("")
   const [isCreating, setIsCreating] = useState(false)
+  const [parties, setParties] = useState<any[]>([])
+  const [isPartiesLoading, setIsPartiesLoading] = useState(true)
 
   const userProfileRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser])
   const { data: profile } = useDoc(userProfileRef)
 
-  const partiesQuery = useMemoFirebase(() => {
-    if (!firestore) return null
-    return query(collection(firestore, "partyRooms"), where("status", "==", "active"), orderBy("createdAt", "desc"))
-  }, [firestore])
-
-  const { data: parties, isLoading: isPartiesLoading } = useCollection(partiesQuery)
+  useEffect(() => {
+    if (!database) return
+    const partiesRef = ref(database, 'partyRooms')
+    return onValue(partiesRef, (snapshot) => {
+      const data = snapshot.val()
+      if (data) {
+        const list = Object.entries(data).map(([id, val]: [string, any]) => ({
+          id,
+          ...val
+        })).filter(p => p.status === 'active')
+        list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+        setParties(list)
+      } else {
+        setParties([])
+      }
+      setIsPartiesLoading(false)
+    })
+  }, [database])
 
   const handleCreateRoom = async () => {
     if (!currentUser || !profile || !roomTitle.trim() || isCreating || !database) return
@@ -54,6 +67,7 @@ export default function PartyListPage() {
 
     setIsCreating(true)
     try {
+      // 1. RTDB Atomic Transaction for Balance Check & Deduction
       const userCoinRef = ref(database, `users/${currentUser.uid}/coinBalance`)
       const balanceResult = await runRtdbTransaction(userCoinRef, (current) => {
         if (current === null) return current
@@ -63,21 +77,26 @@ export default function PartyListPage() {
 
       if (!balanceResult.committed) throw new Error("INSUFFICIENT_COINS")
 
-      const newRoomRef = doc(collection(firestore, "partyRooms"))
+      // 2. Create Room in RTDB
+      const roomKey = roomTitle.toLowerCase().replace(/[^a-z0-9]/g, '-') + '_' + Date.now()
+      const roomRef = ref(database, `partyRooms/${roomKey}`)
       const roomData = {
-        id: newRoomRef.id,
+        id: roomKey,
         title: roomTitle,
         hostId: currentUser.uid,
         hostName: profile.username || "Admin",
         hostPhoto: (profile.profilePhotoUrls && profile.profilePhotoUrls[0]) || "",
         memberCount: 0,
-        createdAt: new Date().toISOString(),
+        createdAt: rtdbTimestamp(),
         status: "active"
       }
 
+      await update(ref(database), {
+        [`partyRooms/${roomKey}`]: roomData
+      })
+
+      // 3. Firestore Backup Sync (Log Transaction)
       const batch = writeBatch(firestore)
-      batch.set(newRoomRef, roomData)
-      
       const txRef = doc(collection(userProfileRef!, "transactions"))
       batch.set(txRef, {
         id: txRef.id,
@@ -97,7 +116,7 @@ export default function PartyListPage() {
       toast({ title: "Party Created!", description: "Your room is now live." })
       setIsCreateOpen(false)
       setRoomTitle("")
-      router.push(`/party/${newRoomRef.id}`)
+      router.push(`/party/${roomKey}`)
     } catch (error: any) {
       if (error.message === "INSUFFICIENT_COINS") {
         toast({ variant: "destructive", title: "Insufficient Coins", description: "You need 4,000 coins to create a room." })
@@ -168,7 +187,7 @@ export default function PartyListPage() {
                     </div>
                     <div className="flex items-center gap-1.5 bg-green-50 px-3 py-1.5 rounded-full">
                       <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                      <span className="text-[9px] font-black text-green-600 uppercase tracking-tighter">{party.memberCount} Online</span>
+                      <span className="text-[9px] font-black text-green-600 uppercase tracking-tighter">{party.memberCount || 0} Online</span>
                     </div>
                   </div>
 
