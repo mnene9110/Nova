@@ -3,7 +3,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Music, Plus, Users, Loader2, Search, Heart, Sparkles, X } from "lucide-react"
+import { Music, Plus, Users, Loader2, Search, Heart, Sparkles, X, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -54,7 +54,6 @@ export default function PartyListPage() {
 
     setIsCreating(true)
     try {
-      // 1. Deduct Coins (Atomic RTDB)
       const userCoinRef = ref(database, `users/${currentUser.uid}/coinBalance`)
       const balanceResult = await runRtdbTransaction(userCoinRef, (current) => {
         if (current === null) return current
@@ -64,7 +63,6 @@ export default function PartyListPage() {
 
       if (!balanceResult.committed) throw new Error("INSUFFICIENT_COINS")
 
-      // 2. Create Room in Firestore
       const newRoomRef = doc(collection(firestore, "partyRooms"))
       const roomData = {
         id: newRoomRef.id,
@@ -72,12 +70,11 @@ export default function PartyListPage() {
         hostId: currentUser.uid,
         hostName: profile.username || "Admin",
         hostPhoto: (profile.profilePhotoUrls && profile.profilePhotoUrls[0]) || "",
-        memberCount: 1,
+        memberCount: 0,
         createdAt: new Date().toISOString(),
         status: "active"
       }
 
-      // 3. Batch Firestore (Room creation + Transaction log + Profile update)
       const batch = writeBatch(firestore)
       batch.set(newRoomRef, roomData)
       
@@ -100,7 +97,7 @@ export default function PartyListPage() {
       toast({ title: "Party Created!", description: "Your room is now live." })
       setIsCreateOpen(false)
       setRoomTitle("")
-      // Normally navigate to room here: router.push(`/party/${newRoomRef.id}`)
+      router.push(`/party/${newRoomRef.id}`)
     } catch (error: any) {
       if (error.message === "INSUFFICIENT_COINS") {
         toast({ variant: "destructive", title: "Insufficient Coins", description: "You need 4,000 coins to create a room." })
@@ -177,9 +174,11 @@ export default function PartyListPage() {
 
                   <div className="flex items-center gap-2">
                     <Button 
-                      className="flex-1 h-12 rounded-full bg-zinc-900 text-white font-black text-[10px] uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all"
+                      onClick={() => router.push(`/party/${party.id}`)}
+                      className="flex-1 h-12 rounded-full bg-zinc-900 text-white font-black text-[10px] uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
                     >
                       Join Room
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </Button>
                   </div>
                 </div>
