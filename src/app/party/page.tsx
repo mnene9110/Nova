@@ -50,7 +50,7 @@ export default function PartyListPage() {
 
   const handleHostClick = () => {
     if (!profile?.isPartyAdmin && !profile?.isAdmin) {
-      toast({ variant: "destructive", title: "Access Denied", description: "Only Party Admins can create rooms." })
+      router.push('/profile/subscribe-host')
       return
     }
     router.push('/party/create')
@@ -73,15 +73,13 @@ export default function PartyListPage() {
           <Music className="w-6 h-6 text-white/30" />
         </h1>
         <div className="flex items-center gap-2">
-          {(profile?.isPartyAdmin || profile?.isAdmin) && (
-            <Button 
-              onClick={handleHostClick}
-              className="h-10 px-4 rounded-full bg-white text-[#5A1010] font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all gap-2"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Host Room
-            </Button>
-          )}
+          <Button 
+            onClick={handleHostClick}
+            className="h-10 px-4 rounded-full bg-white text-[#5A1010] font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all gap-2"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Host Room
+          </Button>
         </div>
       </header>
 
