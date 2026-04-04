@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Music, Plus, Users, Loader2, Search, Heart, Sparkles, X, ArrowRight, ShieldCheck, Info, Lock } from "lucide-react"
+import { Music, Plus, Users, Loader2, X, ArrowRight, Lock, Key } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useUser, useDoc, useMemoFirebase, useFirebase } from "@/firebase"
@@ -12,6 +12,8 @@ import { ref, onValue, off } from "firebase/database"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
+import { Input } from "@/components/ui/input"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 
 export default function PartyListPage() {
   const router = useRouter()
@@ -22,6 +24,10 @@ export default function PartyListPage() {
   const [parties, setParties] = useState<any[]>([])
   const [isPartiesLoading, setIsPartiesLoading] = useState(true)
   const [selectedParty, setSelectedParty] = useState<any | null>(null)
+  
+  // Password Join State
+  const [passwordTarget, setPasswordTarget] = useState<any | null>(null)
+  const [enteredPassword, setEnteredPassword] = useState("")
 
   const userProfileRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser])
   const { data: profile } = useDoc(userProfileRef)
@@ -56,13 +62,31 @@ export default function PartyListPage() {
     router.push('/party/create')
   }
 
-  const handleJoin = (party: any) => {
-    if (party.isLocked && party.hostId !== currentUser?.uid && !party.admins?.[currentUser?.uid || ""]) {
-      toast({ variant: "destructive", title: "Room Locked", description: "This room is currently private." })
+  const handleJoinAttempt = (party: any) => {
+    if (party.hostId === currentUser?.uid || profile?.isAssistant || profile?.isAdmin) {
+      router.push(`/party/${party.id}`)
       return
     }
+
+    if (party.isLocked) {
+      setPasswordTarget(party)
+      setSelectedParty(null)
+      return
+    }
+    
     router.push(`/party/${party.id}`)
     setSelectedParty(null)
+  }
+
+  const handlePasswordSubmit = () => {
+    if (!passwordTarget) return
+    if (enteredPassword === passwordTarget.password) {
+      router.push(`/party/${passwordTarget.id}`)
+      setPasswordTarget(null)
+      setEnteredPassword("")
+    } else {
+      toast({ variant: "destructive", title: "Access Denied", description: "Incorrect room password." })
+    }
   }
 
   return (
@@ -176,7 +200,7 @@ export default function PartyListPage() {
 
           <div className="p-8 bg-white border-t border-gray-50">
             <Button 
-              onClick={() => handleJoin(selectedParty)}
+              onClick={() => handleJoinAttempt(selectedParty)}
               className="w-full h-16 rounded-full bg-zinc-900 text-white font-black text-lg shadow-2xl active:scale-95 flex items-center justify-center gap-3"
             >
               Join Room
@@ -185,6 +209,31 @@ export default function PartyListPage() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Password Dialog */}
+      <Dialog open={!!passwordTarget} onOpenChange={(open) => !open && setPasswordTarget(null)}>
+        <DialogContent className="rounded-[2.5rem] bg-white border-none p-8 max-w-[85%] mx-auto shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black font-headline text-gray-900 text-center uppercase tracking-widest">Enter Password</DialogTitle>
+          </DialogHeader>
+          <div className="py-6 space-y-4">
+            <div className="relative">
+              <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+              <Input 
+                type="password"
+                placeholder="Room Password" 
+                value={enteredPassword}
+                onChange={(e) => setEnteredPassword(e.target.value)}
+                className="h-14 pl-12 rounded-2xl bg-gray-50 border-none text-center font-black tracking-widest"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex flex-col gap-2">
+            <Button onClick={handlePasswordSubmit} className="h-14 rounded-full bg-zinc-900 text-white font-black uppercase text-xs tracking-widest w-full">Join Room</Button>
+            <Button variant="ghost" onClick={() => setPasswordTarget(null)} className="h-12 rounded-full text-gray-400 font-black uppercase text-[10px]">Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

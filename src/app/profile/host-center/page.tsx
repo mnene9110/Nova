@@ -5,28 +5,26 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { 
   ChevronLeft, 
-  LayoutDashboard, 
-  Users, 
-  Music, 
   Gem, 
   Trophy, 
-  Settings, 
-  ShieldCheck,
   Plus,
   Loader2,
-  Mic,
-  MessageCircle,
-  Eye,
-  ChevronRight,
+  Music,
+  X,
   Settings2,
-  LayoutGrid
+  LayoutGrid,
+  UserPlus,
+  Search,
+  UserCheck,
+  ShieldCheck
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useUser, useDoc, useFirestore, useMemoFirebase, useFirebase } from "@/firebase"
-import { doc } from "firebase/firestore"
+import { doc, query, collection, where, getDocs, updateDoc } from "firebase/firestore"
 import { ref, onValue, update, remove } from "firebase/database"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
@@ -35,11 +33,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
 
 export default function HostCenterPage() {
   const router = useRouter()
   const { user: currentUser } = useUser()
   const { firestore, database } = useFirebase()
+  const { toast } = useToast()
 
   const userProfileRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser])
   const { data: profile, isLoading } = useDoc(userProfileRef)
@@ -47,6 +47,12 @@ export default function HostCenterPage() {
   const [activeRooms, setActiveRooms] = useState<any[]>([])
   const [isRoomsLoading, setIsRoomsLoading] = useState(true)
   
+  // Assistant Management State
+  const [assistantId, setAssistantId] = useState("")
+  const [isSearchingAssistant, setIsSearchingAssistant] = useState(false)
+  const [foundAssistant, setFoundAssistant] = useState<any>(null)
+  const [isAppointing, setIsUpdatingAssistant] = useState(false)
+
   // Settings Dialog State
   const [editingRoom, setEditingRoom] = useState<any | null>(null)
   const [newCapacity, setNewCapacity] = useState<string>("")
@@ -66,6 +72,42 @@ export default function HostCenterPage() {
       setIsRoomsLoading(false)
     })
   }, [database, currentUser])
+
+  const handleSearchAssistant = async () => {
+    if (!assistantId.trim() || !firestore) return
+    setIsSearchingAssistant(true)
+    setFoundAssistant(null)
+    try {
+      const q = query(collection(firestore, "userProfiles"), where("numericId", "==", Number(assistantId)))
+      const snap = await getDocs(q)
+      if (snap.empty) {
+        toast({ variant: "destructive", title: "User not found", description: "No user matches this ID." })
+      } else {
+        setFoundAssistant({ ...snap.docs[0].data(), docId: snap.docs[0].id })
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to search user." })
+    } finally {
+      setIsSearchingAssistant(false)
+    }
+  }
+
+  const handleToggleAssistant = async () => {
+    if (!foundAssistant || !firestore || isAppointing) return
+    setIsUpdatingAssistant(true)
+    try {
+      const userRef = doc(firestore, "userProfiles", foundAssistant.docId)
+      const newStatus = !foundAssistant.isAssistant
+      await updateDoc(userRef, { isAssistant: newStatus })
+      toast({ title: newStatus ? "Assistant Appointed" : "Assistant Removed", description: `${foundAssistant.username} has been updated.` })
+      setFoundAssistant(null)
+      setAssistantId("")
+    } catch (e) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to update user." })
+    } finally {
+      setIsUpdatingAssistant(false)
+    }
+  }
 
   const handleUpdateRoom = async () => {
     if (!editingRoom || !database) return
@@ -128,14 +170,14 @@ export default function HostCenterPage() {
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
               <LayoutGrid className="w-4 h-4 text-primary/40" />
-              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Live Management</h2>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Live Rooms</h2>
             </div>
             <Button 
               onClick={() => router.push('/party/create')}
               className="h-8 px-4 rounded-full bg-primary/10 text-primary font-black text-[9px] uppercase tracking-widest gap-2"
             >
               <Plus className="w-3.5 h-3.5" />
-              Host New
+              New Room
             </Button>
           </div>
 
@@ -156,7 +198,7 @@ export default function HostCenterPage() {
                     <div className="flex flex-col">
                       <h3 className="text-sm font-black text-gray-900">{room.title}</h3>
                       <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mt-0.5">
-                        {room.maxSeats} Seats Configured
+                        {room.maxSeats} Seats • {room.isLocked ? "Private" : "Public"}
                       </span>
                     </div>
                   </div>
@@ -189,23 +231,75 @@ export default function HostCenterPage() {
           )}
         </section>
 
-        {/* Permanent Settings & Support */}
+        {/* Assistant Management */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 px-2">
+            <UserPlus className="w-4 h-4 text-primary/40" />
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Manage Assistants</h2>
+          </div>
+          <div className="bg-white/60 backdrop-blur-xl border border-white p-6 rounded-[2.5rem] shadow-xl space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Appoint Assistant by ID</label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                  <Input 
+                    placeholder="Enter Numeric ID" 
+                    value={assistantId}
+                    onChange={(e) => setAssistantId(e.target.value)}
+                    type="number"
+                    className="h-14 pl-12 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner"
+                  />
+                </div>
+                <Button 
+                  onClick={handleSearchAssistant}
+                  disabled={isSearchingAssistant || !assistantId}
+                  className="h-14 w-14 rounded-2xl bg-zinc-900 hover:bg-black"
+                >
+                  {isSearchingAssistant ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                </Button>
+              </div>
+            </div>
+
+            {foundAssistant && (
+              <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-center justify-between animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={foundAssistant.profilePhotoUrls?.[0]} />
+                    <AvatarFallback>{foundAssistant.username?.[0]}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-black text-gray-900">{foundAssistant.username}</p>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase">ID: {foundAssistant.numericId}</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleToggleAssistant}
+                  disabled={isAppointing}
+                  variant={foundAssistant.isAssistant ? "destructive" : "default"}
+                  className="h-10 px-4 rounded-full font-black text-[9px] uppercase tracking-widest"
+                >
+                  {isAppointing ? <Loader2 className="w-4 h-4 animate-spin" /> : (foundAssistant.isAssistant ? "Dismiss" : "Appoint")}
+                </Button>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Permissions & Info */}
         <section className="space-y-4 pb-10">
           <div className="flex items-center gap-2 px-2">
-            <Settings className="w-4 h-4 text-primary/40" />
+            <ShieldCheck className="w-4 h-4 text-primary/40" />
             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Host Privileges</h2>
           </div>
-          <div className="grid grid-cols-1 gap-3">
-            <button className="bg-white/40 backdrop-blur-md border border-white/40 p-6 rounded-[2rem] flex items-center justify-between group active:scale-[0.98] transition-all">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center"><ShieldCheck className="w-5 h-5 text-blue-500" /></div>
-                <div className="text-left">
-                  <p className="text-[11px] font-black text-gray-900 uppercase tracking-tight">Verified Host Status</p>
-                  <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Permanent Access Unlocked</p>
-                </div>
+          <div className="bg-white/40 backdrop-blur-md border border-white/40 p-6 rounded-[2rem] flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center"><ShieldCheck className="w-5 h-5 text-blue-500" /></div>
+              <div className="text-left">
+                <p className="text-[11px] font-black text-gray-900 uppercase tracking-tight">Verified Host Status</p>
+                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Permanent Access Unlocked</p>
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-300" />
-            </button>
+            </div>
           </div>
         </section>
       </main>
@@ -214,21 +308,23 @@ export default function HostCenterPage() {
       <Dialog open={!!editingRoom} onOpenChange={(open) => !open && setEditingRoom(null)}>
         <DialogContent className="rounded-[2.5rem] bg-white border-none p-8 max-w-[85%] mx-auto shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-black font-headline text-gray-900 text-center uppercase tracking-widest">Room Capacity</DialogTitle>
+            <DialogTitle className="text-xl font-black font-headline text-gray-900 text-center uppercase tracking-widest">Room Settings</DialogTitle>
           </DialogHeader>
-          <div className="py-6 space-y-4">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] text-center">Adjust Seating Limit</p>
-            <Select value={newCapacity} onValueChange={setNewCapacity}>
-              <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none font-bold text-sm">
-                <SelectValue placeholder="Select Seats" />
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl border-none shadow-2xl">
-                <SelectItem value="4" className="font-bold">4 Seats</SelectItem>
-                <SelectItem value="8" className="font-bold">8 Seats</SelectItem>
-                <SelectItem value="12" className="font-bold">12 Seats</SelectItem>
-                <SelectItem value="16" className="font-bold">16 Seats</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="py-6 space-y-6">
+            <div className="space-y-2">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] text-center">Seat Capacity</p>
+              <Select value={newCapacity} onValueChange={setNewCapacity}>
+                <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none font-bold text-sm">
+                  <SelectValue placeholder="Select Seats" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-none shadow-2xl">
+                  <SelectItem value="4" className="font-bold">4 Seats</SelectItem>
+                  <SelectItem value="8" className="font-bold">8 Seats</SelectItem>
+                  <SelectItem value="12" className="font-bold">12 Seats</SelectItem>
+                  <SelectItem value="16" className="font-bold">16 Seats</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter className="flex flex-col gap-2">
             <Button onClick={handleUpdateRoom} className="h-14 rounded-full bg-zinc-900 text-white font-black uppercase text-xs tracking-widest w-full">Apply Changes</Button>

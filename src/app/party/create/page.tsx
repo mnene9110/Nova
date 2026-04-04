@@ -3,7 +3,7 @@
 
 import { useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Plus, Loader2, X, Camera, Users } from "lucide-react"
+import { ChevronLeft, Loader2, Camera } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -115,7 +115,8 @@ export default function CreatePartyPage() {
         hostPhoto: (profile.profilePhotoUrls && profile.profilePhotoUrls[0]) || "",
         memberCount: 0,
         createdAt: rtdbTimestamp(),
-        status: "active"
+        status: "active",
+        isLocked: false
       }
 
       await update(ref(database), { [`partyRooms/${roomKey}`]: roomData })
@@ -153,32 +154,15 @@ export default function CreatePartyPage() {
   return (
     <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-y-auto pb-20">
       <header className="px-4 py-8 flex items-center bg-transparent shrink-0">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => router.back()} 
-          className="text-white h-10 w-10 bg-black/10 backdrop-blur-md rounded-full hover:bg-black/20"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </Button>
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white h-10 w-10 bg-black/10 backdrop-blur-md rounded-full hover:bg-black/20"><ChevronLeft className="w-6 h-6" /></Button>
         <h1 className="text-xl font-black font-headline ml-4 tracking-widest uppercase text-white drop-shadow-md">Host a Party</h1>
       </header>
 
       <main className="flex-1 px-6 space-y-8 pt-4">
         <section className="space-y-4">
           <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70 ml-1">Party Cover</Label>
-          <div 
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full aspect-video rounded-[2.5rem] bg-white/40 backdrop-blur-xl border-4 border-white/60 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-2xl transition-all active:scale-95"
-          >
-            {formData.coverPhoto ? (
-              <Image src={formData.coverPhoto} alt="Cover" fill className="object-cover" />
-            ) : (
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-lg"><Camera className="w-6 h-6 text-primary" /></div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Upload Cover</span>
-              </div>
-            )}
+          <div onClick={() => fileInputRef.current?.click()} className="w-full aspect-video rounded-[2.5rem] bg-white/40 backdrop-blur-xl border-4 border-white/60 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-2xl transition-all active:scale-95">
+            {formData.coverPhoto ? (<Image src={formData.coverPhoto} alt="Cover" fill className="object-cover" />) : (<div className="flex flex-col items-center gap-3"><div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-lg"><Camera className="w-6 h-6 text-primary" /></div><span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Upload Cover</span></div>)}
             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
           </div>
         </section>
@@ -186,62 +170,29 @@ export default function CreatePartyPage() {
         <div className="bg-white/60 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/50 shadow-2xl space-y-6">
           <div className="space-y-3">
             <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Party Name</Label>
-            <Input 
-              placeholder="e.g., Chill Beats & Chat" 
-              value={formData.title}
-              onChange={(e) => setFormData(p => ({ ...p, title: e.target.value.slice(0, 20) }))}
-              className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner focus-visible:ring-primary/30"
-            />
+            <Input placeholder="e.g., Chill Beats & Chat" value={formData.title} onChange={(e) => setFormData(p => ({ ...p, title: e.target.value.slice(0, 20) }))} className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner focus-visible:ring-primary/30" />
           </div>
-
           <div className="space-y-3">
-            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Capacity</Label>
+            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Initial Capacity</Label>
             <Select value={formData.maxSeats} onValueChange={(v) => setFormData(p => ({ ...p, maxSeats: v }))}>
-              <SelectTrigger className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner focus:ring-primary/30">
-                <SelectValue placeholder="Select Seat Count" />
-              </SelectTrigger>
+              <SelectTrigger className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner focus:ring-primary/30"><SelectValue placeholder="Select Seat Count" /></SelectTrigger>
               <SelectContent className="rounded-2xl border-none shadow-2xl">
-                <SelectItem value="4" className="font-bold">4 Seats (Small)</SelectItem>
-                <SelectItem value="8" className="font-bold">8 Seats (Standard)</SelectItem>
-                <SelectItem value="12" className="font-bold">12 Seats (Large)</SelectItem>
-                <SelectItem value="16" className="font-bold">16 Seats (Pro)</SelectItem>
+                <SelectItem value="4" className="font-bold">4 Seats</SelectItem>
+                <SelectItem value="8" className="font-bold">8 Seats</SelectItem>
+                <SelectItem value="12" className="font-bold">12 Seats</SelectItem>
+                <SelectItem value="16" className="font-bold">16 Seats</SelectItem>
               </SelectContent>
             </Select>
           </div>
-
-          <div className="space-y-3">
-            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Tag</Label>
-            <Input 
-              placeholder="e.g., Chill" 
-              value={formData.tags}
-              onChange={(e) => setFormData(p => ({ ...p, tags: e.target.value.slice(0, 10) }))}
-              className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner focus-visible:ring-primary/30"
-            />
-          </div>
-
           <div className="space-y-3">
             <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Announcement</Label>
-            <Textarea 
-              placeholder="Welcome everyone to the party!" 
-              value={formData.announcement}
-              onChange={(e) => setFormData(p => ({ ...p, announcement: e.target.value.slice(0, 200) }))}
-              className="min-h-[120px] rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner focus-visible:ring-primary/30 py-4"
-            />
+            <Textarea placeholder="Welcome everyone to the party!" value={formData.announcement} onChange={(e) => setFormData(p => ({ ...p, announcement: e.target.value.slice(0, 200) }))} className="min-h-[120px] rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner focus-visible:ring-primary/30 py-4" />
           </div>
         </div>
 
         <div className="pt-6 pb-10">
-          <Button 
-            onClick={handleCreate}
-            disabled={!formData.title.trim() || isCreating}
-            className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-[0_15px_40px_rgba(0,0,0,0.2)] transition-all active:scale-95 gap-3", darkMaroon)}
-          >
-            {isCreating ? <Loader2 className="w-6 h-6 animate-spin" /> : (
-              <>
-                <span>Create for {ROOM_CREATION_COST}</span>
-                <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-[10px] italic">S</div>
-              </>
-            )}
+          <Button onClick={handleCreate} disabled={!formData.title.trim() || isCreating} className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all active:scale-95 gap-3", darkMaroon)}>
+            {isCreating ? <Loader2 className="w-6 h-6 animate-spin" /> : (<><span>Create for {ROOM_CREATION_COST}</span><div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-[10px] italic">S</div></>)}
           </Button>
         </div>
       </main>
@@ -249,9 +200,7 @@ export default function CreatePartyPage() {
       <Dialog open={!!imageToCrop} onOpenChange={(open) => !open && !isCropping && setImageToCrop(null)}>
         <DialogContent className="rounded-[2.5rem] bg-white border-none p-0 max-w-[95%] mx-auto shadow-2xl overflow-hidden">
           <DialogHeader className="p-6"><DialogTitle className="text-xl font-black font-headline text-center uppercase tracking-widest">Crop Cover</DialogTitle></DialogHeader>
-          <div className="relative w-full aspect-video bg-zinc-950">
-            {imageToCrop && <Cropper image={imageToCrop} crop={crop} zoom={zoom} aspect={16/9} onCropChange={setCrop} onCropComplete={onCropComplete} onZoomChange={setZoom} />}
-          </div>
+          <div className="relative w-full aspect-video bg-zinc-950">{imageToCrop && <Cropper image={imageToCrop} crop={crop} zoom={zoom} aspect={16/9} onCropChange={setCrop} onCropComplete={onCropComplete} onZoomChange={setZoom} />}</div>
           <div className="p-6 space-y-6">
             <input type="range" value={zoom} min={1} max={3} step={0.1} aria-labelledby="Zoom" onChange={(e) => setZoom(Number(e.target.value))} className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-primary" />
             <DialogFooter className="flex gap-3">

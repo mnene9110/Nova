@@ -3,7 +3,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Star, Coins, Check, ShieldCheck, Loader2, Sparkles, LayoutDashboard } from "lucide-react"
+import { ChevronLeft, Star, Coins, Check, ShieldCheck, Loader2, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc, updateDoc, writeBatch, increment as firestoreIncrement, collection } from "firebase/firestore"
@@ -11,11 +11,11 @@ import { ref, update, runTransaction as runRtdbTransaction } from "firebase/data
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
-const HOST_SUBSCRIPTION_COST = 5000
+const HOST_SUBSCRIPTION_COST = 4000
 
 const HOST_PERKS = [
   "Create unlimited party rooms",
-  "Appoint room moderators/admins",
+  "Appoint room assistants/moderators",
   "Earn diamonds from room gifts",
   "Special 'Official Host' profile badge",
   "Priority room listing in Discover",
@@ -36,11 +36,11 @@ export default function SubscribeHostPage() {
   const handleSubscribe = async () => {
     if (!currentUser || !profile || isSubscribing || !database) return
 
-    if (profile.coinBalance < HOST_SUBSCRIPTION_COST) {
+    if ((profile.coinBalance || 0) < HOST_SUBSCRIPTION_COST) {
       toast({
         variant: "destructive",
         title: "Insufficient Coins",
-        description: "Recharge to become an official host.",
+        description: `You need ${HOST_SUBSCRIPTION_COST} coins to become a host.`,
         action: <Button variant="outline" size="sm" onClick={() => router.push('/recharge')}>Buy Coins</Button>
       })
       return
@@ -48,7 +48,6 @@ export default function SubscribeHostPage() {
 
     setIsSubscribing(true)
     try {
-      // 1. RTDB Balance Update (Atomic)
       const userCoinRef = ref(database, `users/${currentUser.uid}/coinBalance`);
       const balanceResult = await runRtdbTransaction(userCoinRef, (current) => {
         if (current === null) return current;
@@ -58,7 +57,6 @@ export default function SubscribeHostPage() {
 
       if (!balanceResult.committed) throw new Error("INSUFFICIENT_COINS");
 
-      // 2. Firestore Profile & Transaction Sync
       const batch = writeBatch(firestore);
       const txRef = doc(collection(userProfileRef!, "transactions"));
       
@@ -78,7 +76,6 @@ export default function SubscribeHostPage() {
 
       await batch.commit();
 
-      // 3. Update RTDB Flag
       await update(ref(database, `users/${currentUser.uid}`), {
         isPartyAdmin: true
       });
