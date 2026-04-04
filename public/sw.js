@@ -1,17 +1,15 @@
-// Service Worker for MatchFlow PWA
-// satisfies PWA installation requirements
+// Standard PWA Service Worker for MatchFlow
+const CACHE_NAME = 'matchflow-v1';
 
 self.addEventListener('install', (event) => {
-  console.log('MatchFlow SW: Installing...');
-  self.skipWaiting();
+  console.log('[SW] Installed');
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('MatchFlow SW: Activated.');
-  event.waitUntil(clients.claim());
+  console.log('[SW] Activated');
 });
 
 self.addEventListener('fetch', (event) => {
-  // Fetch event listener is required for PWA installation
-  // We don't cache assets here to ensure users always have the latest Vercel build
+  // Let the browser handle the requests normally
+  // This is required for the "Add to Home Screen" prompt
 });

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -20,14 +21,14 @@ export default function IncomePage() {
   const [isExchanging, setIsExchanging] = useState(false)
   const [diamondBalance, setDiamondBalance] = useState(0)
 
-  // DIAMONDS IN REALTIME: Listen to RTDB balance
+  // DIAMONDS IN REALTIME: Listen to RTDB balance as primary source
   useEffect(() => {
     if (!database || !currentUser) return
     const diamondRef = ref(database, `users/${currentUser.uid}/diamondBalance`)
     return onValue(diamondRef, (snap) => setDiamondBalance(snap.val() || 0))
   }, [database, currentUser])
 
-  // Fetch Diamond Transactions History from Firestore
+  // Fetch Diamond Transactions History from Firestore (Audit log)
   const historyQuery = useMemoFirebase(() => {
     if (!firestore || !currentUser) return null
     return query(
@@ -53,7 +54,7 @@ export default function IncomePage() {
     try {
       // 1. RTDB Atomic Transaction (Primary Source for Balances)
       const userRef = ref(database, `users/${currentUser.uid}`)
-      await runRtdbTransaction(userRef, (current) => {
+      const rtdbResult = await runRtdbTransaction(userRef, (current) => {
         if (!current) return current;
         if ((current.diamondBalance || 0) < diamondsToDeduct) return undefined;
         return {
@@ -62,6 +63,8 @@ export default function IncomePage() {
           coinBalance: (current.coinBalance || 0) + coinsToGain
         }
       });
+
+      if (!rtdbResult.committed) throw new Error("Insufficient diamond balance");
 
       // 2. Firestore Backup Sync & Log (Secondary Audit)
       const profileRef = doc(firestore, "userProfiles", currentUser.uid);

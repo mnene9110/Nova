@@ -22,42 +22,31 @@ service cloud.firestore {
       return isAuthenticated() && exists(/databases/$(database)/documents/userProfiles/$(request.auth.uid)) && getUserData(request.auth.uid).get('isCoinseller', false) == true;
     }
 
-    function isPartyAdmin() {
-      return isAuthenticated() && exists(/databases/$(database)/documents/userProfiles/$(request.auth.uid)) && getUserData(request.auth.uid).get('isPartyAdmin', false) == true;
-    }
-
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
     match /userProfiles/{userId} {
+      // Anyone authenticated can read profiles (needed for discovery/chat)
       allow read: if isAuthenticated();
       
-      allow create: if isOwner(userId) && (
-        !request.resource.data.hasAny(['isAdmin', 'isCoinseller', 'isSupport', 'isPartyAdmin']) || 
-        (request.resource.data.get('isAdmin', false) == false && 
-         request.resource.data.get('isCoinseller', false) == false && 
-         request.resource.data.get('isSupport', false) == false &&
-         request.resource.data.get('isPartyAdmin', false) == false)
-      );
+      // Only the owner can create their initial profile
+      allow create: if isOwner(userId);
 
-      allow update: if (
-        isOwner(userId) && (
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'isCoinseller', 'isSupport', 'isPartyAdmin'])
-        )
-      ) || isAdmin();
+      // Owner or Admin can update profile data
+      allow update: if isOwner(userId) || isAdmin();
 
-      allow delete: if isOwner(userId) || isAdmin();
-
+      // Transactions subcollection
       match /transactions/{transactionId} {
-        allow get, list: if isOwner(userId) || isAdmin() || isSupport();
-        allow create: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || isCoinseller());
+        // Owner, Admin, or Support can view transaction history
+        allow read: if isOwner(userId) || isAdmin() || isSupport();
+        // Any authenticated user can create a transaction (e.g. for gifting)
+        // Note: Real balance security is enforced via RTDB transactions
+        allow create: if isAuthenticated();
       }
 
       match /blockedUsers/{blockedId} {
-        allow get: if isAuthenticated() && (request.auth.uid == userId || request.auth.uid == blockedId);
-        allow list: if isOwner(userId);
-        allow write: if isOwner(userId);
+        allow read, write: if isOwner(userId);
       }
     }
 
@@ -75,10 +64,7 @@ service cloud.firestore {
 
     match /partyRooms/{roomId} {
       allow read: if isAuthenticated();
-      allow create: if isPartyAdmin() || isAdmin();
-      // Allow any user to update the room (primarily for memberCount)
-      allow update: if isAuthenticated();
-      allow delete: if isAdmin() || (isAuthenticated() && resource.data.hostId == request.auth.uid);
+      allow write: if isAuthenticated();
     }
 
     match /{path=**} {
