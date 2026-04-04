@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { RotateCcw, Globe, Loader2, CheckCircle } from "lucide-react"
+import { RotateCcw, Globe, Loader2, CheckCircle, Sparkles, Trophy } from "lucide-react"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { collection, query, limit, getDocs, startAfter, orderBy, DocumentData, QueryDocumentSnapshot, where, doc } from "firebase/firestore"
 import { ref, update, get } from "firebase/database"
@@ -226,7 +226,7 @@ export default function DiscoverPage() {
 
   return (
     <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32">
-      <div className="sticky top-0 z-30 px-4 py-6 bg-transparent shrink-0">
+      <div className="sticky top-0 z-30 px-4 py-6 bg-transparent shrink-0 space-y-4">
         <div className="flex items-center gap-3">
           <div className="flex-1 h-14 bg-white/40 backdrop-blur-md border border-white/30 rounded-full p-1 flex items-center shadow-lg shadow-black/5">
             <button 
@@ -253,6 +253,28 @@ export default function DiscoverPage() {
             className="w-14 h-14 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-center active:rotate-180 transition-all duration-500 shadow-lg shadow-black/5"
           >
             {isInitialLoading ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : <RotateCcw className="w-4 h-4 text-gray-400" />}
+          </button>
+        </div>
+
+        {/* Action Buttons Row */}
+        <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-500">
+          <button 
+            onClick={() => router.push('/mystery-note')}
+            className="h-14 bg-white/40 backdrop-blur-md border border-white/30 rounded-[1.5rem] flex items-center justify-center gap-2 shadow-lg shadow-black/5 active:scale-95 transition-all"
+          >
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-amber-600" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#5A1010]">Mystery Note</span>
+          </button>
+          <button 
+            onClick={() => router.push('/task-center')}
+            className="h-14 bg-white/40 backdrop-blur-md border border-white/30 rounded-[1.5rem] flex items-center justify-center gap-2 shadow-lg shadow-black/5 active:scale-95 transition-all"
+          >
+            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Trophy className="w-4 h-4 text-primary" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#5A1010]">Task Center</span>
           </button>
         </div>
       </div>
