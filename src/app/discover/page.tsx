@@ -248,10 +248,10 @@ export default function DiscoverPage() {
       </div>
 
       {/* 2. Navigation Row - Sticky pinned to top */}
-      <div className="sticky top-0 z-30 px-4 py-4 shrink-0">
-        <div className="absolute inset-0 bg-[#B36666]/10 backdrop-blur-xl -z-10" />
+      <div className="sticky top-0 z-30 px-4 py-2 shrink-0">
+        {/* Background removed to use screen background */}
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-16 bg-white/30 border border-white/20 rounded-full p-1.5 flex items-center shadow-lg">
+          <div className="flex-1 h-16 bg-white/30 backdrop-blur-xl border border-white/20 rounded-full p-1.5 flex items-center shadow-lg">
             <button 
               onClick={() => setActiveTab('recommend')}
               className={cn(
@@ -274,7 +274,7 @@ export default function DiscoverPage() {
           
           <button 
             onClick={handleRefresh} 
-            className="w-16 h-16 rounded-full bg-white/30 border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-lg"
+            className="w-16 h-16 rounded-full bg-white/30 backdrop-blur-xl border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-lg"
           >
             {isInitialLoading ? (
               <Loader2 className="w-5 h-5 animate-spin text-[#8B0000]" />
