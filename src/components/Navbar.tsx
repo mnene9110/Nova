@@ -6,35 +6,33 @@ import { usePathname } from "next/navigation"
 import { Home, MessageCircle, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useFirebase, useUser } from "@/firebase"
-import { ref, onValue } from "firebase/database"
+import { collection, query, where, onSnapshot } from "firebase/firestore"
 
 export function Navbar() {
   const pathname = usePathname()
-  const { database } = useFirebase()
+  const { firestore } = useFirebase()
   const { user: currentUser } = useUser()
   const [totalUnread, setTotalUnread] = useState(0)
 
   useEffect(() => {
-    if (!database || !currentUser) return
+    if (!firestore || !currentUser) return
 
-    const userChatsRef = ref(database, `users/${currentUser.uid}/chats`)
-    return onValue(userChatsRef, (snapshot) => {
-      const data = snapshot.val()
-      if (data) {
-        let count = 0
-        Object.values(data).forEach((chat: any) => {
-          if (chat.unreadCount) {
-            count += chat.unreadCount
-          }
-        })
-        setTotalUnread(count)
-      } else {
-        setTotalUnread(0)
-      }
+    const chatsQuery = query(
+      collection(firestore, "chats"),
+      where("participants", "array-contains", currentUser.uid)
+    )
+
+    return onSnapshot(chatsQuery, (snapshot) => {
+      let count = 0
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data()
+        const unread = data[`unreadCount_${currentUser.uid}`] || 0
+        count += unread
+      })
+      setTotalUnread(count)
     })
-  }, [database, currentUser])
+  }, [firestore, currentUser])
 
-  // Hide Navbar on sub-pages and specific routes to keep main navigation clean
   const hiddenRoutes = [
     "/welcome",
     "/login",

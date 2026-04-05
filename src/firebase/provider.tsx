@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -88,7 +87,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
     const userRef = doc(firestore, "userProfiles", userAuthState.user.uid);
     
-    // Set online
+    // Set online initially
     updateDoc(userRef, { 
       isOnline: true, 
       lastActiveAt: serverTimestamp() 
@@ -103,11 +102,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     };
 
     window.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', () => {
-      // Best effort offline update
-      updateDoc(userRef, { isOnline: false }).catch(() => {});
-    });
-
+    
+    // Visibility state might change when closing tab or minimizing
     return () => {
       window.removeEventListener('visibilitychange', handleVisibilityChange);
       updateDoc(userRef, { isOnline: false }).catch(() => {});

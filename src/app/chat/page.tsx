@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef } from "react"
@@ -15,9 +14,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-
-export function clearChatCache() {}
-export function clearProfileCache() {}
 
 function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: (id: string) => void }) {
   const { firestore } = useFirebase()
@@ -153,7 +149,6 @@ export default function ChatListPage() {
     
     return onSnapshot(chatsQuery, (snapshot) => {
       const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
-      // FILTER: Only show if I've texted them OR I have unread messages
       const filtered = list.filter((s: any) => {
         const isHidden = s[`hidden_${currentUser.uid}`] === true
         const hasSent = s[`userHasSent_${currentUser.uid}`] === true
@@ -162,6 +157,8 @@ export default function ChatListPage() {
       })
       setSessions(filtered)
       setHasFetched(true)
+    }, (error) => {
+      console.error("Chat list snapshot error:", error)
     })
   }, [firestore, currentUser])
 
