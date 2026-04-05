@@ -1,9 +1,8 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { RotateCcw, Globe, Loader2, CheckCircle, Sparkles, ClipboardList, MessageCircle } from "lucide-react"
+import { RotateCcw, Globe, Loader2, CheckCircle, Sparkles, ClipboardList } from "lucide-react"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { collection, query, where, limit, getDocs, doc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
@@ -125,8 +124,8 @@ export default function DiscoverPage() {
             className="group relative flex flex-col items-center justify-center h-28 bg-white/80 backdrop-blur-xl border border-white rounded-[2.25rem] shadow-lg shadow-black/5 active:scale-95 transition-all overflow-hidden"
           >
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="w-10 h-10 rounded-2xl bg-red-50 flex items-center justify-center shadow-inner">
-                <ClipboardList className="w-5 h-5 text-red-500" />
+              <div className="w-10 h-10 rounded-2xl bg-red flex items-center justify-center shadow-inner">
+                <ClipboardList className="w-5 h-5 text-white" />
               </div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-red-950/60">Task Center</span>
             </div>
@@ -186,9 +185,9 @@ export default function DiscoverPage() {
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute top-4 right-4 w-9 h-9 bg-white/20 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl flex items-center justify-center z-10 active:scale-90 transition-all"
+              className="absolute top-4 right-4 px-3 h-8 bg-white/20 backdrop-blur-xl border border-white/20 shadow-lg rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
             >
-              <MessageCircle className="w-4 h-4 text-white" />
+              <span className="text-[9px] font-black text-white uppercase tracking-widest">Chat</span>
             </button>
 
             {/* User Info Overlay */}

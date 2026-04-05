@@ -1,4 +1,3 @@
-
 "use client"
 
 import { 
@@ -79,7 +78,7 @@ export default function ProfilePage() {
       <header className="flex flex-col items-center pt-12 pb-8 px-6 shrink-0 relative">
         <div className="relative mb-6 group">
           <div className="absolute -inset-1 bg-gradient-to-tr from-red-500 to-amber-500 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-          <Avatar className="w-32 h-32 border-4 border-white shadow-2xl relative bg-white">
+          <Avatar className="w-32 h-32 shadow-2xl relative bg-white">
             {userImage && <AvatarImage src={userImage} className="object-cover" />}
             <AvatarFallback className="bg-red-50 text-red-500 font-black text-3xl">{userProfile?.username?.[0]}</AvatarFallback>
           </Avatar>
@@ -142,7 +141,7 @@ export default function ProfilePage() {
               onClick={() => router.push('/profile/income')} 
               className="w-full h-10 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 transition-all"
             >
-              <span className="text-[10px] font-black uppercase tracking-widest">Withdraw</span>
+              <span className="text-[10px] font-black uppercase tracking-widest">Income</span>
             </Button>
           </div>
         </div>
