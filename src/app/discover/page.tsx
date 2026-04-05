@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -67,7 +66,10 @@ export default function DiscoverPage() {
         return;
       }
 
-      const allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Filter out support users and self client-side to ensure privacy
+      const allUsers = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter((u: any) => u.isSupport !== true && u.id !== currentUser.uid);
       
       const onlineUsers = allUsers.filter((u: any) => u.isOnline === true);
       const offlineUsers = allUsers.filter((u: any) => u.isOnline !== true);
