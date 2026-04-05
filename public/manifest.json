@@ -1,12 +1,12 @@
-
 {
   "name": "MatchFlow",
   "short_name": "MatchFlow",
-  "description": "Connect with Heart through genuine video and audio interactions.",
+  "description": "Connect with Heart",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#B36666",
   "theme_color": "#B36666",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -17,7 +17,8 @@
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
