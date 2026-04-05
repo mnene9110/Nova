@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -43,7 +42,7 @@ export default function DiscoverPage() {
     
     if (isRefresh) {
       setIsInitialLoading(true);
-    } else if (cachedInitialLoaded) {
+    } else if (cachedInitialLoaded && !isRefresh) {
       setIsInitialLoading(false);
       return;
     }
@@ -52,8 +51,6 @@ export default function DiscoverPage() {
       const currentGender = (currentUserProfile?.gender || 'male').toLowerCase()
       const targetGender = currentGender === 'male' ? 'female' : 'male'
 
-      // We query by gender. Filtering for isSupport and self is done client-side 
-      // because Firestore doesn't support != across multiple fields easily without composite indexes.
       const usersQuery = query(
         collection(firestore, "userProfiles"),
         where("gender", "==", targetGender),
@@ -68,6 +65,7 @@ export default function DiscoverPage() {
         return;
       }
 
+      // Filter out support users and yourself
       const allUsers = snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
         .filter((u: any) => u.isSupport !== true && u.id !== currentUser.uid);

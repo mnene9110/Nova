@@ -1,4 +1,3 @@
-
 "use client"
 
 import { ChevronLeft, ChevronRight, ShieldCheck, CreditCard, MessageSquare, Ban, Info, BellOff, Zap, ShieldAlert } from "lucide-react"
@@ -18,6 +17,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
 export default function SettingsPage() {
@@ -77,10 +77,22 @@ export default function SettingsPage() {
 
         <div className="pt-6">
           <AlertDialog>
-            <AlertDialogTrigger asChild><button className="w-full flex items-center justify-center gap-2 py-5 px-3 bg-red-50/50 border border-red-100/50 rounded-[1.75rem] transition-all active:scale-[0.98] group"><span className="text-xs font-black uppercase tracking-widest text-red-500">Sign Out</span></button></AlertDialogTrigger>
+            <AlertDialogTrigger asChild>
+              <button className="w-full flex items-center justify-center gap-2 py-5 px-3 bg-red-50/50 border border-red-100/50 rounded-[1.75rem] transition-all active:scale-[0.98] group">
+                <span className="text-xs font-black uppercase tracking-widest text-red-500">Sign Out</span>
+              </button>
+            </AlertDialogTrigger>
             <AlertDialogContent className="rounded-[2.5rem] max-w-[85%] md:max-w-sm bg-white border-none shadow-2xl">
-              <AlertDialogHeader><AlertDialogTitle className="font-headline font-black text-xl text-gray-900 text-center">Sign Out?</AlertDialogTitle><AlertDialogDescription className="text-gray-400 font-medium text-xs leading-relaxed text-center">{isGuest ? "You are currently in Guest Mode. We recommend binding an email to never lose your coins." : "Are you sure you want to sign out?"}</AlertDialogDescription></AlertDialogHeader>
-              <AlertDialogFooter className="flex flex-col gap-2 mt-6"><AlertDialogAction onClick={handleSignOut} className="rounded-full h-14 bg-red-500 hover:bg-red-600 text-white font-black text-sm w-full">Sign Out</AlertDialogAction><AlertDialogCancel className="rounded-full h-14 border-none bg-gray-50 font-black text-sm text-gray-400 hover:bg-gray-100 w-full">Cancel</AlertDialogCancel></AlertDialogFooter>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="font-headline font-black text-xl text-gray-900 text-center">Sign Out?</AlertDialogTitle>
+                <AlertDialogDescription className="text-gray-400 font-medium text-xs leading-relaxed text-center">
+                  {isGuest ? "You are currently in Guest Mode. We recommend binding an email to never lose your coins." : "Are you sure you want to sign out?"}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="flex flex-col gap-2 mt-6">
+                <AlertDialogAction onClick={handleSignOut} className="rounded-full h-14 bg-red-500 hover:bg-red-600 text-white font-black text-sm w-full">Sign Out</AlertDialogAction>
+                <AlertDialogCancel className="rounded-full h-14 border-none bg-gray-50 font-black text-sm text-gray-400 hover:bg-gray-100 w-full">Cancel</AlertDialogCancel>
+              </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         </div>

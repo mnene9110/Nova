@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
@@ -44,7 +43,7 @@ function RechargeContent() {
   }, [searchParams, toast])
 
   const handlePayWithPesapal = async () => {
-    if (!selectedPackage || !user) return;
+    if (!selectedPackage || !user || !firestore) return;
     
     setIsProcessing(true)
     const email = user.email || `guest_${user.uid.slice(0, 8)}@matchflow.app`
