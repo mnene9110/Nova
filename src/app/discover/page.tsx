@@ -109,7 +109,7 @@ export default function DiscoverPage() {
 
   return (
     <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32 relative">
-      <div className="px-4 pt-8 pb-4 shrink-0 space-y-6">
+      <div className="px-4 pt-4 pb-4 shrink-0 space-y-6">
         <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4 duration-700">
           <button 
             onClick={() => router.push('/mystery-note')}
