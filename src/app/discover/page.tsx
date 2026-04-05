@@ -1,8 +1,9 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { RotateCcw, Globe, Loader2, CheckCircle, Sparkles, ClipboardList } from "lucide-react"
+import { RotateCcw, Globe, Loader2, CheckCircle, Sparkles, ClipboardList, MessageCircle } from "lucide-react"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { collection, query, where, limit, getDocs, doc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
@@ -65,7 +66,6 @@ export default function DiscoverPage() {
         return;
       }
 
-      // Filter out support users and yourself
       const allUsers = snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
         .filter((u: any) => u.isSupport !== true && u.id !== currentUser.uid);
@@ -108,39 +108,46 @@ export default function DiscoverPage() {
     : mappedUsers;
 
   return (
-    <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32 relative">
-      <div className="px-4 pt-4 pb-4 shrink-0 space-y-6">
-        <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4 duration-700">
+    <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32 relative scroll-smooth">
+      {/* Dynamic Header Actions */}
+      <div className="px-5 pt-4 pb-2 shrink-0">
+        <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
-            className="flex flex-col items-center justify-center gap-3 h-32 bg-[#B91C1C] rounded-[2.5rem] shadow-2xl shadow-black/20 active:scale-95 transition-all group"
+            className="group relative flex flex-col items-center justify-center h-28 bg-gradient-to-br from-[#EF4444] to-[#B91C1C] rounded-[2.25rem] shadow-xl shadow-red-500/10 active:scale-95 transition-all overflow-hidden"
           >
-            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center transition-transform group-hover:scale-110">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none" />
+            <div className="relative z-10 flex flex-col items-center gap-2">
+              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white">Mystery Note</span>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Mystery Note</span>
           </button>
           
           <button 
             onClick={() => router.push('/task-center')}
-            className="flex flex-col items-center justify-center gap-3 h-32 bg-[#FEE2E2] rounded-[2.5rem] shadow-2xl shadow-black/5 active:scale-95 transition-all group"
+            className="group relative flex flex-col items-center justify-center h-28 bg-white/80 backdrop-blur-xl border border-white rounded-[2.25rem] shadow-lg shadow-black/5 active:scale-95 transition-all overflow-hidden"
           >
-            <div className="w-10 h-10 rounded-full bg-[#B91C1C]/10 flex items-center justify-center transition-transform group-hover:scale-110">
-              <ClipboardList className="w-5 h-5 text-[#B91C1C]" />
+            <div className="relative z-10 flex flex-col items-center gap-2">
+              <div className="w-10 h-10 rounded-2xl bg-red-50 flex items-center justify-center shadow-inner">
+                <ClipboardList className="w-5 h-5 text-red-500" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-red-950/60">Task Center</span>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#B91C1C]">Task Center</span>
           </button>
         </div>
       </div>
 
-      <div className="sticky top-0 z-30 px-4 py-4 shrink-0">
-        <div className="flex items-center gap-3 bg-white/10 backdrop-blur-2xl border border-white/10 rounded-full p-1.5 shadow-2xl shadow-black/20 animate-in fade-in slide-in-from-top-2 duration-700">
-          <div className="flex-1 h-14 bg-black/20 rounded-full flex items-center p-1">
+      {/* Floating Tab Bar */}
+      <div className="sticky top-0 z-30 px-5 py-4 shrink-0">
+        <div className="flex items-center gap-3 bg-white/20 backdrop-blur-3xl border border-white/20 rounded-full p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.1)]">
+          <div className="flex-1 h-14 bg-black/10 rounded-full flex items-center p-1">
             <button 
               onClick={() => setActiveTab('recommend')}
               className={cn(
-                "flex-1 h-full rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-                activeTab === 'recommend' ? "bg-white text-[#B91C1C] shadow-lg" : "text-white/60"
+                "flex-1 h-full rounded-full text-[10px] font-black uppercase tracking-[0.15em] transition-all",
+                activeTab === 'recommend' ? "bg-white text-red-600 shadow-md" : "text-white/70"
               )}
             >
               Recommend
@@ -148,8 +155,8 @@ export default function DiscoverPage() {
             <button 
               onClick={() => setActiveTab('nearby')}
               className={cn(
-                "flex-1 h-full rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-                activeTab === 'nearby' ? "bg-white text-[#B91C1C] shadow-lg" : "text-white/60"
+                "flex-1 h-full rounded-full text-[10px] font-black uppercase tracking-[0.15em] transition-all",
+                activeTab === 'nearby' ? "bg-white text-red-600 shadow-md" : "text-white/70"
               )}
             >
               Nearby
@@ -159,7 +166,7 @@ export default function DiscoverPage() {
           <button 
             onClick={handleRefresh} 
             disabled={isInitialLoading}
-            className="w-14 h-14 rounded-full bg-[#B91C1C] border border-white/10 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-lg text-white disabled:opacity-50"
+            className="w-14 h-14 rounded-full bg-white/90 border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-sm text-red-600 disabled:opacity-50"
           >
             {isInitialLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -170,48 +177,70 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      <main className="px-4 grid grid-cols-2 gap-3 pb-8 flex-1 mt-2">
+      {/* Discovery Grid */}
+      <main className="px-5 grid grid-cols-2 gap-4 pb-8 flex-1 mt-2">
         {displayUsers.map((user) => (
-          <div key={user.id} className="group relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden bg-white/20 shadow-md transition-transform active:scale-95" onClick={() => router.push(`/profile/${user.id}`)}>
+          <div 
+            key={user.id} 
+            className="group relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden bg-white/10 shadow-md transition-all hover:shadow-xl active:scale-[0.98]" 
+            onClick={() => router.push(`/profile/${user.id}`)}
+          >
+            {/* Image Layer */}
             <div className="absolute inset-0 z-0">
-              <Image src={user.image} alt={user.name} fill className="object-cover transition-transform group-hover:scale-110 duration-700" data-ai-hint="dating profile photo" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+              <Image 
+                src={user.image} 
+                alt={user.name} 
+                fill 
+                className="object-cover transition-transform group-hover:scale-110 duration-[1500ms]" 
+                data-ai-hint="dating profile photo" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             </div>
 
+            {/* Online Badge */}
             {user.isOnline && (
-              <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-1 bg-black/40 backdrop-blur-md rounded-full border border-white/10 z-10">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-50 animate-pulse" />
-                <span className="text-[7px] font-black text-white uppercase tracking-tighter">Online</span>
+              <div className="absolute top-4 left-4 flex items-center gap-1.5 px-2.5 py-1 bg-black/30 backdrop-blur-md rounded-full border border-white/10 z-10">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.6)]" />
+                <span className="text-[7px] font-black text-white uppercase tracking-wider">Online</span>
               </div>
             )}
 
+            {/* Quick Action */}
             <button 
               onClick={(e) => { 
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute top-3 right-3 h-8 px-4 bg-red-500/40 backdrop-blur-md border border-white/20 shadow-lg rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
+              className="absolute top-4 right-4 w-9 h-9 bg-white/20 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl flex items-center justify-center z-10 active:scale-90 transition-all"
             >
-              <span className="text-[8px] font-black text-white uppercase tracking-[0.1em]">Chat</span>
+              <MessageCircle className="w-4 h-4 text-white" />
             </button>
 
-            <div className="absolute inset-x-0 bottom-0 p-4 z-10 pointer-events-none">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <div className="flex items-center gap-1">
-                  <h3 className="text-white font-black text-xs truncate max-w-[80px]">{user.name}</h3>
-                  {user.isVerified && <CheckCircle className="w-3 h-3 text-blue-400 fill-blue-400/20" />}
+            {/* User Info Overlay */}
+            <div className="absolute inset-x-0 bottom-0 p-5 z-10 pointer-events-none">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-white font-black text-sm tracking-tight truncate max-w-[100px] drop-shadow-md">
+                    {user.name}
+                  </h3>
+                  {user.isVerified && (
+                    <CheckCircle className="w-3.5 h-3.5 text-blue-400 fill-blue-400/10" />
+                  )}
                 </div>
-              </div>
-              <div className="flex items-center gap-1 opacity-80">
-                <Globe className="w-2.5 h-2.5 text-white/60" />
-                <span className="text-[8px] font-bold text-white uppercase tracking-wider">{user.location}</span>
+                <div className="flex items-center gap-1.5 opacity-90">
+                  <Globe className="w-3 h-3 text-white/60" />
+                  <span className="text-[9px] font-bold text-white/80 uppercase tracking-[0.1em]">
+                    {user.location}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         ))}
 
+        {/* Loading States */}
         {isInitialLoading && Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="aspect-[3/4.2] rounded-[2.5rem] bg-white/20 animate-pulse" />
+          <div key={i} className="aspect-[3/4.2] rounded-[2.5rem] bg-white/10 animate-pulse border border-white/5" />
         ))}
       </main>
     </div>
