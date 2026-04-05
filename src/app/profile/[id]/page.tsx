@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
@@ -25,8 +24,9 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { useFirebase, useUser } from "@/firebase"
+import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { ref, onValue, push, set, serverTimestamp as rtdbTimestamp } from "firebase/database"
+import { doc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
@@ -48,28 +48,19 @@ import { useToast } from "@/hooks/use-toast"
 export default function ProfileDetailPage() {
   const { id } = useParams()
   const router = useRouter()
-  const { database } = useFirebase()
+  const { database, firestore } = useFirebase()
   const { user: currentUser } = useUser()
   const { toast } = useToast()
   
-  const [userProfile, setUserProfile] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const targetDocRef = useMemoFirebase(() => id ? doc(firestore, "userProfiles", id as string) : null, [firestore, id])
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc(targetDocRef)
+  
   const [presence, setPresence] = useState<{ online: boolean; lastSeen?: number }>({ online: false })
   const [showReportDialog, setShowReportDialog] = useState(false)
   const [reportDetails, setReportDetails] = useState("")
   const [isSubmittingReport, setIsSubmittingReport] = useState(false)
   
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!database || !id) return
-    const profileRef = ref(database, `users/${id}`)
-    const unsub = onValue(profileRef, (snap) => {
-      setUserProfile(snap.val())
-      setIsLoading(false)
-    })
-    return () => unsub()
-  }, [database, id])
 
   useEffect(() => {
     if (!database || !id) return
@@ -156,7 +147,7 @@ export default function ProfileDetailPage() {
     }
   }
 
-  if (isLoading || !currentUser) return <div className="flex items-center justify-center h-svh bg-white"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+  if (isProfileLoading) return <div className="flex items-center justify-center h-svh bg-white"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
   
   if (!userProfile) return (
     <div className="flex flex-col items-center justify-center h-svh p-6 text-center space-y-6 bg-white">

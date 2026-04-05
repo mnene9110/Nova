@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useCallback } from "react"
@@ -10,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { useUser, useFirebase } from "@/firebase"
 import { ref, set as setRtdb } from "firebase/database"
+import { doc, setDoc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 
@@ -29,11 +29,11 @@ export default function FullOnboardingPage() {
   
   const router = useRouter()
   const { user } = useUser()
-  const { database } = useFirebase()
+  const { database, firestore } = useFirebase()
   const { toast } = useToast()
 
   const handleSave = useCallback(async () => {
-    if (!user || !name || !dob || !gender || !country || !lookingFor || !database) return
+    if (!user || !name || !dob || !gender || !country || !lookingFor || !database || !firestore) return
 
     const birthDate = new Date(dob)
     const today = new Date()
@@ -65,9 +65,9 @@ export default function FullOnboardingPage() {
       relationshipGoal: lookingFor,
       location: country,
       profilePhotoUrls: [`https://picsum.photos/seed/${user.uid}/600/800`],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      lastActiveAt: Date.now(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      lastActiveAt: new Date().toISOString(),
       interests: ["Nature", "Adventure"],
       coinBalance: 500,
       diamondBalance: 0,
@@ -76,12 +76,29 @@ export default function FullOnboardingPage() {
       isSupport: false,
       isAgent: false,
       isVerified: false,
-      inCall: false
+      agencyJoinStatus: "none"
     }
 
-    await setRtdb(ref(database, `users/${user.uid}`), profileData);
+    // 1. Firestore Save
+    await setDoc(doc(firestore, "userProfiles", user.uid), profileData);
+
+    // 2. RTDB Init
+    await setRtdb(ref(database, `users/${user.uid}`), {
+      id: user.uid,
+      numericId,
+      username: name,
+      gender,
+      coinBalance: 500,
+      diamondBalance: 0,
+      isAdmin: false,
+      isCoinseller: false,
+      isSupport: false,
+      isAgent: false,
+      inCall: false
+    });
+
     router.push("/discover")
-  }, [user, name, dob, gender, country, lookingFor, database, router, toast])
+  }, [user, name, dob, gender, country, lookingFor, database, firestore, router, toast])
 
   const darkMaroonText = "text-[#5A1010]";
   const darkMaroonBg = "bg-[#5A1010]";

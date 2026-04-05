@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -6,19 +5,19 @@ import { Mail, Zap, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { useAuth, useUser, initiateAnonymousSignIn, useFirebase } from "@/firebase"
-import { ref, get } from "firebase/database"
+import { doc, getDoc } from "firebase/firestore"
 
 export default function WelcomePage() {
   const router = useRouter()
   const auth = useAuth()
-  const { database } = useFirebase()
+  const { firestore } = useFirebase()
   const { user, isUserLoading } = useUser()
   const [isLoggingIn, setIsLoggingIn] = useState(false)
 
   useEffect(() => {
-    if (user && !isUserLoading && database) {
-      // Check if user has a profile in RTDB
-      get(ref(database, `users/${user.uid}`)).then(snap => {
+    if (user && !isUserLoading && firestore) {
+      // Check if user has a profile in Firestore
+      getDoc(doc(firestore, "userProfiles", user.uid)).then(snap => {
         if (snap.exists()) {
           router.replace("/discover")
         } else {
@@ -26,14 +25,14 @@ export default function WelcomePage() {
         }
       })
     }
-  }, [user, isUserLoading, database, router])
+  }, [user, isUserLoading, firestore, router])
 
   const handleFastLogin = () => {
     setIsLoggingIn(true)
     initiateAnonymousSignIn(auth)
       .then(async (cred) => {
-        if (database) {
-          const snap = await get(ref(database, `users/${cred.user.uid}`))
+        if (firestore) {
+          const snap = await getDoc(doc(firestore, "userProfiles", cred.user.uid))
           if (snap.exists()) {
             router.push("/discover")
           } else {

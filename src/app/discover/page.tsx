@@ -1,11 +1,11 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { RotateCcw, Globe, Loader2, CheckCircle, Sparkles, ClipboardList } from "lucide-react"
-import { useFirebase, useUser } from "@/firebase"
-import { ref, onValue, get, query as rtdbQuery, orderByChild, limitToLast } from "firebase/database"
+import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
+import { ref, onValue, get } from "firebase/database"
+import { collection, query, where, limit, getDocs, doc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -31,26 +31,19 @@ function shuffleArray<T>(array: T[]): T[] {
 
 export default function DiscoverPage() {
   const [activeTab, setActiveTab] = useState<'recommend' | 'nearby'>('recommend')
-  const { database } = useFirebase()
+  const { database, firestore } = useFirebase()
   const { user: currentUser } = useUser()
   const router = useRouter()
 
   const [users, setUsers] = useState<any[]>(cachedUsers)
   const [isInitialLoading, setIsInitialLoading] = useState(!cachedInitialLoaded)
   const [userPresenceMap, setUserPresenceMap] = useState<Record<string, boolean>>(cachedPresenceMap)
-  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null)
-
-  useEffect(() => {
-    if (!database || !currentUser) return;
-    const userRef = ref(database, `users/${currentUser.uid}`);
-    return onValue(userRef, (snap) => {
-      const data = snap.val();
-      if (data) setCurrentUserProfile(data);
-    });
-  }, [database, currentUser]);
+  
+  const userProfileRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser])
+  const { data: currentUserProfile } = useDoc(userProfileRef)
 
   const fetchUsers = async (isRefresh = false) => {
-    if (!database || !currentUser || !currentUserProfile) return;
+    if (!firestore || !currentUser || !currentUserProfile) return;
     
     if (isRefresh) {
       setIsInitialLoading(true);
@@ -63,34 +56,35 @@ export default function DiscoverPage() {
       const currentGender = (currentUserProfile?.gender || 'male').toLowerCase()
       const targetGender = currentGender === 'male' ? 'female' : 'male'
 
-      // RTDB Query: Fetch latest 50 users and filter client-side
-      const usersRef = ref(database, 'users');
-      const q = rtdbQuery(usersRef, orderByChild('createdAt'), limitToLast(50));
-      const snap = await get(q);
+      // Firestore Query: Fetch 50 users of opposite gender
+      const usersQuery = query(
+        collection(firestore, "userProfiles"),
+        where("gender", "==", targetGender),
+        limit(50)
+      );
       
-      if (!snap.exists()) {
+      const snap = await getDocs(usersQuery);
+      
+      if (snap.empty) {
         setUsers([]);
         cachedUsers = [];
         return;
       }
 
-      const allUsers = Object.values(snap.val());
-      const filtered = allUsers.filter((u: any) => 
-        u.id !== currentUser.uid && 
-        u.gender?.toLowerCase() === targetGender &&
-        !u.isSupport
-      );
-
+      const allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      
+      // Fetch presence from RTDB for these users
       const currentMap: Record<string, boolean> = { ...userPresenceMap };
-      filtered.forEach((u: any) => {
-        currentMap[u.id] = u.presence?.online === true;
-      });
+      await Promise.all(allUsers.map(async (u: any) => {
+        const pSnap = await get(ref(database, `users/${u.id}/presence/online`));
+        currentMap[u.id] = pSnap.val() === true;
+      }));
 
       setUserPresenceMap(currentMap);
       cachedPresenceMap = currentMap;
 
-      const onlineUsers = filtered.filter((u: any) => currentMap[u.id]);
-      const offlineUsers = filtered.filter((u: any) => !currentMap[u.id]);
+      const onlineUsers = allUsers.filter((u: any) => currentMap[u.id]);
+      const offlineUsers = allUsers.filter((u: any) => !currentMap[u.id]);
 
       const sorted = [...shuffleArray(onlineUsers), ...shuffleArray(offlineUsers)];
       

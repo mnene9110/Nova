@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -9,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { useUser, useFirebase } from "@/firebase"
 import { ref, set as setRtdb } from "firebase/database"
+import { doc, setDoc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
 
@@ -25,7 +25,7 @@ export default function FastOnboardingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const { user } = useUser()
-  const { database } = useFirebase()
+  const { database, firestore } = useFirebase()
 
   const handleConfirm = async () => {
     if (!user || !gender || !country || isSubmitting) return
@@ -35,8 +35,6 @@ export default function FastOnboardingPage() {
       const numericId = Math.floor(10000000 + Math.random() * 90000000);
       const welcomeCoins = 500;
 
-      // 1. RTDB Init (Primary Source of Truth)
-      const rtdbUserRef = ref(database, `users/${user.uid}`);
       const profileData = {
         id: user.uid,
         numericId,
@@ -45,9 +43,9 @@ export default function FastOnboardingPage() {
         gender,
         location: country,
         profilePhotoUrls: [`https://picsum.photos/seed/${user.uid}/600/800`],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        lastActiveAt: Date.now(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastActiveAt: new Date().toISOString(),
         interests: ["Travel"],
         coinBalance: welcomeCoins,
         diamondBalance: 0,
@@ -57,11 +55,28 @@ export default function FastOnboardingPage() {
         isAgent: false,
         dateOfBirth: "2000-01-01",
         isVerified: false,
-        presence: { online: true, lastSeen: Date.now() },
-        inCall: false
+        agencyJoinStatus: "none"
       }
 
-      await setRtdb(rtdbUserRef, profileData);
+      // 1. Save to Firestore (Primary Profile Store)
+      await setDoc(doc(firestore, "userProfiles", user.uid), profileData);
+
+      // 2. Save minimal data to RTDB (For balances, presence, and rules)
+      await setRtdb(ref(database, `users/${user.uid}`), {
+        id: user.uid,
+        numericId,
+        username: profileData.username,
+        gender: profileData.gender,
+        coinBalance: welcomeCoins,
+        diamondBalance: 0,
+        isAdmin: false,
+        isCoinseller: false,
+        isSupport: false,
+        isAgent: false,
+        presence: { online: true, lastSeen: Date.now() },
+        inCall: false
+      });
+
       router.push("/discover")
     } catch (error) {
       console.error("Fast onboarding failed:", error)

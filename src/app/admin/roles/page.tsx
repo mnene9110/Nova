@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -7,7 +6,8 @@ import { ChevronLeft, Search, Loader2, ShieldCheck, UserCheck, ShieldAlert, Coin
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useUser, useFirebase } from "@/firebase"
-import { ref, get, update as updateRtdb, query, orderByChild, equalTo } from "firebase/database"
+import { ref, get, update as updateRtdb } from "firebase/database"
+import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label"
 export default function ManageRolesPage() {
   const router = useRouter()
   const { user: currentUser } = useUser()
-  const { database } = useFirebase()
+  const { database, firestore } = useFirebase()
   const { toast } = useToast()
 
   const [targetNumericId, setTargetNumericId] = useState("")
@@ -36,20 +36,19 @@ export default function ManageRolesPage() {
   }
 
   const handleSearch = async () => {
-    if (!targetNumericId.trim() || !database) return
+    if (!targetNumericId.trim() || !firestore) return
     setIsSearching(true)
     setFoundUser(null)
     
     try {
-      const q = query(ref(database, 'users'), orderByChild('numericId'), equalTo(Number(targetNumericId)));
-      const snap = await get(q);
+      const q = query(collection(firestore, 'userProfiles'), where('numericId', '==', Number(targetNumericId)));
+      const snap = await getDocs(q);
       
-      if (!snap.exists()) {
+      if (snap.empty) {
         toast({ variant: "destructive", title: "User not found" })
       } else {
-        const id = Object.keys(snap.val())[0];
-        const u = snap.val()[id];
-        setFoundUser({ ...u, docId: id });
+        const u = snap.docs[0].data();
+        setFoundUser({ ...u, docId: snap.docs[0].id });
         if (u.isSupport) setSelectedRole("support")
         else if (u.isCoinseller) setSelectedRole("coinseller")
         else if (u.isAgent) setSelectedRole("agent")
@@ -63,7 +62,7 @@ export default function ManageRolesPage() {
   }
 
   const handleUpdateRole = async () => {
-    if (!foundUser || !selectedRole || isUpdating || !database) return
+    if (!foundUser || !selectedRole || isUpdating || !database || !firestore) return
 
     if (selectedRole === "agent" && foundUser.gender !== "female") {
       toast({ variant: "destructive", title: "Appointment Failed", description: "Only female users can be Agents." })
@@ -76,11 +75,20 @@ export default function ManageRolesPage() {
       const isCoinseller = selectedRole === "coinseller"
       const isAgent = selectedRole === "agent"
 
+      // 1. Sync to RTDB (For rules)
       await updateRtdb(ref(database, `users/${foundUser.id}`), {
         isSupport,
         isCoinseller,
         isAgent,
         updatedAt: Date.now()
+      })
+
+      // 2. Update Firestore (Primary Role Store)
+      await updateDoc(doc(firestore, "userProfiles", foundUser.id), {
+        isSupport,
+        isCoinseller,
+        isAgent,
+        updatedAt: new Date().toISOString()
       })
 
       toast({ title: "Role Updated" })

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -23,8 +22,9 @@ import {
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
-import { useUser, useFirebase } from "@/firebase"
+import { useUser, useFirebase, useDoc, useMemoFirebase } from "@/firebase"
 import { ref, onValue, get, query as rtdbQuery, equalTo, orderByChild } from "firebase/database"
+import { doc } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -32,37 +32,33 @@ import { cn } from "@/lib/utils"
 export default function ProfilePage() {
   const router = useRouter()
   const { user: currentUser } = useUser()
-  const { database } = useFirebase()
+  const { database, firestore } = useFirebase()
   const { toast } = useToast()
   
-  const [userProfile, setUserProfile] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const userRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser])
+  const { data: userProfile, isLoading } = useDoc(userRef)
+  
   const [wallet, setWallet] = useState({ coins: 0, diamonds: 0 })
   const [pendingReportsCount, setPendingReportsCount] = useState(0)
 
   useEffect(() => {
     if (!database || !currentUser) return
-    const meRef = ref(database, `users/${currentUser.uid}`)
+    const coinRef = ref(database, `users/${currentUser.uid}`)
     
-    const unsub = onValue(meRef, (snap) => {
+    return onValue(coinRef, (snap) => {
       const data = snap.val()
       if (data) {
-        setUserProfile(data)
         setWallet({
           coins: data.coinBalance || 0,
           diamonds: data.diamondBalance || 0
         })
       }
-      setIsLoading(false)
     })
-
-    return () => unsub()
   }, [database, currentUser])
 
   useEffect(() => {
     if (!database || !userProfile?.isSupport) return
     const reportsRef = ref(database, 'reports');
-    // For large lists, you would use a cloud function to count, but for a prototype:
     onValue(reportsRef, (snap) => {
       const data = snap.val() || {}
       setPendingReportsCount(Object.values(data).filter((r: any) => r.status === 'pending').length)

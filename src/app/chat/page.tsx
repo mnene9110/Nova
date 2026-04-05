@@ -5,7 +5,8 @@ import { MessageSquare, ChevronRight, CheckCircle, Ban, EyeOff, Loader2, Trash2 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
 import { useFirebase, useUser } from "@/firebase"
-import { ref, onValue, update, query, orderByChild, limitToLast, get } from "firebase/database"
+import { ref, onValue, update, query as rtdbQuery, orderByChild, limitToLast, get } from "firebase/database"
+import { doc, getDoc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -29,7 +30,7 @@ export function clearProfileCache() {
 }
 
 function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: (id: string) => void }) {
-  const { database } = useFirebase()
+  const { database, firestore } = useFirebase()
   const router = useRouter()
   const [otherUserData, setOtherUserData] = useState<any>(profileCache[session.otherUserId] || null)
   const [presence, setPresence] = useState<{ online: boolean; lastSeen?: number }>({ online: false })
@@ -39,7 +40,7 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
 
   useEffect(() => {
     async function fetchUser() {
-      if (!database || !session.otherUserId) return
+      if (!firestore || !session.otherUserId) return
       if (profileCache[session.otherUserId]) {
         setOtherUserData(profileCache[session.otherUserId])
         setIsDataLoaded(true)
@@ -47,10 +48,10 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
       }
 
       try {
-        const userRef = ref(database, `users/${session.otherUserId}`)
-        const snap = await get(userRef)
+        const userRef = doc(firestore, "userProfiles", session.otherUserId)
+        const snap = await getDoc(userRef)
         if (snap.exists()) {
-          const data = snap.val()
+          const data = snap.data()
           profileCache[session.otherUserId] = data
           setOtherUserData(data)
         } else {
@@ -65,7 +66,7 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
       }
     }
     fetchUser()
-  }, [database, session.otherUserId])
+  }, [firestore, session.otherUserId])
 
   useEffect(() => {
     if (!database || !session.otherUserId) return
@@ -191,7 +192,7 @@ export default function ChatListPage() {
     if (!database || !currentUser) return
     
     const userChatsRef = ref(database, `users/${currentUser.uid}/chats`)
-    const recentChatsQuery = query(userChatsRef, orderByChild('timestamp'), limitToLast(50))
+    const recentChatsQuery = rtdbQuery(userChatsRef, orderByChild('timestamp'), limitToLast(50))
     
     return onValue(recentChatsQuery, (snapshot) => {
       const data = snapshot.val()

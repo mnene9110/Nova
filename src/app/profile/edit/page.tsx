@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
@@ -9,8 +8,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useUser, useFirebase } from "@/firebase"
-import { ref, onValue, update } from "firebase/database"
+import { useUser, useFirebase, useDoc, useMemoFirebase } from "@/firebase"
+import { ref, update as updateRtdb } from "firebase/database"
+import { doc, updateDoc } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
@@ -19,63 +19,45 @@ import Cropper from "react-easy-crop"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 
 const COUNTRIES = ["Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya", "Madagascar", "Malawi", "Mauritius", "Mozambique", "Nigeria", "Rwanda", "Seychelles", "Somalia", "South Sudan", "Tanzania", "Uganda", "Zambia", "Zimbabwe"]
-const HOROSCOPES = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
-const EDUCATION_OPTIONS = ["High School", "Vocational", "In College", "Post Graduate", "Doctorate"]
-const GOALS = ["Casual", "Long-term", "Friendship", "Networking"]
-const INTEREST_OPTIONS = ["Music", "Travel", "Movies", "Gaming", "Sports", "Cooking", "Nature", "Art", "Photography", "Fitness"]
 
 export default function EditProfilePage() {
   const router = useRouter()
   const { user: currentUser } = useUser()
-  const { database } = useFirebase()
+  const { database, firestore } = useFirebase()
   const { toast } = useToast()
   
   const mainFileInputRef = useRef<HTMLInputElement>(null)
   const extraPhotosInputRef = useRef<HTMLInputElement>(null)
   
+  const userRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser])
+  const { data: profile, isLoading } = useDoc(userRef)
+
   const [activePhotoSlot, setActivePhotoSlot] = useState<number | null>(null)
   const [imageToCrop, setImageToCrop] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
   const [isCropping, setIsCropping] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
 
   const [formData, setFormData] = useState({
     username: "",
     bio: "",
-    dateOfBirth: "",
     location: "",
-    relationshipGoal: "",
-    education: "",
-    horoscope: "",
-    profilePhotoUrls: [] as string[],
-    interests: [] as string[]
+    profilePhotoUrls: [] as string[]
   })
   
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
-    if (!database || !currentUser) return
-    const meRef = ref(database, `users/${currentUser.uid}`);
-    onValue(meRef, (snap) => {
-      const profile = snap.val()
-      if (profile) {
-        setFormData({
-          username: profile.username || "",
-          bio: profile.bio || "",
-          dateOfBirth: profile.dateOfBirth || "",
-          location: profile.location || "",
-          relationshipGoal: profile.relationshipGoal || "",
-          education: profile.education || "",
-          horoscope: profile.horoscope || "",
-          profilePhotoUrls: profile.profilePhotoUrls || [],
-          interests: profile.interests || []
-        })
-      }
-      setIsLoading(false)
-    }, { onlyOnce: true })
-  }, [database, currentUser])
+    if (profile) {
+      setFormData({
+        username: profile.username || "",
+        bio: profile.bio || "",
+        location: profile.location || "",
+        profilePhotoUrls: profile.profilePhotoUrls || []
+      })
+    }
+  }, [profile])
 
   const onCropComplete = useCallback((_area: any, pixels: any) => setCroppedAreaPixels(pixels), [])
 
@@ -122,14 +104,21 @@ export default function EditProfilePage() {
     })
   }
 
-  const toggleInterest = (interest: string) => setFormData(prev => ({ ...prev, interests: prev.interests?.includes(interest) ? [] : [interest] }))
-
   const handleSave = async () => {
-    if (!currentUser || !database || isSaving) return
+    if (!currentUser || !database || !firestore || isSaving) return
     setIsSaving(true)
     try {
-      const updateData = { ...formData, updatedAt: Date.now() }
-      await update(ref(database, `users/${currentUser.uid}`), updateData)
+      // 1. Update Firestore
+      await updateDoc(doc(firestore, "userProfiles", currentUser.uid), {
+        ...formData,
+        updatedAt: new Date().toISOString()
+      })
+
+      // 2. Sync username to RTDB
+      await updateRtdb(ref(database, `users/${currentUser.uid}`), {
+        username: formData.username
+      })
+
       toast({ title: "Profile Updated" })
       router.push("/profile")
     } catch (error) { toast({ variant: "destructive", title: "Error" }); setIsSaving(false) }
