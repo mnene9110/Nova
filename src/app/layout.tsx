@@ -10,8 +10,7 @@ import { GlobalCallOverlay } from "@/components/GlobalCallOverlay"
 
 /**
  * @fileOverview Root layout component.
- * Optimized to remove browser artifacts like navigation prompts and scroll bounce.
- * Disabled zooming for native-app feel.
+ * Renamed app to Nova.
  */
 
 export default function RootLayout({
@@ -20,14 +19,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   useEffect(() => {
-    // 1. Prevent "Leave Site" browser prompts completely
     window.onbeforeunload = null;
     const preventConfirm = (e: BeforeUnloadEvent) => {
       delete e['returnValue'];
     };
     window.addEventListener('beforeunload', preventConfirm);
 
-    // 2. Robust ServiceWorker registration
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       const registerSW = () => {
         navigator.serviceWorker.register('/sw.js')
@@ -65,10 +62,11 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="MatchFlow" />
+        <meta name="apple-mobile-web-app-title" content="Nova" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+        <title>Nova</title>
       </head>
       <body className="font-body antialiased selection:bg-none">
         <FirebaseClientProvider>

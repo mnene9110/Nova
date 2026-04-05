@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useCallback } from "react"
@@ -42,7 +41,7 @@ export default function FullOnboardingPage() {
       toast({
         variant: "destructive",
         title: "Access Denied",
-        description: "You must be 18 or older to use MatchFlow.",
+        description: "You must be 18 or older to use Nova.",
       })
       return
     }
@@ -160,7 +159,7 @@ export default function FullOnboardingPage() {
             </div>
 
             <div className="space-y-3">
-              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", darkMaroonText)}>Country</Label>
+              <Label className={cn("text-[10px) font-black uppercase ml-1 tracking-widest", darkMaroonText)}>Country</Label>
               <Select onValueChange={setCountry}>
                 <SelectTrigger className="h-16 rounded-[2rem] bg-white border-none text-gray-900 font-bold px-6 shadow-sm">
                   <SelectValue placeholder="Select country" />

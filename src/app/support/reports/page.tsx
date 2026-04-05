@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc, collection, query, where, onSnapshot, updateDoc, serverTimestamp, increment as firestoreIncrement, setDoc } from "firebase/firestore"
 import { format } from "date-fns"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ReviewReportsPage() {
   const router = useRouter()
   const { user: currentUser } = useUser()
   const { firestore } = useFirebase()
+  const { toast } = useToast()
   
   const [reports, setReports] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -47,12 +49,10 @@ export default function ReviewReportsPage() {
       const chatId = [report.reporterId, supportProfile.id].sort().join("_")
       const chatRef = doc(firestore, "chats", chatId)
       const msgRef = doc(collection(chatRef, "messages"))
-      const feedbackText = "✅ Your complaint has been reviewed by our safety team. Thank you for helping keep MatchFlow safe."
+      const feedbackText = "✅ Your complaint has been reviewed by our safety team. Thank you for helping keep Nova safe."
       
-      // 1. Update Report status
       await updateDoc(doc(firestore, "reports", report.id), { status: 'reviewed', reviewedAt: serverTimestamp() })
       
-      // 2. Send feedback message
       await setDoc(msgRef, {
         messageText: feedbackText,
         senderId: supportProfile.id,
@@ -60,7 +60,6 @@ export default function ReviewReportsPage() {
         status: 'sent'
       })
 
-      // 3. Update chat metadata
       await setDoc(chatRef, {
         lastMessage: feedbackText,
         timestamp: serverTimestamp(),

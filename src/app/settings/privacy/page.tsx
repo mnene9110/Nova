@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useRouter } from "next/navigation"
@@ -33,7 +32,7 @@ export default function PrivacyPage() {
         <section className="space-y-4">
           <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">2. Real-time Communication</h2>
           <p className="text-sm font-medium text-gray-600 leading-relaxed">
-            All video and audio calls are end-to-end encrypted. MatchFlow does not record or store your private conversations or calls.
+            All video and audio calls are end-to-end encrypted. Nova does not record or store your private conversations or calls.
           </p>
         </section>
 

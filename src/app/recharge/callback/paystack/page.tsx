@@ -59,7 +59,7 @@ function PaystackCallbackContent({ searchParams }: { searchParams: Promise<any> 
               amount: coinsToGain,
               orderTrackingId: reference,
               transactionDate: new Date().toISOString(),
-              description: `Coin Recharge (${coinsToGain} coins) via Paystack`
+              description: `Nova Coin Recharge (${coinsToGain} coins) via Paystack`
             });
           });
 
