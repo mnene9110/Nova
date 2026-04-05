@@ -66,11 +66,9 @@ function ChatDetailContent() {
   const currentUserProfileRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser])
   const { data: currentUserProfile } = useDoc(currentUserProfileRef)
 
+  // CORRECT PATH: Only reading my own block status. We do NOT read the other user's private block list to avoid rule violations.
   const myBlockRef = useMemoFirebase(() => (currentUser && otherUserId) ? doc(firestore, "userProfiles", currentUser.uid, "blockedUsers", otherUserId) : null, [firestore, currentUser, otherUserId])
   const { data: iBlockedThem } = useDoc(myBlockRef)
-
-  const theirBlockRef = useMemoFirebase(() => (currentUser && otherUserId) ? doc(firestore, "userProfiles", otherUserId, "blockedUsers", currentUser.uid) : null, [firestore, currentUser, otherUserId])
-  const { data: theyBlockedMe } = useDoc(theirBlockRef)
 
   useEffect(() => {
     setMounted(true)
@@ -249,7 +247,7 @@ function ChatDetailContent() {
       const msgData = { 
         messageText: textToUse, 
         senderId: currentUser.uid, 
-        sentAt: rtdbTimestamp(),
+        sentAt: rtdbTimestamp(), 
         status: 'sent'
       }
       updates[`/chats/${chatId}/messages/${msgKey}`] = msgData
@@ -372,7 +370,9 @@ function ChatDetailContent() {
   }
 
   const isOtherUserSupport = otherUser?.isSupport === true
-  const isBlocked = !isOtherUserSupport && (!!iBlockedThem || !!theyBlockedMe)
+  // CORRECTED: Shadow-block logic. We only check if WE blocked them. 
+  // We can't know if they blocked us because that's private in their own profile records.
+  const isBlocked = !isOtherUserSupport && !!iBlockedThem
   const otherUserImage = (otherUser?.profilePhotoUrls && otherUser.profilePhotoUrls[0]) || `https://picsum.photos/seed/${otherUserId}/200/200`
   const otherUserName = isOtherUserSupport ? "Customer Support" : (otherUser?.username || "User")
   const isOtherUserVerified = !!otherUser?.isVerified
@@ -473,7 +473,7 @@ function ChatDetailContent() {
         {isBlocked ? (
           <div className="flex flex-col items-center justify-center py-4 gap-2">
             <Ban className="w-6 h-6 text-red-500" />
-            <p className="text-[11px] font-black uppercase tracking-widest text-red-500">{iBlockedThem ? "User Blocked" : "Chat restricted"}</p>
+            <p className="text-[11px] font-black uppercase tracking-widest text-red-500">User Blocked</p>
           </div>
         ) : (
           <>
