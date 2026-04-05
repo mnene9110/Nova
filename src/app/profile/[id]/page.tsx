@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
@@ -20,7 +21,8 @@ import {
   Calendar,
   Zap,
   Tag,
-  X
+  X,
+  Target
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -94,7 +96,6 @@ export default function ProfileDetailPage() {
   const handleBlock = async () => {
     if (!currentUser || !id || userProfile?.isSupport || userProfile?.isAdmin || !firestore) return
     try {
-      const blockRef = doc(firestore, "userProfiles", currentUser.uid, "blockedUsers", id as string);
       await addDoc(collection(firestore, "userProfiles", currentUser.uid, "blockedUsers"), {
         blockedUserId: id,
         username: userProfile?.username || "Unknown",
@@ -221,10 +222,38 @@ export default function ProfileDetailPage() {
             <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">User Information</h3>
             <div className="grid grid-cols-1 gap-3">
               {userProfile?.bio && <div className="bg-gray-50/50 p-5 rounded-[1.5rem] border border-gray-100"><p className="text-sm font-medium text-gray-600 leading-relaxed italic">"{userProfile.bio}"</p></div>}
-              <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm"><div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary"><Calendar className="w-6 h-6" /></div><div className="flex-1"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Age Status</p><p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{age ? `${age} years old` : "Private"}</p></div></div>
-              <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm"><div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary"><Compass className="w-6 h-6" /></div><div className="flex-1"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Zodiac Sign</p><p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{userProfile?.horoscope || "Not set"}</p></div></div>
-              <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm"><div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary"><GraduationCap className="w-6 h-6" /></div><div className="flex-1"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Education</p><p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{userProfile?.education || "Private"}</p></div></div>
-              <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm"><div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary"><Star className="w-6 h-6" /></div><div className="flex-1"><p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Relationship Goal</p><p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{userProfile?.relationshipGoal || "Networking"}</p></div></div>
+              
+              <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary"><Calendar className="w-6 h-6" /></div>
+                <div className="flex-1">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Age Status</p>
+                  <p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{age ? `${age} years old` : "Private"}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary"><Compass className="w-6 h-6" /></div>
+                <div className="flex-1">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Zodiac Sign</p>
+                  <p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{userProfile?.horoscope || "Not set"}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary"><GraduationCap className="w-6 h-6" /></div>
+                <div className="flex-1">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Education</p>
+                  <p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{userProfile?.education || "Private"}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary"><Target className="w-6 h-6" /></div>
+                <div className="flex-1">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Looking For</p>
+                  <p className="text-sm font-black text-gray-900 uppercase tracking-tighter">{userProfile?.relationshipGoal || "Networking"}</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -233,7 +262,10 @@ export default function ProfileDetailPage() {
               <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Interests</h3>
               <div className="flex flex-wrap gap-2">
                 {userProfile.interests.map((interest: string) => (
-                  <div key={interest} className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-full flex items-center gap-2"><Tag className="w-2.5 h-2.5 text-primary/40" /><span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">{interest}</span></div>
+                  <div key={interest} className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-full flex items-center gap-2">
+                    <Tag className="w-2.5 h-2.5 text-primary/40" />
+                    <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">{interest}</span>
+                  </div>
                 ))}
               </div>
             </div>

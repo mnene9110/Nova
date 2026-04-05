@@ -1,15 +1,15 @@
+
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Camera, Loader2, Save, User, Plus, X, Sparkles, Check } from "lucide-react"
+import { ChevronLeft, Camera, Loader2, Save, User, Plus, X, Sparkles, Check, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useUser, useFirebase, useDoc, useMemoFirebase } from "@/firebase"
-import { ref, update as updateRtdb } from "firebase/database"
 import { doc, updateDoc } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -20,10 +20,33 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 
 const COUNTRIES = ["Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya", "Madagascar", "Malawi", "Mauritius", "Mozambique", "Nigeria", "Rwanda", "Seychelles", "Somalia", "South Sudan", "Tanzania", "Uganda", "Zambia", "Zimbabwe"]
 
+const INTERESTS_OPTIONS = [
+  'Music', 'Travel', 'Sports', 'Movies', 'Gaming', 'Cooking', 
+  'Reading', 'Art', 'Dancing', 'Tech', 'Fashion', 'Fitness', 
+  'Photography', 'Nature', 'Coffee', 'Pets'
+]
+
+const EDUCATION_OPTIONS = [
+  'High School', 'Diploma', "Bachelor's Degree", "Master's Degree", 
+  'Doctorate', 'Self-taught', 'Vocational Training'
+]
+
+const LOOKING_FOR_OPTIONS = [
+  { id: 'long-term', label: 'Long-term' },
+  { id: 'casual', label: 'Casual' },
+  { id: 'friendship', label: 'Friendship' },
+  { id: 'marriage', label: 'Marriage' }
+]
+
+const ZODIAC_OPTIONS = [
+  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 
+  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
+]
+
 export default function EditProfilePage() {
   const router = useRouter()
   const { user: currentUser } = useUser()
-  const { database, firestore } = useFirebase()
+  const { firestore } = useFirebase()
   const { toast } = useToast()
   
   const mainFileInputRef = useRef<HTMLInputElement>(null)
@@ -43,7 +66,11 @@ export default function EditProfilePage() {
     username: "",
     bio: "",
     location: "",
-    profilePhotoUrls: [] as string[]
+    profilePhotoUrls: [] as string[],
+    interests: [] as string[],
+    education: "",
+    relationshipGoal: "",
+    horoscope: ""
   })
   
   const [isSaving, setIsSaving] = useState(false)
@@ -54,7 +81,11 @@ export default function EditProfilePage() {
         username: profile.username || "",
         bio: profile.bio || "",
         location: profile.location || "",
-        profilePhotoUrls: profile.profilePhotoUrls || []
+        profilePhotoUrls: profile.profilePhotoUrls || [],
+        interests: profile.interests || [],
+        education: profile.education || "",
+        relationshipGoal: profile.relationshipGoal || "",
+        horoscope: profile.horoscope || ""
       })
     }
   }, [profile])
@@ -88,7 +119,12 @@ export default function EditProfilePage() {
       const croppedImage = await getCroppedImg()
       if (croppedImage && activePhotoSlot !== null) {
         setFormData(prev => {
-          const newUrls = [...prev.profilePhotoUrls]; newUrls[activePhotoSlot] = croppedImage;
+          const newUrls = [...prev.profilePhotoUrls]; 
+          if (activePhotoSlot < newUrls.length) {
+            newUrls[activePhotoSlot] = croppedImage;
+          } else {
+            newUrls.push(croppedImage);
+          }
           return { ...prev, profilePhotoUrls: newUrls }
         });
         setImageToCrop(null); setActivePhotoSlot(null);
@@ -104,21 +140,23 @@ export default function EditProfilePage() {
     })
   }
 
+  const toggleInterest = (interest: string) => {
+    setFormData(prev => {
+      const newInterests = prev.interests.includes(interest)
+        ? prev.interests.filter(i => i !== interest)
+        : [...prev.interests, interest].slice(0, 5) // Limit to 5
+      return { ...prev, interests: newInterests }
+    })
+  }
+
   const handleSave = async () => {
-    if (!currentUser || !database || !firestore || isSaving) return
+    if (!currentUser || !firestore || isSaving) return
     setIsSaving(true)
     try {
-      // 1. Update Firestore
       await updateDoc(doc(firestore, "userProfiles", currentUser.uid), {
         ...formData,
         updatedAt: new Date().toISOString()
       })
-
-      // 2. Sync username to RTDB
-      await updateRtdb(ref(database, `users/${currentUser.uid}`), {
-        username: formData.username
-      })
-
       toast({ title: "Profile Updated" })
       router.push("/profile")
     } catch (error) { toast({ variant: "destructive", title: "Error" }); setIsSaving(false) }
@@ -173,9 +211,73 @@ export default function EditProfilePage() {
         </section>
 
         <section className="space-y-6 bg-white/60 backdrop-blur-2xl p-7 rounded-[2.5rem] border border-white/50 shadow-2xl">
-          <div className="space-y-3"><Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Full Name</Label><Input value={formData.username} onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))} className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner" /></div>
-          <div className="space-y-3"><Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Bio</Label><Textarea value={formData.bio} onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))} className="min-h-[120px] rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner py-4" /></div>
-          <div className="space-y-3"><Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Country</Label><Select value={formData.location} onValueChange={(val) => setFormData(prev => ({ ...prev, location: val }))}><SelectTrigger className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner"><SelectValue placeholder="Location" /></SelectTrigger><SelectContent className="rounded-2xl">{COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
+          <div className="space-y-3">
+            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Full Name</Label>
+            <Input value={formData.username} onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))} className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner" />
+          </div>
+          
+          <div className="space-y-3">
+            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Bio</Label>
+            <Textarea value={formData.bio} onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))} className="min-h-[120px] rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner py-4" />
+          </div>
+
+          <div className="space-y-3">
+            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Country</Label>
+            <Select value={formData.location} onValueChange={(val) => setFormData(prev => ({ ...prev, location: val }))}>
+              <SelectTrigger className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner"><SelectValue placeholder="Location" /></SelectTrigger>
+              <SelectContent className="rounded-2xl">{COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-3">
+            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Looking For</Label>
+            <Select value={formData.relationshipGoal} onValueChange={(val) => setFormData(prev => ({ ...prev, relationshipGoal: val }))}>
+              <SelectTrigger className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner"><SelectValue placeholder="What are you seeking?" /></SelectTrigger>
+              <SelectContent className="rounded-2xl">{LOOKING_FOR_OPTIONS.map(opt => <SelectItem key={opt.id} value={opt.id}>{opt.label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-3">
+            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Education</Label>
+            <Select value={formData.education} onValueChange={(val) => setFormData(prev => ({ ...prev, education: val }))}>
+              <SelectTrigger className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner"><SelectValue placeholder="Level of education" /></SelectTrigger>
+              <SelectContent className="rounded-2xl">{EDUCATION_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-3">
+            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Zodiac Sign</Label>
+            <Select value={formData.horoscope} onValueChange={(val) => setFormData(prev => ({ ...prev, horoscope: val }))}>
+              <SelectTrigger className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner"><SelectValue placeholder="Your star sign" /></SelectTrigger>
+              <SelectContent className="rounded-2xl">{ZODIAC_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between ml-1">
+              <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Interests (Max 5)</Label>
+              <span className="text-[9px] font-black text-gray-400">{formData.interests.length}/5</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {INTERESTS_OPTIONS.map(interest => {
+                const isSelected = formData.interests.includes(interest);
+                return (
+                  <button 
+                    key={interest}
+                    onClick={() => toggleInterest(interest)}
+                    className={cn(
+                      "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm",
+                      isSelected 
+                        ? "bg-primary text-white border-primary" 
+                        : "bg-white/50 text-gray-500 border-gray-100 hover:bg-white"
+                    )}
+                  >
+                    {interest}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         </section>
       </main>
 
