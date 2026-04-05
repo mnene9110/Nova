@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -11,12 +12,7 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
 
-const TARGET_COUNTRIES = [
-  "Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya", 
-  "Madagascar", "Malawi", "Mauritius", "Mozambique", "Nigeria", 
-  "Rwanda", "Seychelles", "Somalia", "South Sudan", "Tanzania", 
-  "Uganda", "Zambia", "Zimbabwe"
-]
+const TARGET_COUNTRIES = ["Kenya"]
 
 export default function FastOnboardingPage() {
   const [gender, setGender] = useState("")

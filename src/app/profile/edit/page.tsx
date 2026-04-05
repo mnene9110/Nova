@@ -18,7 +18,7 @@ import Image from "next/image"
 import Cropper from "react-easy-crop"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 
-const COUNTRIES = ["Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya", "Madagascar", "Malawi", "Mauritius", "Mozambique", "Nigeria", "Rwanda", "Seychelles", "Somalia", "South Sudan", "Tanzania", "Uganda", "Zambia", "Zimbabwe"]
+const COUNTRIES = ["Kenya"]
 
 const INTERESTS_OPTIONS = [
   'Music', 'Travel', 'Sports', 'Movies', 'Gaming', 'Cooking', 
