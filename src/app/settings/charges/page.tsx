@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useRouter } from "next/navigation"
@@ -9,7 +8,7 @@ export default function ChargeSettingsPage() {
   const router = useRouter()
 
   const charges = [
-    { label: "Text Message", cost: "15", icon: MessageSquare, description: "Per text sent (Male users only)" },
+    { label: "Text Message", cost: "15", icon: MessageSquare, description: "Per text sent" },
     { label: "Video Call", cost: "160", icon: Video, description: "Per minute of connection" },
     { label: "Voice Call", cost: "80", icon: Phone, description: "Per minute of connection" },
   ]
@@ -56,13 +55,6 @@ export default function ChargeSettingsPage() {
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="p-6 bg-blue-50/50 rounded-[2rem] border border-blue-100/50 space-y-2">
-           <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Exemption Policy</p>
-           <p className="text-xs font-medium text-blue-400 leading-relaxed">
-             Messaging is free for Female users and Official staff. Sending messages to Support agents or Coinsellers is always free for all users.
-           </p>
         </div>
       </main>
     </div>
