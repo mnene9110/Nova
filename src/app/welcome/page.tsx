@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -6,16 +7,21 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { useAuth, useUser, initiateAnonymousSignIn, useFirebase } from "@/firebase"
 import { doc, getDoc } from "firebase/firestore"
+import { useToast } from "@/hooks/use-toast"
 
 export default function WelcomePage() {
   const router = useRouter()
   const auth = useAuth()
   const { firestore } = useFirebase()
   const { user, isUserLoading } = useUser()
+  const { toast } = useToast()
+  
   const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const [isNavigatingEmail, setIsNavigatingEmail] = useState(false)
 
   useEffect(() => {
-    if (user && !isUserLoading && firestore) {
+    // Only auto-redirect if we're not currently in the middle of a manual login attempt
+    if (user && !isUserLoading && firestore && !isLoggingIn) {
       getDoc(doc(firestore, "userProfiles", user.uid)).then(snap => {
         if (snap.exists()) {
           router.replace("/discover")
@@ -24,28 +30,39 @@ export default function WelcomePage() {
         }
       })
     }
-  }, [user, isUserLoading, firestore, router])
+  }, [user, isUserLoading, firestore, router, isLoggingIn])
 
-  const handleFastLogin = () => {
+  const handleFastLogin = async () => {
+    if (isLoggingIn || isNavigatingEmail) return
     setIsLoggingIn(true)
-    initiateAnonymousSignIn(auth)
-      .then(async (cred) => {
-        if (firestore) {
-          const snap = await getDoc(doc(firestore, "userProfiles", cred.user.uid))
-          if (snap.exists()) {
-            router.push("/discover")
-          } else {
-            router.push("/onboarding/fast")
-          }
+    
+    try {
+      const cred = await initiateAnonymousSignIn(auth)
+      if (firestore) {
+        const snap = await getDoc(doc(firestore, "userProfiles", cred.user.uid))
+        if (snap.exists()) {
+          router.push("/discover")
+        } else {
+          router.push("/onboarding/fast")
         }
+      }
+    } catch (error: any) {
+      setIsLoggingIn(false)
+      console.error("Fast login failed:", error)
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message || "An error occurred during fast login. Please check your connection.",
       })
-      .catch((error) => {
-        setIsLoggingIn(false)
-        console.error("Fast login failed:", error)
-      })
+    }
   }
 
-  if (isUserLoading || user) {
+  const handleEmailClick = () => {
+    setIsNavigatingEmail(true)
+    router.push("/login")
+  }
+
+  if (isUserLoading || (user && !isLoggingIn)) {
     return (
       <div className="flex h-svh w-full bg-[#B36666]" />
     )
@@ -69,11 +86,23 @@ export default function WelcomePage() {
         <p className="text-[#5A1010]/80 text-[15px] font-black uppercase tracking-[0.1em] leading-relaxed max-w-[240px] mb-12">Connect with Heart</p>
 
         <div className="w-full space-y-4 max-w-xs">
-          <Button className="w-full h-16 rounded-full bg-[#5A1010] text-white hover:bg-[#5A1010]/90 text-lg font-black gap-3 shadow-[0_15px_40px_rgba(0,0,0,0.2)] transition-all active:scale-95" onClick={() => router.push("/login")}>
-            <Mail className="w-6 h-6" /> Continue with Email
+          <Button 
+            className="w-full h-16 rounded-full bg-[#5A1010] text-white hover:bg-[#5A1010]/90 text-lg font-black gap-3 shadow-[0_15px_40px_rgba(0,0,0,0.2)] transition-all active:scale-95 flex items-center justify-center" 
+            onClick={handleEmailClick}
+            disabled={isNavigatingEmail || isLoggingIn}
+          >
+            {isNavigatingEmail ? <Loader2 className="w-6 h-6 animate-spin" /> : <Mail className="w-6 h-6" />}
+            Continue with Email
           </Button>
-          <Button variant="ghost" className="w-full h-16 rounded-full bg-white/40 text-gray-900 border border-white/30 hover:bg-white/60 text-lg font-black gap-3 transition-all active:scale-95 backdrop-blur-md shadow-sm" onClick={handleFastLogin} disabled={isLoggingIn}>
-            {isLoggingIn ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6 fill-current text-primary" />} Fast Login
+          
+          <Button 
+            variant="ghost" 
+            className="w-full h-16 rounded-full bg-white/40 text-gray-900 border border-white/30 hover:bg-white/60 text-lg font-black gap-3 transition-all active:scale-95 backdrop-blur-md shadow-sm flex items-center justify-center" 
+            onClick={handleFastLogin} 
+            disabled={isLoggingIn || isNavigatingEmail}
+          >
+            {isLoggingIn ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6 fill-current text-primary" />}
+            Fast Login
           </Button>
         </div>
       </main>
