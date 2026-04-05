@@ -70,17 +70,17 @@ export default function ProfilePage() {
   const userImage = (userProfile?.profilePhotoUrls && userProfile?.profilePhotoUrls[0]) || ""
   const isVerified = !!userProfile?.isVerified
 
-  if (isLoading) return <div className="flex h-svh items-center justify-center bg-transparent"><Loader2 className="w-8 h-8 animate-spin text-white" /></div>
+  if (isLoading) return <div className="flex h-svh items-center justify-center bg-transparent"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
 
   return (
     <div className="flex flex-col h-svh w-full bg-transparent text-gray-900 overflow-y-auto scroll-smooth">
       {/* Premium Header */}
       <header className="flex flex-col items-center pt-12 pb-8 px-6 shrink-0 relative">
         <div className="relative mb-6 group">
-          <div className="absolute -inset-1 bg-gradient-to-tr from-red-500 to-amber-500 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-          <Avatar className="w-32 h-32 shadow-2xl relative bg-white">
+          <div className="absolute -inset-1 bg-gradient-to-tr from-sky-500 to-teal-500 rounded-full blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+          <Avatar className="w-32 h-32 relative bg-white">
             {userImage && <AvatarImage src={userImage} className="object-cover" />}
-            <AvatarFallback className="bg-red-50 text-red-500 font-black text-3xl">{userProfile?.username?.[0]}</AvatarFallback>
+            <AvatarFallback className="bg-sky-50 text-primary font-black text-3xl">{userProfile?.username?.[0]}</AvatarFallback>
           </Avatar>
           <button 
             onClick={() => router.push('/profile/edit')} 
@@ -104,8 +104,8 @@ export default function ProfilePage() {
             onClick={copyId} 
             className="flex items-center gap-2 px-4 py-1.5 bg-white/40 backdrop-blur-md border border-white/30 rounded-full active:scale-95 transition-all"
           >
-            <span className="text-[10px] font-black text-green-600 uppercase tracking-[0.2em]">ID: {userProfile?.numericId || '---'}</span>
-            <Copy className="w-3 h-3 text-green-600/40" />
+            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">ID: {userProfile?.numericId || '---'}</span>
+            <Copy className="w-3 h-3 text-primary/40" />
           </button>
         </div>
       </header>
@@ -115,15 +115,15 @@ export default function ProfilePage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="relative group overflow-hidden bg-white/60 backdrop-blur-2xl border border-white rounded-[2.5rem] p-6 flex flex-col items-center gap-3 shadow-xl transition-all hover:bg-white/80">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-red-500/10 flex items-center justify-center">
-                <Coins className="w-3.5 h-3.5 text-red-500" />
+              <div className="w-6 h-6 rounded-full bg-sky-500/10 flex items-center justify-center">
+                <Coins className="w-3.5 h-3.5 text-primary" />
               </div>
               <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Coin Wallet</span>
             </div>
             <span className="text-3xl font-black text-gray-900 font-headline tracking-tighter">{(userProfile?.coinBalance || 0).toLocaleString()}</span>
             <Button 
               onClick={() => router.push('/recharge')} 
-              className="w-full h-10 rounded-2xl bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20 active:scale-95 transition-all"
+              className="w-full h-10 rounded-2xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-sky-500/20 active:scale-95 transition-all"
             >
               <span className="text-[10px] font-black uppercase tracking-widest">Recharge</span>
             </Button>
@@ -154,14 +154,14 @@ export default function ProfilePage() {
             onClick={() => router.push('/games')} 
             className="w-full h-20 rounded-[2.25rem] bg-white border border-white shadow-sm flex items-center px-6 gap-5 active:scale-[0.98] transition-all group"
           >
-            <div className="w-12 h-12 rounded-2xl bg-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/20 group-hover:scale-110 transition-transform">
+            <div className="w-12 h-12 rounded-2xl bg-sky-500 flex items-center justify-center shadow-lg shadow-sky-500/20 group-hover:scale-110 transition-transform">
               <Gamepad2 className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1 text-left">
               <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[11px] block">Games Center</span>
               <span className="text-gray-400 text-[10px] font-medium uppercase tracking-tighter">Lucky Spin & Daily Bets</span>
             </div>
-            <ChevronRight className="w-5 h-5 text-gray-200 group-hover:text-purple-500 transition-colors" />
+            <ChevronRight className="w-5 h-5 text-gray-200 group-hover:text-primary transition-colors" />
           </button>
 
           {userProfile?.isAgent && (
@@ -199,15 +199,15 @@ export default function ProfilePage() {
           {userProfile?.isSupport && (
             <button 
               onClick={() => router.push('/support/reports')} 
-              className="w-full h-20 rounded-[2.25rem] bg-red-500 border border-red-400 shadow-xl flex items-center px-6 gap-5 active:scale-[0.98] transition-all group"
+              className="w-full h-20 rounded-[2.25rem] bg-sky-600 border border-sky-400 shadow-xl flex items-center px-6 gap-5 active:scale-[0.98] transition-all group"
             >
               <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center relative">
                 <ClipboardList className="w-6 h-6 text-white" />
-                {pendingReportsCount > 0 && <div className="absolute -top-1 -right-1 w-3 h-3 bg-zinc-900 rounded-full border-2 border-red-500" />}
+                {pendingReportsCount > 0 && <div className="absolute -top-1 -right-1 w-3 h-3 bg-zinc-900 rounded-full border-2 border-sky-500" />}
               </div>
               <div className="flex-1 text-left">
                 <span className="text-white font-black uppercase tracking-[0.1em] text-[11px] block">Review Reports</span>
-                <span className="text-red-100 text-[10px] font-medium uppercase tracking-tighter">Handle user complaints</span>
+                <span className="text-sky-100 text-[10px] font-medium uppercase tracking-tighter">Handle user complaints</span>
               </div>
               <ChevronRight className="w-5 h-5 text-white/40" />
             </button>
@@ -235,7 +235,7 @@ export default function ProfilePage() {
                 onClick={() => router.push('/admin/award')} 
                 className="w-full h-20 rounded-[2.25rem] bg-white border border-white shadow-sm flex items-center px-6 gap-5 active:scale-[0.98] transition-all group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-red-500 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-sky-500 flex items-center justify-center">
                   <Zap className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex-1 text-left">
@@ -248,8 +248,8 @@ export default function ProfilePage() {
                 onClick={() => router.push('/admin/roles')} 
                 className="w-full h-20 rounded-[2.25rem] bg-zinc-900 border border-zinc-800 shadow-xl flex items-center px-6 gap-5 active:scale-[0.98] transition-all group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-red-500/20 flex items-center justify-center border border-red-500/10">
-                  <ShieldAlert className="w-6 h-6 text-red-500" />
+                <div className="w-12 h-12 rounded-2xl bg-sky-500/20 flex items-center justify-center border border-sky-500/10">
+                  <ShieldAlert className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1 text-left">
                   <span className="text-white font-black uppercase tracking-[0.1em] text-[11px] block">Security Panel</span>
@@ -282,7 +282,7 @@ export default function ProfilePage() {
             onClick={handleContactSupport} 
             className="w-full h-16 rounded-[1.75rem] bg-white/40 backdrop-blur-md border border-white/30 flex items-center px-6 gap-4 shadow-sm group active:scale-[0.98] transition-all"
           >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm text-red-500">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm text-primary">
               <Headset className="w-5 h-5" />
             </div>
             <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px] flex-1 text-left">Customer Care</span>

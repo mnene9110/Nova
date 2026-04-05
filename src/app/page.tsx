@@ -6,7 +6,7 @@ import { useUser } from "@/firebase"
 
 /**
  * @fileOverview Root entry point that handles initial routing.
- * Optimized to prevent "blinking" by matching the global background theme.
+ * Updated to Pastel Blue fallback.
  */
 export default function Home() {
   const { user, isUserLoading } = useUser()
@@ -22,8 +22,7 @@ export default function Home() {
     }
   }, [user, isUserLoading, router])
 
-  // Use the app's theme background to prevent a white/black flash during transition
   return (
-    <div className="flex h-svh w-full bg-[#EF4444]" />
+    <div className="flex h-svh w-full bg-[#BAE6FD]" />
   )
 }

@@ -108,7 +108,7 @@ export default function DiscoverPage() {
         <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
-            className="group relative flex flex-col items-center justify-center h-28 bg-gradient-to-br from-[#EF4444] to-[#B91C1C] rounded-[2.25rem] shadow-xl shadow-red-500/10 active:scale-95 transition-all overflow-hidden"
+            className="group relative flex flex-col items-center justify-center h-28 bg-gradient-to-br from-[#0EA5E9] to-[#0369A1] rounded-[2.25rem] shadow-xl shadow-sky-500/10 active:scale-95 transition-all overflow-hidden"
           >
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none" />
             <div className="relative z-10 flex flex-col items-center gap-2">
@@ -124,10 +124,10 @@ export default function DiscoverPage() {
             className="group relative flex flex-col items-center justify-center h-28 bg-white/80 backdrop-blur-xl border border-white rounded-[2.25rem] shadow-lg shadow-black/5 active:scale-95 transition-all overflow-hidden"
           >
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="w-10 h-10 rounded-2xl bg-red flex items-center justify-center shadow-inner">
-                <ClipboardList className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-2xl bg-sky-50 flex items-center justify-center shadow-inner">
+                <ClipboardList className="w-5 h-5 text-primary" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-red-950/60">Task Center</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-sky-950/60">Task Center</span>
             </div>
           </button>
         </div>
@@ -135,12 +135,12 @@ export default function DiscoverPage() {
 
       {/* Simplified Header */}
       <div className="sticky top-0 z-30 px-5 py-4 shrink-0">
-        <div className="flex items-center justify-between bg-white/20 backdrop-blur-3xl border border-white/20 rounded-full h-16 px-6 shadow-[0_8px_32px_rgba(0,0,0,0.1)]">
-          <h2 className="text-white font-black uppercase tracking-[0.2em] text-[11px]">Recommended For You</h2>
+        <div className="flex items-center justify-between bg-white/20 backdrop-blur-3xl border border-white/20 rounded-full h-16 px-6 shadow-[0_8px_32px_rgba(0,0,0,0.05)]">
+          <h2 className="text-sky-900 font-black uppercase tracking-[0.2em] text-[11px]">Recommended For You</h2>
           <button 
             onClick={handleRefresh} 
             disabled={isInitialLoading}
-            className="w-10 h-10 rounded-full bg-white/90 border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-sm text-red-600 disabled:opacity-50"
+            className="w-10 h-10 rounded-full bg-white/90 border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-sm text-primary disabled:opacity-50"
           >
             {isInitialLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -185,7 +185,7 @@ export default function DiscoverPage() {
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute top-4 right-4 px-3 h-8 bg-white/20 backdrop-blur-xl border border-white/20 shadow-lg rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
+              className="absolute top-4 right-4 px-4 h-8 bg-white/20 backdrop-blur-xl border border-white/20 shadow-lg rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
             >
               <span className="text-[9px] font-black text-white uppercase tracking-widest">Chat</span>
             </button>

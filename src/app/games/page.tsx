@@ -17,11 +17,11 @@ import { cn } from "@/lib/utils"
 const GAME_BETS = [20, 50, 100, 200, 500]
 
 const SEGMENT_COLORS = [
-  '#eae56f', '#89f26e', '#7de6ef', '#e7706f', 
-  '#f2a65a', '#f2c65a', '#a65af2', '#5af2a6',
-  '#f25a5a', '#5a89f2', '#f25ad5', '#5af2ef',
-  '#b2f25a', '#f29b5a', '#5a62f2', '#f2e15a',
-  '#5af284', '#a65af2'
+  '#BAE6FD', '#7DD3FC', '#38BDF8', '#0EA5E9', 
+  '#0284C7', '#0369A1', '#075985', '#0C4A6E',
+  '#BAE6FD', '#7DD3FC', '#38BDF8', '#0EA5E9', 
+  '#0284C7', '#0369A1', '#075985', '#0C4A6E',
+  '#BAE6FD', '#7DD3FC'
 ]
 
 const WHEEL_CONFIGS = {
@@ -159,40 +159,40 @@ export default function GamesCenterPage() {
     }
   }
 
-  const darkRed = "bg-[#7F1D1D]";
+  const primaryBlue = "bg-primary";
 
   return (
     <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden relative">
       <header className="px-4 py-6 flex items-center sticky top-0 bg-transparent z-50 shrink-0">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-gray-900 h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
-        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-white drop-shadow-md">Games Center</h1>
+        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-sky-900 drop-shadow-md">Games Center</h1>
       </header>
 
       <main className="flex-1 overflow-y-auto px-6 pt-2 pb-40 space-y-10 scroll-smooth">
         <section className="bg-zinc-900 rounded-[3rem] p-8 text-white shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 p-6 opacity-10"><Gamepad2 className="w-32 h-32" /></div>
           <div className="relative z-10 space-y-4">
-            <div className="flex items-center gap-3"><Coins className="w-5 h-5 text-amber-500" /><span className="text-[10px] font-black uppercase tracking-widest text-amber-500">Your Wallet</span></div>
+            <div className="flex items-center gap-3"><Coins className="w-5 h-5 text-primary" /><span className="text-[10px] font-black uppercase tracking-widest text-primary">Your Wallet</span></div>
             <span className="text-5xl font-black font-headline tracking-tighter">{userCoins.toLocaleString()}</span>
           </div>
         </section>
 
         <section className="space-y-6">
           <div className="flex items-center justify-between px-2">
-            <div className="flex items-center gap-2"><Dice5 className="w-4 h-4 text-purple-500" /><h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Lucky Spin Wheel</h2></div>
+            <div className="flex items-center gap-2"><Dice5 className="w-4 h-4 text-primary" /><h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Lucky Spin Wheel</h2></div>
           </div>
 
           <div className="relative w-full aspect-square max-w-[320px] mx-auto">
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-12 bg-zinc-900 rounded-b-full z-20 shadow-xl border-4 border-white flex items-center justify-center"><div className="w-2 h-6 bg-amber-500 rounded-full" /></div>
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-12 bg-zinc-900 rounded-b-full z-20 shadow-xl border-4 border-white flex items-center justify-center"><div className="w-2 h-6 bg-primary rounded-full" /></div>
             <div onTransitionEnd={handleAnimationEnd} style={{ transform: `rotate(${rotation}deg)`, transitionTimingFunction: 'cubic-bezier(0.15, 0, 0.15, 1)' }} className="w-full h-full transition-transform duration-[6000ms] shadow-2xl rounded-full overflow-hidden"><canvas ref={canvasRef} width={400} height={400} className="w-full h-full" /></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center border-4 border-amber-500/30 z-10 shadow-xl"><Trophy className={cn("w-6 h-6 text-amber-500", isSpinning && "scale-110 animate-pulse")} /></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center border-4 border-sky-500/30 z-10 shadow-xl"><Trophy className={cn("w-6 h-6 text-primary", isSpinning && "scale-110 animate-pulse")} /></div>
           </div>
 
           <div className="grid grid-cols-5 gap-2">
-            {GAME_BETS.map((bet) => (<button key={bet} onClick={() => !isSpinning && setSelectedBet(bet)} className={cn("h-12 rounded-2xl flex items-center justify-center transition-all border-2 font-black text-[10px]", selectedBet === bet ? "bg-purple-600 border-purple-400 text-white" : "bg-white border-gray-100 text-gray-400")}>{bet}</button>))}
+            {GAME_BETS.map((bet) => (<button key={bet} onClick={() => !isSpinning && setSelectedBet(bet)} className={cn("h-12 rounded-2xl flex items-center justify-center transition-all border-2 font-black text-[10px]", selectedBet === bet ? "bg-primary border-sky-400 text-white" : "bg-white border-gray-100 text-gray-400")}>{bet}</button>))}
           </div>
 
-          <Button onClick={handleLuckySpin} disabled={!selectedBet || isSpinning || userCoins < (selectedBet || 0)} className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all", selectedBet && userCoins >= selectedBet ? darkRed : "bg-gray-200 text-gray-400")}>
+          <Button onClick={handleLuckySpin} disabled={!selectedBet || isSpinning || userCoins < (selectedBet || 0)} className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all", selectedBet && userCoins >= selectedBet ? primaryBlue : "bg-gray-200 text-gray-400")}>
             {isSpinning ? "SPINNING..." : "PLACE BET"}
           </Button>
         </section>
@@ -200,7 +200,7 @@ export default function GamesCenterPage() {
 
       {gameResult && (
         <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-8 animate-in fade-in duration-500 text-center space-y-6">
-          {gameResult.winner ? (<><div className="w-32 h-32 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto border-4 border-amber-500 animate-bounce"><Trophy className="w-16 h-16 text-amber-500" /></div><div className="space-y-2"><h2 className="text-5xl font-black font-headline text-green-500 uppercase">WON!</h2><p className="text-white font-bold text-xl">{gameResult.pot} COINS</p></div></>) : (<><div className="w-32 h-32 bg-red-500/10 rounded-full flex items-center justify-center mx-auto border-4 border-red-500/20"><Dice5 className="w-16 h-16 text-red-500/40" /></div><h2 className="text-4xl font-black font-headline text-white/40 uppercase">LOST</h2></>)}
+          {gameResult.winner ? (<><div className="w-32 h-32 bg-primary/20 rounded-full flex items-center justify-center mx-auto border-4 border-primary animate-bounce"><Trophy className="w-16 h-16 text-primary" /></div><div className="space-y-2"><h2 className="text-5xl font-black font-headline text-primary uppercase">WON!</h2><p className="text-white font-bold text-xl">{gameResult.pot} COINS</p></div></>) : (<><div className="w-32 h-32 bg-sky-500/10 rounded-full flex items-center justify-center mx-auto border-4 border-sky-500/20"><Dice5 className="w-16 h-16 text-sky-500/40" /></div><h2 className="text-4xl font-black font-headline text-white/40 uppercase">LOST</h2></>)}
           <Button onClick={() => setGameResult(null)} className="mt-10 rounded-full bg-white text-zinc-900 px-12 h-14 font-black uppercase text-xs tracking-widest">CLOSE</Button>
         </div>
       )}
