@@ -27,7 +27,6 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 export default function DiscoverPage() {
-  const [activeTab, setActiveTab] = useState<'recommend' | 'nearby'>('recommend')
   const { firestore } = useFirebase()
   const { user: currentUser } = useUser()
   const router = useRouter()
@@ -103,10 +102,6 @@ export default function DiscoverPage() {
     image: (u.profilePhotoUrls && u.profilePhotoUrls[0]) || `https://picsum.photos/seed/${u.id}/400/600`
   }))
 
-  const displayUsers = activeTab === 'nearby' && currentUserProfile?.location
-    ? mappedUsers.filter(u => u.location.toLowerCase() === currentUserProfile.location.toLowerCase())
-    : mappedUsers;
-
   return (
     <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32 relative scroll-smooth">
       {/* Dynamic Header Actions */}
@@ -139,39 +134,19 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Floating Tab Bar */}
+      {/* Simplified Header */}
       <div className="sticky top-0 z-30 px-5 py-4 shrink-0">
-        <div className="flex items-center gap-3 bg-white/20 backdrop-blur-3xl border border-white/20 rounded-full p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.1)]">
-          <div className="flex-1 h-14 bg-black/10 rounded-full flex items-center p-1">
-            <button 
-              onClick={() => setActiveTab('recommend')}
-              className={cn(
-                "flex-1 h-full rounded-full text-[10px] font-black uppercase tracking-[0.15em] transition-all",
-                activeTab === 'recommend' ? "bg-white text-red-600 shadow-md" : "text-white/70"
-              )}
-            >
-              Recommend
-            </button>
-            <button 
-              onClick={() => setActiveTab('nearby')}
-              className={cn(
-                "flex-1 h-full rounded-full text-[10px] font-black uppercase tracking-[0.15em] transition-all",
-                activeTab === 'nearby' ? "bg-white text-red-600 shadow-md" : "text-white/70"
-              )}
-            >
-              Nearby
-            </button>
-          </div>
-          
+        <div className="flex items-center justify-between bg-white/20 backdrop-blur-3xl border border-white/20 rounded-full h-16 px-6 shadow-[0_8px_32px_rgba(0,0,0,0.1)]">
+          <h2 className="text-white font-black uppercase tracking-[0.2em] text-[11px]">Recommended For You</h2>
           <button 
             onClick={handleRefresh} 
             disabled={isInitialLoading}
-            className="w-14 h-14 rounded-full bg-white/90 border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-sm text-red-600 disabled:opacity-50"
+            className="w-10 h-10 rounded-full bg-white/90 border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-sm text-red-600 disabled:opacity-50"
           >
             {isInitialLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <RotateCcw className="w-5 h-5" />
+              <RotateCcw className="w-4 h-4" />
             )}
           </button>
         </div>
@@ -179,7 +154,7 @@ export default function DiscoverPage() {
 
       {/* Discovery Grid */}
       <main className="px-5 grid grid-cols-2 gap-4 pb-8 flex-1 mt-2">
-        {displayUsers.map((user) => (
+        {mappedUsers.map((user) => (
           <div 
             key={user.id} 
             className="group relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden bg-white/10 shadow-md transition-all hover:shadow-xl active:scale-[0.98]" 
