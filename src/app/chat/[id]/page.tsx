@@ -1,9 +1,8 @@
-
 "use client"
 
 import { useState, useEffect, useRef, useMemo, Suspense } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { ChevronLeft, Video, Send, Phone, Loader2, Gift, CheckCircle, UserX, ArrowUp, Zap } from "lucide-react"
+import { ChevronLeft, Video, Send, Phone, Loader2, Gift, CheckCircle, UserX, ArrowUp, Zap, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -359,7 +358,14 @@ function ChatDetailContent() {
                           <div className="absolute bottom-4 right-4 italic font-black text-sky-500 text-2xl">x 1</div>
                         </div>
                         {isMe && (
-                          <button onClick={() => { const gift = GIFTS.find(g => g.id === msg.giftId); if (gift) handleSendGift(gift); }} disabled={isSendingGift} className="w-full h-12 bg-[#00AEEF] hover:bg-[#009EDF] text-white font-black text-sm uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
+                          <button 
+                            onClick={() => {
+                              const gift = GIFTS.find(g => g.id === msg.giftId);
+                              if (gift) handleSendGift(gift);
+                            }}
+                            disabled={isSendingGift}
+                            className="w-full h-12 bg-[#00AEEF] hover:bg-[#009EDF] text-white font-black text-sm uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                          >
                             {isSendingGift ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send one more"}
                           </button>
                         )}
@@ -400,14 +406,26 @@ function ChatDetailContent() {
                 </button>
               </SheetTrigger>
               <SheetContent side="bottom" className="rounded-t-[3rem] h-[75svh] p-0 border-none bg-zinc-900 text-white overflow-hidden flex flex-col">
-                <SheetHeader className="px-6 pt-8 pb-4 shrink-0"><SheetTitle className="text-xs font-black uppercase tracking-widest text-zinc-400">Select a Gift</SheetTitle></SheetHeader>
+                <SheetHeader className="px-6 pt-8 pb-4 shrink-0">
+                  <SheetTitle className="text-xs font-black uppercase tracking-widest text-zinc-400">Select a Gift</SheetTitle>
+                </SheetHeader>
                 <div className="flex-1 overflow-y-auto px-4 pb-32">
                   <div className="grid grid-cols-4 gap-2">
                     {GIFTS.map((gift) => (
-                      <div key={gift.id} onClick={() => setSelectedGift(gift)} className={cn("flex flex-col items-center gap-2 p-2 rounded-2xl border transition-all cursor-pointer", selectedGift?.id === gift.id ? "bg-primary/20 border-primary shadow-lg" : "bg-transparent border-transparent")}>
+                      <div 
+                        key={gift.id} 
+                        onClick={() => setSelectedGift(gift)}
+                        className={cn(
+                          "flex flex-col items-center gap-2 p-2 rounded-2xl border transition-all cursor-pointer",
+                          selectedGift?.id === gift.id ? "bg-primary/20 border-primary shadow-lg" : "bg-transparent border-transparent"
+                        )}
+                      >
                         <div className="w-14 h-14 flex items-center justify-center text-4xl">{gift.emoji}</div>
                         <div className="flex flex-col items-center gap-0.5">
-                          <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full bg-amber-500 flex items-center justify-center text-[6px] font-black text-zinc-900 italic">S</div><span className="text-[10px] font-black">{gift.price}</span></div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-3 h-3 rounded-full bg-amber-500 flex items-center justify-center text-[6px] font-black text-zinc-900 italic">S</div>
+                            <span className="text-[10px] font-black">{gift.price}</span>
+                          </div>
                           <span className="text-[8px] font-bold text-zinc-400 text-center truncate w-full">{gift.name}</span>
                         </div>
                       </div>
@@ -415,8 +433,17 @@ function ChatDetailContent() {
                   </div>
                 </div>
                 <footer className="absolute bottom-0 left-0 right-0 p-6 bg-zinc-950/80 backdrop-blur-xl border-t border-zinc-800 flex items-center justify-between z-50">
-                  <div className="flex items-center gap-3"><div className="flex items-center gap-1.5 bg-zinc-800 px-3 py-2 rounded-full border border-zinc-700"><div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-[8px] font-black text-zinc-900 italic">S</div><span className="text-xs font-black">{(currentUserProfile?.coinBalance || 0).toLocaleString()}</span></div></div>
-                  <Button onClick={() => handleSendGift()} disabled={!selectedGift || isSendingGift} className="h-12 px-10 rounded-full bg-primary text-white font-black uppercase text-xs tracking-widest shadow-xl active:scale-95 transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 bg-zinc-800 px-3 py-2 rounded-full border border-zinc-700">
+                      <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-[8px] font-black text-zinc-900 italic">S</div>
+                      <span className="text-xs font-black">{(currentUserProfile?.coinBalance || 0).toLocaleString()}</span>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => handleSendGift()} 
+                    disabled={!selectedGift || isSendingGift}
+                    className="h-12 px-10 rounded-full bg-primary text-white font-black uppercase text-xs tracking-widest shadow-xl active:scale-95 transition-all"
+                  >
                     {isSendingGift ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send"}
                   </Button>
                 </footer>
