@@ -15,13 +15,16 @@ const GAME_BETS = [20, 50, 100, 200, 500]
 
 const SEGMENT_COLORS = [
   '#eae56f', '#89f26e', '#7de6ef', '#e7706f', 
-  '#f2a65a', '#f2c65a', '#a65af2', '#5af2a6'
+  '#f2a65a', '#f2c65a', '#a65af2', '#5af2a6',
+  '#f25a5a', '#5a89f2', '#f25ad5', '#5af2ef',
+  '#b2f25a', '#f29b5a', '#5a62f2', '#f2e15a',
+  '#5af284', '#a65af2'
 ]
 
 const WHEEL_CONFIGS = {
-  low: [5, 0, 10, 50, 2, 0, 15, 30],        // For bet < 50
-  mid: [20, 0, 50, 300, 10, 0, 100, 200], // For bet 50-100
-  high: [25, 0, 50, 1000, 100, 0, 150, 500] // For bet 200-500
+  low: [5, 0, 10, 50, 2, 0, 15, 30, 5, 0, 8, 12, 0, 20, 10, 0, 15, 40],        // For bet < 50
+  mid: [20, 0, 50, 300, 10, 0, 100, 200, 20, 0, 40, 80, 0, 150, 60, 0, 120, 250], // For bet 50-100
+  high: [25, 0, 50, 1000, 100, 0, 150, 500, 50, 0, 100, 200, 0, 400, 150, 0, 300, 800] // For bet 200-500
 }
 
 export default function GamesCenterPage() {
@@ -55,7 +58,7 @@ export default function GamesCenterPage() {
     const size = canvas.width
     const center = size / 2
     const radius = center - 10
-    const segmentAngle = (2 * Math.PI) / 8
+    const segmentAngle = (2 * Math.PI) / 18
 
     ctx.clearRect(0, 0, size, size)
 
@@ -67,7 +70,7 @@ export default function GamesCenterPage() {
       ctx.fillStyle = SEGMENT_COLORS[i]
       ctx.fill()
       ctx.strokeStyle = '#ffffff'
-      ctx.lineWidth = 2
+      ctx.lineWidth = 1.5
       ctx.stroke()
 
       // Draw Text
@@ -76,8 +79,8 @@ export default function GamesCenterPage() {
       ctx.rotate(i * segmentAngle + segmentAngle / 2)
       ctx.textAlign = "right"
       ctx.fillStyle = "#333333"
-      ctx.font = "bold 16px Space Grotesk"
-      ctx.fillText(val.toString(), radius - 20, 5)
+      ctx.font = "bold 13px Space Grotesk"
+      ctx.fillText(val.toString(), radius - 15, 5)
       ctx.restore()
     })
 
@@ -117,8 +120,8 @@ export default function GamesCenterPage() {
 
       if (!result.committed) throw new Error("INSUFFICIENT_COINS")
 
-      // 2. Determine Winner Index (0-7)
-      const winnerIndex = Math.floor(Math.random() * 8)
+      // 2. Determine Winner Index (0-17)
+      const winnerIndex = Math.floor(Math.random() * 18)
       const winAmount = currentWheelValues[winnerIndex]
 
       // 3. Batch Firestore balance update + transaction log (Reduction)
@@ -139,7 +142,7 @@ export default function GamesCenterPage() {
       // Canvas draws segment 0 at 0 radians (3 o'clock). 
       // Pointer is at the top (270 degrees).
       const extraSpins = 15 
-      const segmentSize = 45
+      const segmentSize = 360 / 18 // 20 degrees per segment
       const randomOffset = (Math.random() - 0.5) * (segmentSize * 0.7) // Random settle point within segment
       
       const targetLandingAngle = 270 - (winnerIndex * segmentSize + (segmentSize / 2)) + randomOffset
@@ -262,7 +265,7 @@ export default function GamesCenterPage() {
 
         <div className="bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 space-y-2 opacity-60">
           <div className="flex items-center gap-2"><Sparkles className="w-3 h-3 text-blue-500" /><p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Lucky Spin Rules</p></div>
-          <p className="text-[10px] font-medium text-blue-400 leading-relaxed">The wheel makes 15 full rotations before slowing down. Land on a segment to claim those coins instantly! Beware of the 0 segments.</p>
+          <p className="text-[10px] font-medium text-blue-400 leading-relaxed">The wheel makes 15 full rotations before slowing down. Land on a segment to claim those coins instantly! Now with 18 high-density slots.</p>
         </div>
       </main>
 
