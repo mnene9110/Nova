@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -22,7 +23,12 @@ service cloud.firestore {
 
     match /userProfiles/{userId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      // Allow users to update their own profile, or let anyone update presence/incomingCallId
+      allow write: if isAuthenticated() && (
+        request.auth.uid == userId || 
+        isAdmin() || 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isOnline', 'lastActiveAt', 'incomingCallId', 'inCall'])
+      );
       
       match /transactions/{transactionId} {
         allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());

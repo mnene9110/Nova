@@ -1,3 +1,4 @@
+
 "use client"
 
 import { ChevronLeft, ChevronRight, ShieldCheck, CreditCard, MessageSquare, Ban, Info, BellOff, Zap, ShieldAlert } from "lucide-react"
@@ -17,7 +18,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
 export default function SettingsPage() {
@@ -27,11 +27,10 @@ export default function SettingsPage() {
   const firestore = useFirestore()
   const { toast } = useToast()
 
-  // Guard: Only fetch profile if authenticated to prevent permission errors
   const userRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return doc(firestore, "userProfiles", user.uid);
-  }, [firestore, !!user])
+  }, [firestore, user])
 
   const { data: userProfile } = useDoc(userRef)
 

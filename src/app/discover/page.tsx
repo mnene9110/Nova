@@ -1,13 +1,13 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { RotateCcw, Globe, Loader2, CheckCircle, Sparkles, ClipboardList } from "lucide-react"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
-import { collection, query, where, limit, getDocs, doc, updateDoc, serverTimestamp } from "firebase/firestore"
+import { collection, query, where, limit, getDocs, doc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 
 let cachedUsers: any[] = []
 let cachedInitialLoaded: boolean = false
@@ -52,6 +52,8 @@ export default function DiscoverPage() {
       const currentGender = (currentUserProfile?.gender || 'male').toLowerCase()
       const targetGender = currentGender === 'male' ? 'female' : 'male'
 
+      // We query by gender. Filtering for isSupport and self is done client-side 
+      // because Firestore doesn't support != across multiple fields easily without composite indexes.
       const usersQuery = query(
         collection(firestore, "userProfiles"),
         where("gender", "==", targetGender),
@@ -66,7 +68,6 @@ export default function DiscoverPage() {
         return;
       }
 
-      // Filter out support users and self client-side to ensure privacy
       const allUsers = snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
         .filter((u: any) => u.isSupport !== true && u.id !== currentUser.uid);
@@ -159,7 +160,8 @@ export default function DiscoverPage() {
           
           <button 
             onClick={handleRefresh} 
-            className="w-14 h-14 rounded-full bg-[#8B0000] border border-white/10 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-lg text-white"
+            disabled={isInitialLoading}
+            className="w-14 h-14 rounded-full bg-[#8B0000] border border-white/10 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-lg text-white disabled:opacity-50"
           >
             {isInitialLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />

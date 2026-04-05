@@ -10,12 +10,10 @@ import {
   onSnapshot, 
   deleteDoc, 
   updateDoc, 
-  addDoc, 
   serverTimestamp, 
   increment, 
   runTransaction,
-  query,
-  where
+  setDoc
 } from "firebase/firestore"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
@@ -75,7 +73,6 @@ export function GlobalCallOverlay() {
   useEffect(() => {
     if (!firestore || !currentUser) return;
 
-    // Listen for incoming call notifications on the user profile
     const userRef = doc(firestore, "userProfiles", currentUser.uid);
     const unsubscribeUser = onSnapshot(userRef, (snap) => {
       const data = snap.data();
@@ -115,9 +112,7 @@ export function GlobalCallOverlay() {
       }
     });
 
-    return () => {
-      unsubscribeUser();
-    };
+    return () => unsubscribeUser();
   }, [firestore, currentUser]);
 
   const updateCallState = (data: any) => {
