@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { 
   ChevronLeft, 
@@ -11,18 +11,41 @@ import {
   CheckCircle2, 
   XCircle, 
   Copy,
-  CreditCard,
-  CheckCircle
+  CheckCircle,
+  ArrowRight,
+  AlertCircle
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useUser, useDoc, useMemoFirebase, useFirebase, useCollection } from "@/firebase"
-import { doc, setDoc, updateDoc, collection, query, onSnapshot, serverTimestamp, runTransaction, increment } from "firebase/firestore"
+import { useUser, useDoc, useMemoFirebase, useFirebase } from "@/firebase"
+import { 
+  doc, 
+  setDoc, 
+  updateDoc, 
+  collection, 
+  query, 
+  onSnapshot, 
+  serverTimestamp, 
+  runTransaction, 
+  increment, 
+  orderBy, 
+  limit, 
+  startAfter, 
+  getDocs 
+} from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
+const PAGE_SIZE = 20
+const MAX_AGENCY_MEMBERS = 100 // Agency Owner (1) + Members (99)
+
+// Module-level persistent cache for members
+let cachedMembers: any[] = []
+let lastVisibleMember: any = null
+let hasMoreMembersToLoad = true
 
 export default function AgentCenterPage() {
   const router = useRouter()
@@ -38,8 +61,10 @@ export default function AgentCenterPage() {
   const [processingId, setProcessingId] = useState<string | null>(null)
 
   const [pendingRequests, setPendingRequests] = useState<any[]>([])
-  const [members, setMembers] = useState<any[]>([])
+  const [members, setMembers] = useState<any[]>(cachedMembers)
   const [withdrawals, setWithdrawals] = useState<any[]>([])
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [isInitialMembersLoading, setIsInitialMembersLoading] = useState(cachedMembers.length === 0)
 
   useEffect(() => {
     if (!firestore || !profile?.agencyId) return
@@ -48,16 +73,55 @@ export default function AgentCenterPage() {
       setPendingRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })))
     })
 
-    const unsubMembers = onSnapshot(collection(firestore, "agencies", profile.agencyId, "members"), (snap) => {
-      setMembers(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-    })
-
     const unsubWith = onSnapshot(collection(firestore, "agencies", profile.agencyId, "withdrawals"), (snap) => {
       setWithdrawals(snap.docs.map(d => ({ id: d.id, ...d.data() })))
     })
 
-    return () => { unsubRequests(); unsubMembers(); unsubWith(); }
+    if (cachedMembers.length === 0) {
+      loadMembers()
+    }
+
+    return () => { unsubRequests(); unsubWith(); }
   }, [firestore, profile?.agencyId])
+
+  const loadMembers = async (isLoadMore = false) => {
+    if (!firestore || !profile?.agencyId || (!hasMoreMembersToLoad && isLoadMore)) return
+    
+    if (isLoadMore) setIsLoadingMore(true)
+    else setIsInitialMembersLoading(true)
+
+    try {
+      let q = query(
+        collection(firestore, "agencies", profile.agencyId, "members"),
+        orderBy("joinedAt", "desc"),
+        limit(PAGE_SIZE)
+      )
+
+      if (isLoadMore && lastVisibleMember) {
+        q = query(q, startAfter(lastVisibleMember))
+      }
+
+      const snap = await getDocs(q)
+      const list = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      
+      if (isLoadMore) {
+        const combined = [...members, ...list]
+        setMembers(combined)
+        cachedMembers = combined
+      } else {
+        setMembers(list)
+        cachedMembers = list
+      }
+
+      lastVisibleMember = snap.docs[snap.docs.length - 1]
+      hasMoreMembersToLoad = snap.docs.length === PAGE_SIZE
+    } catch (e) {
+      console.error("Failed to load members", e)
+    } finally {
+      setIsLoadingMore(false)
+      setIsInitialMembersLoading(false)
+    }
+  }
 
   const handleCreateAgency = async () => {
     if (!agencyName.trim() || !currentUser || !firestore) return
@@ -69,6 +133,7 @@ export default function AgentCenterPage() {
         id: generatedId,
         name: agencyName,
         agentId: currentUser.uid,
+        memberCount: 1, // Start with owner
         createdAt: serverTimestamp()
       })
 
@@ -87,22 +152,37 @@ export default function AgentCenterPage() {
 
   const handleRequestAction = async (userId: string, action: 'approved' | 'rejected', userData: any) => {
     if (!firestore || !profile?.agencyId || processingId) return
+    
+    if (action === 'approved' && members.length >= (MAX_AGENCY_MEMBERS - 1)) {
+      toast({ variant: "destructive", title: "Capacity Full", description: "Your agency has reached the maximum of 100 members." });
+      return;
+    }
+
     setProcessingId(userId)
     try {
       await runTransaction(firestore, async (transaction) => {
         const agencyId = profile.agencyId
         const userProfileRef = doc(firestore, "userProfiles", userId)
         const requestRef = doc(firestore, "agencies", agencyId, "requests", userId)
+        const agencyDocRef = doc(firestore, "agencies", agencyId)
         
         if (action === 'approved') {
           const memberRef = doc(firestore, "agencies", agencyId, "members", userId)
           transaction.set(memberRef, { ...userData, joinedAt: Date.now() })
           transaction.update(userProfileRef, { agencyJoinStatus: 'approved', memberOfAgencyId: agencyId })
+          transaction.update(agencyDocRef, { memberCount: increment(1) })
         } else {
           transaction.update(userProfileRef, { agencyJoinStatus: 'none', memberOfAgencyId: null })
         }
         transaction.delete(requestRef)
       })
+
+      if (action === 'approved') {
+        const newMember = { ...userData, id: userId, joinedAt: Date.now() };
+        setMembers(prev => [newMember, ...prev]);
+        cachedMembers = [newMember, ...cachedMembers];
+      }
+
       toast({ title: action === 'approved' ? "User Approved" : "User Rejected" })
     } catch (e) {
       toast({ variant: "destructive", title: "Action failed" })
@@ -161,6 +241,8 @@ export default function AgentCenterPage() {
     return <div className="flex h-svh items-center justify-center bg-white text-zinc-400 font-black uppercase text-xs tracking-widest">Access Denied</div>
   }
 
+  const isAtCapacity = members.length >= (MAX_AGENCY_MEMBERS - 1);
+
   return (
     <div className="flex flex-col h-svh bg-white text-gray-900 font-body overflow-y-auto">
       <header className="px-4 py-6 flex items-center sticky top-0 bg-white z-10 border-b border-gray-50 shrink-0">
@@ -180,7 +262,15 @@ export default function AgentCenterPage() {
             <section className="bg-zinc-950 rounded-[2.5rem] p-8 text-white shadow-2xl space-y-6 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-6 opacity-10"><Building2 className="w-32 h-32" /></div>
               <div className="relative z-10 space-y-4">
-                <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center border border-purple-500/10"><Building2 className="w-5 h-5 text-purple-400" /></div><span className="text-[10px] font-black uppercase tracking-widest text-purple-400">Your Agency</span></div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center border border-purple-500/10"><Building2 className="w-5 h-5 text-purple-400" /></div><span className="text-[10px] font-black uppercase tracking-widest text-purple-400">Your Agency</span></div>
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+                    <Users className="w-3 h-3 text-purple-400" />
+                    <span className={cn("text-[9px] font-black uppercase", isAtCapacity ? "text-amber-400" : "text-white/60")}>
+                      {members.length + 1} / {MAX_AGENCY_MEMBERS}
+                    </span>
+                  </div>
+                </div>
                 <div><h2 className="text-2xl font-black font-headline uppercase truncate">{profile.username}'s Team</h2><button onClick={copyId} className="flex items-center gap-2 mt-2 px-4 py-2 bg-white/10 rounded-full border border-white/5 active:scale-95 transition-all"><span className="text-xs font-black uppercase tracking-widest text-purple-200">ID: {profile.agencyId}</span><Copy className="w-3.5 h-3.5 text-purple-400" /></button></div>
               </div>
             </section>
@@ -193,21 +283,54 @@ export default function AgentCenterPage() {
               </TabsList>
 
               <TabsContent value="requests" className="space-y-4">
+                {isAtCapacity && (
+                  <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl flex items-center gap-3 text-amber-700">
+                    <AlertCircle className="w-5 h-5" />
+                    <p className="text-[10px] font-black uppercase tracking-widest">Agency is full. Remove members to approve more.</p>
+                  </div>
+                )}
                 {pendingRequests.map(req => (
                   <div key={req.id} className="bg-gray-50 p-4 rounded-[2rem] flex items-center justify-between">
                     <div className="flex items-center gap-3"><Avatar className="w-12 h-12"><AvatarImage src={req.photo} /><AvatarFallback>{req.username?.[0]}</AvatarFallback></Avatar><div><p className="text-sm font-black">{req.username}</p><p className="text-[9px] font-bold text-gray-400 uppercase">ID: {req.numericId}</p></div></div>
-                    <div className="flex gap-2"><Button size="icon" variant="ghost" onClick={() => handleRequestAction(req.id, 'rejected', req)} disabled={!!processingId} className="w-10 h-10 rounded-full bg-red-50 text-red-500"><XCircle className="w-5 h-5" /></Button><Button size="icon" onClick={() => handleRequestAction(req.id, 'approved', req)} disabled={!!processingId} className="w-10 h-10 rounded-full bg-green-500 text-white"><CheckCircle2 className="w-5 h-5" /></Button></div>
+                    <div className="flex gap-2">
+                      <Button size="icon" variant="ghost" onClick={() => handleRequestAction(req.id, 'rejected', req)} disabled={!!processingId} className="w-10 h-10 rounded-full bg-red-50 text-red-500"><XCircle className="w-5 h-5" /></Button>
+                      <Button size="icon" onClick={() => handleRequestAction(req.id, 'approved', req)} disabled={!!processingId || isAtCapacity} className="w-10 h-10 rounded-full bg-green-500 text-white disabled:bg-gray-200">
+                        <CheckCircle2 className="w-5 h-5" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
+                {pendingRequests.length === 0 && (
+                  <div className="py-10 text-center opacity-30"><p className="text-[10px] font-black uppercase tracking-widest">No pending applications</p></div>
+                )}
               </TabsContent>
 
               <TabsContent value="members" className="space-y-4">
-                {members.map(member => (
-                  <div key={member.id} className="bg-white border border-gray-100 p-4 rounded-[2.25rem] flex items-center justify-between shadow-sm">
-                    <div className="flex items-center gap-3"><Avatar className="w-12 h-12 border-2 border-white shadow-md"><AvatarImage src={member.photo} /><AvatarFallback>{member.username?.[0]}</AvatarFallback></Avatar><div><p className="text-sm font-black">{member.username}</p><p className="text-[9px] font-bold text-gray-400 uppercase">Member</p></div></div>
-                    <Button size="sm" variant="ghost" onClick={() => router.push(`/chat/${member.id}`)} className="h-10 px-4 rounded-full bg-primary/5 text-primary font-black text-[9px] uppercase tracking-widest">Chat</Button>
+                {isInitialMembersLoading ? (
+                  <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary/20" /></div>
+                ) : members.length > 0 ? (
+                  <div className="space-y-3">
+                    {members.map(member => (
+                      <div key={member.id} className="bg-white border border-gray-100 p-4 rounded-[2.25rem] flex items-center justify-between shadow-sm">
+                        <div className="flex items-center gap-3"><Avatar className="w-12 h-12 border-2 border-white shadow-md"><AvatarImage src={member.photo} /><AvatarFallback>{member.username?.[0]}</AvatarFallback></Avatar><div><p className="text-sm font-black">{member.username}</p><p className="text-[9px] font-bold text-gray-400 uppercase">Member</p></div></div>
+                        <Button size="sm" variant="ghost" onClick={() => router.push(`/chat/${member.id}`)} className="h-10 px-4 rounded-full bg-primary/5 text-primary font-black text-[9px] uppercase tracking-widest">Chat</Button>
+                      </div>
+                    ))}
+                    {hasMoreMembersToLoad && (
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => loadMembers(true)} 
+                        disabled={isLoadingMore}
+                        className="w-full h-14 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-gray-400"
+                      >
+                        {isLoadingMore ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ArrowRight className="w-4 h-4 mr-2 rotate-90" />}
+                        Load More Members
+                      </Button>
+                    )}
                   </div>
-                ))}
+                ) : (
+                  <div className="py-10 text-center opacity-30"><p className="text-[10px] font-black uppercase tracking-widest">No members yet</p></div>
+                )}
               </TabsContent>
 
               <TabsContent value="withdrawals" className="space-y-4">
@@ -217,6 +340,9 @@ export default function AgentCenterPage() {
                     {w.status !== 'paid' && <Button onClick={() => handleMarkAsPaid(w)} disabled={!!processingId} className="w-full h-12 rounded-full bg-zinc-900 text-white font-black text-xs uppercase tracking-widest gap-2">{processingId === w.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}Confirm Paid</Button>}
                   </div>
                 ))}
+                {withdrawals.length === 0 && (
+                  <div className="py-10 text-center opacity-30"><p className="text-[10px] font-black uppercase tracking-widest">No withdrawal requests</p></div>
+                )}
               </TabsContent>
             </Tabs>
           </div>

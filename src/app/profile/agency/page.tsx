@@ -1,14 +1,15 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Loader2, Building2, Clock, CheckCircle2, LogOut, Wallet, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useDoc, useMemoFirebase, useFirebase } from "@/firebase"
-import { doc, updateDoc, getDoc, setDoc, collection, addDoc, serverTimestamp } from "firebase/firestore"
+import { doc, updateDoc, getDoc, setDoc, collection, addDoc, serverTimestamp, deleteDoc, getDocs, query, limit } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -40,7 +41,8 @@ export default function JoinAgencyPage() {
 
     setIsSubmitting(true)
     try {
-      const agencyRef = doc(firestore, "agencies", agencyId.trim())
+      const aid = agencyId.trim();
+      const agencyRef = doc(firestore, "agencies", aid)
       const agencySnap = await getDoc(agencyRef)
 
       if (!agencySnap.exists()) {
@@ -49,7 +51,15 @@ export default function JoinAgencyPage() {
         return
       }
 
-      await setDoc(doc(firestore, "agencies", agencyId.trim(), "requests", currentUser.uid), {
+      // Check capacity (Owner + Members)
+      const membersSnap = await getDocs(query(collection(firestore, "agencies", aid, "members"), limit(101)));
+      if (membersSnap.size >= 99) { // 99 members + 1 owner = 100
+        toast({ variant: "destructive", title: "Agency Full", description: "This agency has reached its maximum capacity of 100 members." });
+        setIsSubmitting(false);
+        return;
+      }
+
+      await setDoc(doc(firestore, "agencies", aid, "requests", currentUser.uid), {
         userId: currentUser.uid,
         username: profile?.username || "User",
         photo: profile?.profilePhotoUrls?.[0] || "",
@@ -59,7 +69,7 @@ export default function JoinAgencyPage() {
 
       await updateDoc(doc(firestore, "userProfiles", currentUser.uid), {
         agencyJoinStatus: "pending",
-        memberOfAgencyId: agencyId.trim(),
+        memberOfAgencyId: aid,
         updatedAt: new Date().toISOString()
       })
 
