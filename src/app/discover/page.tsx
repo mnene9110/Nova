@@ -225,7 +225,6 @@ export default function DiscoverPage() {
   return (
     <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32">
       <div className="sticky top-0 z-30 px-4 py-8 bg-transparent shrink-0 space-y-6">
-        {/* Mystery Note and Task Center Row */}
         <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4 duration-700">
           <button 
             onClick={() => router.push('/mystery-note')}
@@ -248,7 +247,6 @@ export default function DiscoverPage() {
           </button>
         </div>
 
-        {/* Navigation Tabs and Refresh Row */}
         <div className="flex items-center gap-3">
           <div className="flex-1 h-16 bg-white/30 backdrop-blur-xl border border-white/20 rounded-full p-1.5 flex items-center shadow-lg">
             <button 
@@ -294,7 +292,7 @@ export default function DiscoverPage() {
 
             {user.isOnline && (
               <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-1 bg-black/40 backdrop-blur-md rounded-full border border-white/10 z-10">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-green-50 animate-pulse" />
                 <span className="text-[7px] font-black text-white uppercase tracking-tighter">Online</span>
               </div>
             )}
