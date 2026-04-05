@@ -129,7 +129,7 @@ export default function ProfilePage() {
             </button>
           )}
 
-          {userProfile?.gender?.toLowerCase() === 'female' && !userProfile?.isAgent && (
+          {userProfile?.gender?.toLowerCase() === 'female' && userProfile?.location === 'Kenya' && !userProfile?.isAgent && (
             <button onClick={() => router.push('/profile/agency')} className="w-full h-16 rounded-[2rem] bg-white/40 backdrop-blur-md border border-white/30 flex items-center px-6 gap-4 shadow-sm">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/10"><Building2 className="w-5 h-5 text-amber-600" /></div>
               <div className="flex-1 text-left"><span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px] block">Agency</span><span className="text-gray-400 text-[11px] font-bold">Join an agency anchor</span></div>

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -52,9 +53,15 @@ export default function ManageRolesPage() {
   const handleUpdateRole = async () => {
     if (!foundUser || !selectedRole || isUpdating || !firestore) return
 
-    if (selectedRole === "agent" && foundUser.gender !== "female") {
-      toast({ variant: "destructive", title: "Appointment Failed", description: "Only female users can be Agency heads." })
-      return
+    if (selectedRole === "agent") {
+      if (foundUser.gender?.toLowerCase() !== "female" || foundUser.location !== "Kenya") {
+        toast({ 
+          variant: "destructive", 
+          title: "Appointment Failed", 
+          description: "Only female users in Kenya can be Agency heads." 
+        })
+        return
+      }
     }
 
     setIsUpdating(true)
@@ -107,7 +114,7 @@ export default function ManageRolesPage() {
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center"><UserCheck className="w-8 h-8 text-primary" /></div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-black text-lg text-gray-900 truncate leading-tight">{foundUser.username}</h3>
-                <p className="text-[10px] font-bold text-green-500 uppercase tracking-widest">ID: {foundUser.numericId} • {foundUser.gender}</p>
+                <p className="text-[10px] font-bold text-green-500 uppercase tracking-widest">ID: {foundUser.numericId} • {foundUser.gender} • {foundUser.location}</p>
                 <div className="flex gap-2 mt-2 flex-wrap">
                    {foundUser.isSupport && <span className="text-[8px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2 py-0.5 rounded-full uppercase">Support</span>}
                    {foundUser.isCoinseller && <span className="text-[8px] font-black bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-full uppercase">Coinseller</span>}
