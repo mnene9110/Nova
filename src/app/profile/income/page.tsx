@@ -5,9 +5,8 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Gem, Coins, ArrowRightLeft, Loader2, Info, ArrowUpRight, History, ArrowDownLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useUser, useFirestore, useMemoFirebase, useFirebase, useCollection } from "@/firebase"
-import { doc, updateDoc, increment as firestoreIncrement, setDoc, collection, query, where, orderBy, limit } from "firebase/firestore"
-import { ref, onValue, runTransaction as runRtdbTransaction } from "firebase/database"
+import { useUser, useFirestore, useMemoFirebase, useFirebase, useCollection, useDoc } from "@/firebase"
+import { doc, updateDoc, increment as firestoreIncrement, setDoc, collection, query, where, orderBy, limit, runTransaction } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
@@ -15,20 +14,18 @@ import { format } from "date-fns"
 export default function IncomePage() {
   const router = useRouter()
   const { user: currentUser } = useUser()
-  const { firestore, database } = useFirebase()
+  const { firestore } = useFirebase()
   const { toast } = useToast()
   
   const [isExchanging, setIsExchanging] = useState(false)
-  const [diamondBalance, setDiamondBalance] = useState(0)
 
-  // DIAMONDS IN REALTIME: Listen to RTDB balance as primary source
-  useEffect(() => {
-    if (!database || !currentUser) return
-    const diamondRef = ref(database, `users/${currentUser.uid}/diamondBalance`)
-    return onValue(diamondRef, (snap) => setDiamondBalance(snap.val() || 0))
-  }, [database, currentUser])
+  // DIAMONDS IN REALTIME: Listen to Firestore profile
+  const meRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser])
+  const { data: profile, isLoading: isProfileLoading } = useDoc(meRef)
 
-  // Fetch Diamond Transactions History from Firestore (Audit log)
+  const diamondBalance = profile?.diamondBalance || 0
+
+  // Fetch Diamond Transactions History from Firestore
   const historyQuery = useMemoFirebase(() => {
     if (!firestore || !currentUser) return null
     return query(
@@ -44,7 +41,7 @@ export default function IncomePage() {
   const canExchange = diamondBalance >= 500
 
   const handleExchange = async () => {
-    if (!currentUser || !firestore || !database || isExchanging || !canExchange) return
+    if (!currentUser || !firestore || isExchanging || !canExchange) return
     setIsExchanging(true)
 
     const blocks = Math.floor(diamondBalance / 500)
@@ -52,36 +49,29 @@ export default function IncomePage() {
     const coinsToGain = blocks * 150
 
     try {
-      // 1. RTDB Atomic Transaction (Primary Source for Balances)
-      const userRef = ref(database, `users/${currentUser.uid}`)
-      const rtdbResult = await runRtdbTransaction(userRef, (current) => {
-        if (!current) return current;
-        if ((current.diamondBalance || 0) < diamondsToDeduct) return undefined;
-        return {
-          ...current,
-          diamondBalance: current.diamondBalance - diamondsToDeduct,
-          coinBalance: (current.coinBalance || 0) + coinsToGain
+      await runTransaction(firestore, async (transaction) => {
+        const snap = await transaction.get(meRef!);
+        const currentDiamonds = snap.data()?.diamondBalance || 0;
+        
+        if (currentDiamonds < diamondsToDeduct) {
+          throw new Error("Insufficient diamond balance");
         }
-      });
 
-      if (!rtdbResult.committed) throw new Error("Insufficient diamond balance");
+        transaction.update(meRef!, {
+          diamondBalance: firestoreIncrement(-diamondsToDeduct),
+          coinBalance: firestoreIncrement(coinsToGain),
+          updatedAt: new Date().toISOString()
+        });
 
-      // 2. Firestore Backup Sync & Log (Secondary Audit)
-      const profileRef = doc(firestore, "userProfiles", currentUser.uid);
-      updateDoc(profileRef, {
-        diamondBalance: firestoreIncrement(-diamondsToDeduct),
-        coinBalance: firestoreIncrement(coinsToGain),
-        updatedAt: new Date().toISOString()
-      });
-
-      const txRef = doc(collection(profileRef, "transactions"));
-      setDoc(txRef, {
-        id: txRef.id,
-        type: "diamond_exchange",
-        amount: coinsToGain,
-        diamondAmount: -diamondsToDeduct,
-        transactionDate: new Date().toISOString(),
-        description: `Exchanged ${diamondsToDeduct} diamonds for ${coinsToGain} coins`
+        const txRef = doc(collection(meRef!, "transactions"));
+        transaction.set(txRef, {
+          id: txRef.id,
+          type: "diamond_exchange",
+          amount: coinsToGain,
+          diamondAmount: -diamondsToDeduct,
+          transactionDate: new Date().toISOString(),
+          description: `Exchanged ${diamondsToDeduct} diamonds for ${coinsToGain} coins`
+        });
       });
 
       toast({ title: "Exchange Successful!", description: `Received ${coinsToGain} coins.` });
@@ -110,7 +100,9 @@ export default function IncomePage() {
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400">Total Diamonds</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-6xl font-black font-headline tracking-tighter text-white">{diamondBalance.toLocaleString()}</span>
+              <span className="text-6xl font-black font-headline tracking-tighter text-white">
+                {isProfileLoading ? "..." : diamondBalance.toLocaleString()}
+              </span>
               <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-2">Earned from gifts and rewards</p>
             </div>
           </div>
@@ -140,7 +132,9 @@ export default function IncomePage() {
             <Button onClick={handleExchange} disabled={isExchanging || !canExchange} className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3", canExchange ? darkMaroon : "bg-gray-200 text-gray-400 cursor-not-allowed")}>
               {isExchanging ? <Loader2 className="w-6 h-6 animate-spin" /> : <><span className="text-sm font-black uppercase tracking-widest">Exchange Now</span><ArrowUpRight className="w-5 h-5" /></>}
             </Button>
-            {!canExchange && <p className="text-[9px] text-center text-gray-400 mt-4 font-bold uppercase tracking-widest">Minimum 500 diamonds required to exchange</p>}
+            {!canExchange && !isProfileLoading && (
+              <p className="text-[9px] text-center text-gray-400 mt-4 font-bold uppercase tracking-widest">Minimum 500 diamonds required to exchange</p>
+            )}
           </div>
         </section>
 

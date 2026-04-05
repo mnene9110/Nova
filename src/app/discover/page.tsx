@@ -132,14 +132,14 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      <div className="sticky top-0 z-30 px-4 py-2 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-16 bg-transparent rounded-full p-1.5 flex items-center">
+      <div className="sticky top-0 z-30 px-4 py-4 shrink-0">
+        <div className="flex items-center gap-3 bg-white/10 backdrop-blur-2xl border border-white/10 rounded-full p-1.5 shadow-2xl shadow-black/20 animate-in fade-in slide-in-from-top-2 duration-700">
+          <div className="flex-1 h-14 bg-black/20 rounded-full flex items-center p-1">
             <button 
               onClick={() => setActiveTab('recommend')}
               className={cn(
                 "flex-1 h-full rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-                activeTab === 'recommend' ? "bg-[#8B0000] text-white shadow-lg" : "text-white/60"
+                activeTab === 'recommend' ? "bg-white text-[#8B0000] shadow-lg" : "text-white/60"
               )}
             >
               Recommend
@@ -148,7 +148,7 @@ export default function DiscoverPage() {
               onClick={() => setActiveTab('nearby')}
               className={cn(
                 "flex-1 h-full rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-                activeTab === 'nearby' ? "bg-[#8B0000] text-white shadow-lg" : "text-white/60"
+                activeTab === 'nearby' ? "bg-white text-[#8B0000] shadow-lg" : "text-white/60"
               )}
             >
               Nearby
@@ -157,12 +157,12 @@ export default function DiscoverPage() {
           
           <button 
             onClick={handleRefresh} 
-            className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-lg"
+            className="w-14 h-14 rounded-full bg-[#8B0000] border border-white/10 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-lg text-white"
           >
             {isInitialLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin text-white" />
+              <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
-              <RotateCcw className="w-5 h-5 text-white" />
+              <RotateCcw className="w-5 h-5" />
             )}
           </button>
         </div>
@@ -172,7 +172,7 @@ export default function DiscoverPage() {
         {displayUsers.map((user) => (
           <div key={user.id} className="group relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden bg-white/20 shadow-md transition-transform active:scale-95" onClick={() => router.push(`/profile/${user.id}`)}>
             <div className="absolute inset-0 z-0">
-              <Image src={user.image} alt={user.name} fill className="object-cover transition-transform group-hover:scale-110 duration-700" />
+              <Image src={user.image} alt={user.name} fill className="object-cover transition-transform group-hover:scale-110 duration-700" data-ai-hint="dating profile photo" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
             </div>
 
