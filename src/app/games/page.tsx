@@ -159,7 +159,7 @@ export default function GamesCenterPage() {
     }
   }
 
-  const darkMaroon = "bg-[#5A1010]";
+  const darkRed = "bg-[#7F1D1D]";
 
   return (
     <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden relative">
@@ -192,7 +192,7 @@ export default function GamesCenterPage() {
             {GAME_BETS.map((bet) => (<button key={bet} onClick={() => !isSpinning && setSelectedBet(bet)} className={cn("h-12 rounded-2xl flex items-center justify-center transition-all border-2 font-black text-[10px]", selectedBet === bet ? "bg-purple-600 border-purple-400 text-white" : "bg-white border-gray-100 text-gray-400")}>{bet}</button>))}
           </div>
 
-          <Button onClick={handleLuckySpin} disabled={!selectedBet || isSpinning || userCoins < (selectedBet || 0)} className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all", selectedBet && userCoins >= selectedBet ? darkMaroon : "bg-gray-200 text-gray-400")}>
+          <Button onClick={handleLuckySpin} disabled={!selectedBet || isSpinning || userCoins < (selectedBet || 0)} className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all", selectedBet && userCoins >= selectedBet ? darkRed : "bg-gray-200 text-gray-400")}>
             {isSpinning ? "SPINNING..." : "PLACE BET"}
           </Button>
         </section>

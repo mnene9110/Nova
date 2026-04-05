@@ -82,7 +82,7 @@ export default function SubscribeHostPage() {
     }
   }
 
-  const darkMaroon = "bg-[#5A1010]";
+  const darkRed = "bg-[#7F1D1D]";
 
   return (
     <div className="flex flex-col min-h-svh bg-transparent text-gray-900 overflow-y-auto pb-20">
@@ -143,7 +143,7 @@ export default function SubscribeHostPage() {
             <Button 
               onClick={handleSubscribe}
               disabled={isSubscribing}
-              className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl active:scale-95 transition-all gap-3", darkMaroon)}
+              className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl active:scale-95 transition-all gap-3", darkRed)}
             >
               {isSubscribing ? (
                 <Loader2 className="w-6 h-6 animate-spin" />

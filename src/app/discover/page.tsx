@@ -113,7 +113,7 @@ export default function DiscoverPage() {
         <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4 duration-700">
           <button 
             onClick={() => router.push('/mystery-note')}
-            className="flex flex-col items-center justify-center gap-3 h-32 bg-[#8B0000] rounded-[2.5rem] shadow-2xl shadow-black/20 active:scale-95 transition-all group"
+            className="flex flex-col items-center justify-center gap-3 h-32 bg-[#B91C1C] rounded-[2.5rem] shadow-2xl shadow-black/20 active:scale-95 transition-all group"
           >
             <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center transition-transform group-hover:scale-110">
               <Sparkles className="w-5 h-5 text-white" />
@@ -123,12 +123,12 @@ export default function DiscoverPage() {
           
           <button 
             onClick={() => router.push('/task-center')}
-            className="flex flex-col items-center justify-center gap-3 h-32 bg-[#F2DADA] rounded-[2.5rem] shadow-2xl shadow-black/5 active:scale-95 transition-all group"
+            className="flex flex-col items-center justify-center gap-3 h-32 bg-[#FEE2E2] rounded-[2.5rem] shadow-2xl shadow-black/5 active:scale-95 transition-all group"
           >
-            <div className="w-10 h-10 rounded-full bg-[#8B0000]/10 flex items-center justify-center transition-transform group-hover:scale-110">
-              <ClipboardList className="w-5 h-5 text-[#8B0000]" />
+            <div className="w-10 h-10 rounded-full bg-[#B91C1C]/10 flex items-center justify-center transition-transform group-hover:scale-110">
+              <ClipboardList className="w-5 h-5 text-[#B91C1C]" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B0000]">Task Center</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#B91C1C]">Task Center</span>
           </button>
         </div>
       </div>
@@ -140,7 +140,7 @@ export default function DiscoverPage() {
               onClick={() => setActiveTab('recommend')}
               className={cn(
                 "flex-1 h-full rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-                activeTab === 'recommend' ? "bg-white text-[#8B0000] shadow-lg" : "text-white/60"
+                activeTab === 'recommend' ? "bg-white text-[#B91C1C] shadow-lg" : "text-white/60"
               )}
             >
               Recommend
@@ -149,7 +149,7 @@ export default function DiscoverPage() {
               onClick={() => setActiveTab('nearby')}
               className={cn(
                 "flex-1 h-full rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-                activeTab === 'nearby' ? "bg-white text-[#8B0000] shadow-lg" : "text-white/60"
+                activeTab === 'nearby' ? "bg-white text-[#B91C1C] shadow-lg" : "text-white/60"
               )}
             >
               Nearby
@@ -159,7 +159,7 @@ export default function DiscoverPage() {
           <button 
             onClick={handleRefresh} 
             disabled={isInitialLoading}
-            className="w-14 h-14 rounded-full bg-[#8B0000] border border-white/10 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-lg text-white disabled:opacity-50"
+            className="w-14 h-14 rounded-full bg-[#B91C1C] border border-white/10 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-lg text-white disabled:opacity-50"
           >
             {isInitialLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -190,7 +190,7 @@ export default function DiscoverPage() {
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute top-3 right-3 h-8 px-4 bg-[#B36666]/40 backdrop-blur-md border border-white/20 shadow-lg rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
+              className="absolute top-3 right-3 h-8 px-4 bg-red-500/40 backdrop-blur-md border border-white/20 shadow-lg rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
             >
               <span className="text-[8px] font-black text-white uppercase tracking-[0.1em]">Chat</span>
             </button>

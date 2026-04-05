@@ -24,6 +24,6 @@ export default function Home() {
 
   // Use the app's theme background to prevent a white/black flash during transition
   return (
-    <div className="flex h-svh w-full bg-[#B36666]" />
+    <div className="flex h-svh w-full bg-[#EF4444]" />
   )
 }

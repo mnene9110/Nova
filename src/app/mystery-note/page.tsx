@@ -120,7 +120,7 @@ export default function MysteryNotePage() {
     }
   }
 
-  const darkMaroon = "bg-[#5A1010]";
+  const darkRed = "bg-[#7F1D1D]";
 
   return (
     <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden relative font-body">
@@ -152,7 +152,7 @@ export default function MysteryNotePage() {
           </div>
 
           <div className="pt-4">
-            <Button onClick={handleSend} disabled={isSending || !messageText.trim()} className={cn("w-full h-18 rounded-full text-white font-black text-xl shadow-2xl transition-all gap-3", darkMaroon)}>
+            <Button onClick={handleSend} disabled={isSending || !messageText.trim()} className={cn("w-full h-18 rounded-full text-white font-black text-xl shadow-2xl transition-all gap-3", darkRed)}>
               {isSending ? (<><Loader2 className="w-6 h-6 animate-spin" /><span>Broadcasting...</span></>) : (<><span>Send to {recipientCount} People</span><div className="flex items-center gap-1.5 bg-black/20 px-3 py-1 rounded-full"><Coins className="w-4 h-4 text-amber-400" /><span className="text-xs">{totalCost}</span></div></>)}
             </Button>
           </div>

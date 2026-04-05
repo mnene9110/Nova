@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -82,7 +81,7 @@ export default function IncomePage() {
     }
   }
 
-  const darkMaroon = "bg-[#5A1010]";
+  const darkRed = "bg-[#7F1D1D]";
 
   return (
     <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden">
@@ -129,7 +128,7 @@ export default function IncomePage() {
           </div>
 
           <div className="pt-4">
-            <Button onClick={handleExchange} disabled={isExchanging || !canExchange} className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3", canExchange ? darkMaroon : "bg-gray-200 text-gray-400 cursor-not-allowed")}>
+            <Button onClick={handleExchange} disabled={isExchanging || !canExchange} className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3", canExchange ? darkRed : "bg-gray-200 text-gray-400 cursor-not-allowed")}>
               {isExchanging ? <Loader2 className="w-6 h-6 animate-spin" /> : <><span className="text-sm font-black uppercase tracking-widest">Exchange Now</span><ArrowUpRight className="w-5 h-5" /></>}
             </Button>
             {!canExchange && !isProfileLoading && (

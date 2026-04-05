@@ -18,7 +18,7 @@ import {
   Trash2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useUser, useDoc, useFirestore, useMemoFirebase, useFirebase } from "@/firebase"
+import { useUser, useDoc, useMemoFirebase, useFirebase } from "@/firebase"
 import { doc, query, collection, where, getDocs, updateDoc, onSnapshot, deleteDoc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -159,7 +159,7 @@ export default function HostCenterPage() {
     }
   }
 
-  if (isLoading) return <div className="flex h-svh items-center justify-center bg-[#B36666]"><Loader2 className="w-8 h-8 animate-spin text-white" /></div>
+  if (isLoading) return <div className="flex h-svh items-center justify-center bg-[#EF4444]"><Loader2 className="w-8 h-8 animate-spin text-white" /></div>
 
   if (!profile?.isPartyAdmin && !profile?.isAdmin) {
     return <div className="flex h-svh items-center justify-center bg-white text-zinc-400 font-black uppercase text-xs tracking-widest">Access Denied</div>

@@ -146,7 +146,7 @@ export default function CreatePartyPage() {
     }
   }
 
-  const darkMaroon = "bg-[#5A1010]";
+  const darkRed = "bg-[#7F1D1D]";
 
   return (
     <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-y-auto pb-20">
@@ -188,7 +188,7 @@ export default function CreatePartyPage() {
         </div>
 
         <div className="pt-6 pb-10">
-          <Button onClick={handleCreate} disabled={!formData.title.trim() || isCreating} className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all active:scale-95 gap-3", darkMaroon)}>
+          <Button onClick={handleCreate} disabled={!formData.title.trim() || isCreating} className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all active:scale-95 gap-3", darkRed)}>
             {isCreating ? <Loader2 className="w-6 h-6 animate-spin" /> : (<><span>Create for {ROOM_CREATION_COST}</span><div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-[10px] italic">S</div></>)}
           </Button>
         </div>

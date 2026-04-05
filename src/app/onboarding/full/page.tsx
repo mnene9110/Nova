@@ -78,21 +78,21 @@ export default function FullOnboardingPage() {
     router.push("/discover")
   }, [user, name, dob, gender, country, lookingFor, firestore, router, toast])
 
-  const darkMaroonText = "text-[#5A1010]";
-  const darkMaroonBg = "bg-[#5A1010]";
+  const darkRedText = "text-[#7F1D1D]";
+  const darkRedBg = "bg-[#7F1D1D]";
 
   return (
     <div className="h-svh bg-transparent overflow-y-auto">
       <div className="flex flex-col p-6 min-h-full">
         <div className="mt-8 space-y-8 pb-32 max-w-sm mx-auto w-full">
           <header className="space-y-2">
-            <h1 className={cn("text-4xl font-black font-headline drop-shadow-sm", darkMaroonText)}>Complete Profile</h1>
-            <p className="text-[#5A1010] font-bold uppercase text-[10px] tracking-[0.2em]">Tell us a bit more about yourself</p>
+            <h1 className={cn("text-4xl font-black font-headline drop-shadow-sm", darkRedText)}>Complete Profile</h1>
+            <p className="text-[#7F1D1D] font-bold uppercase text-[10px] tracking-[0.2em]">Tell us a bit more about yourself</p>
           </header>
 
           <div className="space-y-6">
             <div className="space-y-3">
-              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", darkMaroonText)}>Full Name</Label>
+              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", darkRedText)}>Full Name</Label>
               <Input 
                 placeholder="What should we call you?" 
                 value={name}
@@ -102,7 +102,7 @@ export default function FullOnboardingPage() {
             </div>
 
             <div className="space-y-3">
-              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", darkMaroonText)}>Date of Birth</Label>
+              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", darkRedText)}>Date of Birth</Label>
               <Input 
                 type="date"
                 value={dob}
@@ -112,33 +112,33 @@ export default function FullOnboardingPage() {
             </div>
 
             <div className="space-y-4">
-              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", darkMaroonText)}>I am a</Label>
+              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", darkRedText)}>I am a</Label>
               <RadioGroup value={gender} onValueChange={setGender} className="flex gap-4">
                 <div 
                   onClick={() => setGender("male")}
                   className={cn(
                     "flex items-center space-x-3 bg-white border px-5 py-4 rounded-[2rem] flex-1 cursor-pointer transition-all shadow-sm",
-                    gender === "male" ? "border-[#5A1010] ring-1" : "border-transparent"
+                    gender === "male" ? "border-[#7F1D1D] ring-1" : "border-transparent"
                   )}
                 >
                   <RadioGroupItem value="male" id="gender_male" />
-                  <Label htmlFor="gender_male" className={cn("font-black cursor-pointer uppercase text-xs tracking-widest", gender === "male" ? darkMaroonText : "text-gray-400")}>Man</Label>
+                  <Label htmlFor="gender_male" className={cn("font-black cursor-pointer uppercase text-xs tracking-widest", gender === "male" ? darkRedText : "text-gray-400")}>Man</Label>
                 </div>
                 <div 
                   onClick={() => setGender("female")}
                   className={cn(
                     "flex items-center space-x-3 bg-white border px-5 py-4 rounded-[2rem] flex-1 cursor-pointer transition-all shadow-sm",
-                    gender === "female" ? "border-[#5A1010] ring-1" : "border-transparent"
+                    gender === "female" ? "border-[#7F1D1D] ring-1" : "border-transparent"
                   )}
                 >
                   <RadioGroupItem value="female" id="gender_female" />
-                  <Label htmlFor="gender_female" className={cn("font-black cursor-pointer uppercase text-xs tracking-widest", gender === "female" ? darkMaroonText : "text-gray-400")}>Woman</Label>
+                  <Label htmlFor="gender_female" className={cn("font-black cursor-pointer uppercase text-xs tracking-widest", gender === "female" ? darkRedText : "text-gray-400")}>Woman</Label>
                 </div>
               </RadioGroup>
             </div>
 
             <div className="space-y-3">
-              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", darkMaroonText)}>Looking for</Label>
+              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", darkRedText)}>Looking for</Label>
               <RadioGroup value={lookingFor} onValueChange={setLookingFor} className="grid grid-cols-1 gap-2">
                 {['long-term', 'casual', 'friendship'].map((goal) => (
                   <div 
@@ -146,11 +146,11 @@ export default function FullOnboardingPage() {
                     onClick={() => setLookingFor(goal)}
                     className={cn(
                       "flex items-center space-x-3 bg-white border px-5 py-4 rounded-[1.75rem] cursor-pointer transition-all shadow-sm",
-                      lookingFor === goal ? "border-[#5A1010] ring-1" : "border-transparent"
+                      lookingFor === goal ? "border-[#7F1D1D] ring-1" : "border-transparent"
                     )}
                   >
                     <RadioGroupItem value={goal} id={`goal_${goal}`} />
-                    <Label htmlFor={`goal_${goal}`} className={cn("font-black cursor-pointer uppercase text-[10px] tracking-widest", lookingFor === goal ? darkMaroonText : "text-gray-400")}>
+                    <Label htmlFor={`goal_${goal}`} className={cn("font-black cursor-pointer uppercase text-[10px] tracking-widest", lookingFor === goal ? darkRedText : "text-gray-400")}>
                       {goal.replace('-', ' ')}
                     </Label>
                   </div>
@@ -159,7 +159,7 @@ export default function FullOnboardingPage() {
             </div>
 
             <div className="space-y-3">
-              <Label className={cn("text-[10px) font-black uppercase ml-1 tracking-widest", darkMaroonText)}>Country</Label>
+              <Label className={cn("text-[10px) font-black uppercase ml-1 tracking-widest", darkRedText)}>Country</Label>
               <Select onValueChange={setCountry}>
                 <SelectTrigger className="h-16 rounded-[2rem] bg-white border-none text-gray-900 font-bold px-6 shadow-sm">
                   <SelectValue placeholder="Select country" />
@@ -174,7 +174,7 @@ export default function FullOnboardingPage() {
           </div>
 
           <Button 
-            className={cn("w-full h-18 rounded-full text-white text-xl font-black shadow-2xl active:scale-95 transition-all mt-6", darkMaroonBg)}
+            className={cn("w-full h-18 rounded-full text-white text-xl font-black shadow-2xl active:scale-95 transition-all mt-6", darkRedBg)}
             disabled={!name || !dob || !gender || !country || !lookingFor}
             onClick={handleSave}
           >

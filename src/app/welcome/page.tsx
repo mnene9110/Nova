@@ -62,7 +62,7 @@ export default function WelcomePage() {
 
   if (isUserLoading || (user && !isLoggingIn)) {
     return (
-      <div className="flex h-svh w-full bg-[#B36666]" />
+      <div className="flex h-svh w-full bg-[#EF4444]" />
     )
   }
 
@@ -72,7 +72,7 @@ export default function WelcomePage() {
         <div className="mb-10 relative">
           <div className="w-48 h-48 bg-zinc-950 rounded-[3rem] shadow-2xl flex flex-col items-center justify-center border border-white/10 animate-float overflow-hidden relative">
             <div className="relative w-24 h-24 mb-2 flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="w-full h-full text-primary fill-current filter drop-shadow-[0_0_15px_rgba(179,102,102,0.9)]" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 24 24" className="w-full h-full text-primary fill-current filter drop-shadow-[0_0_15px_rgba(239,68,68,0.9)]" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
               </svg>
             </div>
@@ -81,11 +81,11 @@ export default function WelcomePage() {
         </div>
 
         <h1 className="text-5xl font-logo text-primary mb-2 drop-shadow-md">Nova</h1>
-        <p className="text-[#5A1010]/80 text-[15px] font-black uppercase tracking-[0.1em] leading-relaxed max-w-[240px] mb-12">Connect with Heart</p>
+        <p className="text-[#7F1D1D]/80 text-[15px] font-black uppercase tracking-[0.1em] leading-relaxed max-w-[240px] mb-12">Connect with Heart</p>
 
         <div className="w-full space-y-4 max-w-xs">
           <Button 
-            className="w-full h-16 rounded-full bg-[#5A1010] text-white hover:bg-[#5A1010]/90 text-lg font-black gap-3 shadow-[0_15px_40px_rgba(0,0,0,0.2)] transition-all active:scale-95 flex items-center justify-center" 
+            className="w-full h-16 rounded-full bg-[#B91C1C] text-white hover:bg-[#B91C1C]/90 text-lg font-black gap-3 shadow-[0_15px_40px_rgba(0,0,0,0.2)] transition-all active:scale-95 flex items-center justify-center" 
             onClick={handleEmailClick}
             disabled={isNavigatingEmail || isLoggingIn}
           >
