@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useRef, useMemo, Suspense } from "react"
@@ -49,7 +50,7 @@ function ChatDetailContent() {
   const [presence, setPresence] = useState<{ online: boolean; lastSeen?: number }>({ online: false })
   const [userCoins, setUserCoins] = useState(0)
   
-  // PAGINATION: Limit messages to keep it fast
+  // PAGINATION
   const [msgLimit, setMsgLimit] = useState(30)
   const [hasMore, setHasMore] = useState(true)
 
@@ -145,14 +146,15 @@ function ChatDetailContent() {
     }
 
     const costPerMin = type === 'video' ? 160 : 80;
+    
+    // UPDATED CALL ECONOMY: Everyone pays for calls EXCEPT Admin/Support/Coinseller
+    // Female users ALSO pay for calls now.
     const isFree = currentUserProfile.isAdmin || 
                    currentUserProfile.isSupport || 
                    currentUserProfile.isCoinseller ||
                    otherUser.isSupport ||
-                   otherUser.isCoinseller ||
-                   (currentUserProfile.gender === 'female' && otherUser?.gender === 'male');
+                   otherUser.isCoinseller;
 
-    // STRICT BALANCE CHECK BEFORE STARTING CALL
     if (!isFree && userCoins < costPerMin) {
       toast({
         variant: "destructive",
@@ -221,6 +223,7 @@ function ChatDetailContent() {
       return;
     }
 
+    // UPDATED CHAT ECONOMY: Female users chat for FREE
     const isFree = currentUserProfile.isAdmin || 
                    currentUserProfile.isSupport || 
                    currentUserProfile.isCoinseller || 
@@ -272,18 +275,7 @@ function ChatDetailContent() {
       }
       
       updates[`/chats/${chatId}/messages/${msgKey}`] = msgData
-      
-      // Update sender's inbox metadata
-      updates[`/users/${currentUser.uid}/chats/${otherUserId}`] = { 
-        lastMessage: textToUse, 
-        timestamp: rtdbTimestamp(), 
-        otherUserId, 
-        chatId, 
-        unreadCount: 0, 
-        hidden: false 
-      }
-      
-      // Update recipient's inbox metadata
+      updates[`/users/${currentUser.uid}/chats/${otherUserId}`] = { lastMessage: textToUse, timestamp: rtdbTimestamp(), otherUserId, chatId, unreadCount: 0, hidden: false }
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/lastMessage`] = textToUse
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/timestamp`] = rtdbTimestamp()
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/otherUserId`] = currentUser.uid
@@ -294,17 +286,10 @@ function ChatDetailContent() {
       await update(ref(database), updates)
       if (!textOverride) setInputText("")
     } catch (error: any) {
-      console.error("Message send error:", error);
       if (error.message === "INSUFFICIENT_COINS") {
-        toast({
-          variant: "destructive",
-          title: "Insufficient Coins",
-          description: "Recharge to continue chatting.",
-          duration: 3000,
-          action: <Button onClick={() => router.push('/recharge')} size="sm" className="bg-white text-primary">Recharge</Button>
-        });
+        toast({ variant: "destructive", title: "Insufficient Coins", description: "Recharge to continue chatting.", action: <Button onClick={() => router.push('/recharge')} size="sm" className="bg-white text-primary">Recharge</Button> });
       } else {
-        toast({ variant: "destructive", title: "Send Failed", description: "Check your connection and try again." });
+        toast({ variant: "destructive", title: "Send Failed", description: "Check your connection." });
       }
     } finally { setIsSending(false) }
   }
@@ -362,18 +347,7 @@ function ChatDetailContent() {
       }
       
       updates[`/chats/${chatId}/messages/${msgKey}`] = msgData
-      
-      // Update sender's metadata
-      updates[`/users/${currentUser.uid}/chats/${otherUserId}`] = {
-        lastMessage: giftMessage,
-        timestamp: rtdbTimestamp(),
-        otherUserId,
-        chatId,
-        unreadCount: 0,
-        hidden: false
-      }
-
-      // Update recipient's metadata
+      updates[`/users/${currentUser.uid}/chats/${otherUserId}`] = { lastMessage: giftMessage, timestamp: rtdbTimestamp(), otherUserId, chatId, unreadCount: 0, hidden: false }
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/lastMessage`] = giftMessage
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/timestamp`] = rtdbTimestamp()
       updates[`/users/${otherUserId}/chats/${currentUser.uid}/unreadCount`] = increment(1)
@@ -385,11 +359,10 @@ function ChatDetailContent() {
       setIsGiftSheetOpen(false);
       setSelectedGift(null);
     } catch (error: any) {
-      console.error("Gift send error:", error);
       if (error.message === "INSUFFICIENT_COINS") {
         toast({ variant: "destructive", title: "Insufficient Coins", description: "Please recharge to send this gift." });
       } else {
-        toast({ variant: "destructive", title: "Gift Failed", description: "Could not deliver gift. Try again." });
+        toast({ variant: "destructive", title: "Gift Failed", description: "Could not deliver gift." });
       }
     } finally { setIsSendingGift(false) }
   }

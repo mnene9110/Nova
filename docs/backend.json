@@ -38,11 +38,27 @@
         "isAdmin": { "type": "boolean" },
         "isCoinseller": { "type": "boolean" },
         "isSupport": { "type": "boolean" },
+        "isAgent": { "type": "boolean" },
+        "agencyId": { "type": "string" },
+        "memberOfAgencyId": { "type": "string" },
+        "agencyJoinStatus": { "type": "string", "enum": ["none", "pending", "approved"] },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" },
         "lastActiveAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "authProviderId", "username", "dateOfBirth", "gender", "createdAt", "coinBalance"]
+    },
+    "Agency": {
+      "title": "Agency",
+      "description": "Represents an agency created by an agent.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "agentId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "agentId", "createdAt"]
     },
     "CoinTransaction": {
       "title": "CoinTransaction",
@@ -57,34 +73,6 @@
         "orderTrackingId": { "type": "string" }
       },
       "required": ["id", "type", "amount", "transactionDate"]
-    },
-    "CallSession": {
-      "title": "CallSession",
-      "description": "Stores state for active or ringing video/audio calls.",
-      "type": "object",
-      "properties": {
-        "callerId": { "type": "string" },
-        "receiverId": { "type": "string" },
-        "status": { "type": "string", "enum": ["ringing", "accepted"] },
-        "callType": { "type": "string", "enum": ["video", "audio"] },
-        "timestamp": { "type": "number" },
-        "callerName": { "type": "string" }
-      },
-      "required": ["callerId", "receiverId", "status", "callType", "timestamp"]
-    },
-    "Report": {
-      "title": "Report",
-      "description": "User feedback regarding another user's behavior or profile.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "reporterId": { "type": "string" },
-        "reportedUserId": { "type": "string" },
-        "details": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "status": { "type": "string", "enum": ["pending", "reviewed"] }
-      },
-      "required": ["id", "reporterId", "reportedUserId", "details", "createdAt", "status"]
     }
   },
   "auth": {
@@ -95,17 +83,13 @@
       "schema": { "$ref": "#/entities/UserProfile" },
       "description": "User profile document."
     },
+    "/agencies/{agencyId}": {
+      "schema": { "$ref": "#/entities/Agency" },
+      "description": "Agency information."
+    },
     "/userProfiles/{userId}/transactions/{transactionId}": {
       "schema": { "$ref": "#/entities/CoinTransaction" },
       "description": "User transaction history."
-    },
-    "/calls/{chatId}": {
-      "schema": { "$ref": "#/entities/CallSession" },
-      "description": "Active call sessions."
-    },
-    "/reports/{reportId}": {
-      "schema": { "$ref": "#/entities/Report" },
-      "description": "User violation reports."
     }
   }
 }

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -170,7 +171,18 @@ export default function ProfilePage() {
             <ChevronRight className="w-5 h-5 text-gray-300" />
           </button>
 
-          {!isLoading && userProfile?.gender?.toLowerCase() === 'female' && (
+          {!isLoading && userProfile?.isAgent && (
+            <button onClick={() => router.push('/profile/agent-center')} className="w-full h-16 rounded-[2rem] bg-purple-900/10 border border-purple-900/20 flex items-center px-6 gap-4 active:scale-[0.98] transition-all shadow-sm">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-purple-900/20"><Building2 className="w-5 h-5 text-purple-900" /></div>
+              <div className="flex-1 text-left">
+                <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px] block">Agent Center</span>
+                <span className="text-gray-400 text-[11px] font-bold">Manage your agency</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300" />
+            </button>
+          )}
+
+          {!isLoading && userProfile?.gender?.toLowerCase() === 'female' && !userProfile?.isAgent && (
             <button onClick={() => router.push('/profile/agency')} className="w-full h-16 rounded-[2rem] bg-white/40 backdrop-blur-md border border-white/30 flex items-center px-6 gap-4 active:bg-white/60 transition-all shadow-sm">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/10"><Building2 className="w-5 h-5 text-amber-600" /></div>
               <div className="flex-1 text-left">
