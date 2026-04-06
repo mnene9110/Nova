@@ -50,6 +50,17 @@ function RechargeContent() {
 
   const { data: coinsellers, isLoading: isSellersLoading } = useCollection(coinsellersQuery)
 
+  // Fix: Reset loading state when returning to the page (e.g. via browser back button)
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        setIsProcessing(false)
+      }
+    }
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
+  }, [])
+
   useEffect(() => {
     const status = searchParams?.get('status')
     if (status === 'success') {
@@ -152,14 +163,14 @@ function RechargeContent() {
             onClick={handlePaystack} 
             disabled={isProcessing || !selectedPackage}
             className={cn(
-              "w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all active:scale-95 gap-3",
-              selectedPackage ? "bg-zinc-900" : "bg-zinc-900/50"
+              "w-full h-20 rounded-full text-white font-black text-xl shadow-2xl transition-all active:scale-95 gap-3",
+              selectedPackage ? "bg-primary" : "bg-primary/50"
             )}
           >
-            {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+            {isProcessing ? <Loader2 className="w-7 h-7 animate-spin" /> : (
               <>
                 <span>Pay {selectedPackage ? `Ksh ${Math.round(selectedPackage.priceKes).toLocaleString()}` : "Ksh ---"}</span>
-                <Zap className="w-4 h-4 text-amber-400 fill-current" />
+                <Zap className="w-5 h-5 text-amber-400 fill-current" />
               </>
             )}
           </Button>
