@@ -1,28 +1,36 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { useUser, useFirebase } from "@/firebase"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { cn } from "@/lib/utils"
-import { Loader2 } from "lucide-react"
-
-const TARGET_COUNTRIES = ["Kenya"]
+import { Loader2, MapPin } from "lucide-react"
+import { getKenyanLocation } from "@/lib/location"
 
 export default function FastOnboardingPage() {
   const [gender, setGender] = useState("")
-  const [country, setCountry] = useState("")
+  const [location, setLocation] = useState("Detecting...")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDetecting, setIsDetecting] = useState(true)
   const router = useRouter()
   const { user } = useUser()
   const { firestore } = useFirebase()
 
+  useEffect(() => {
+    const detect = async () => {
+      const loc = await getKenyanLocation();
+      setLocation(loc);
+      setIsDetecting(false);
+    };
+    detect();
+  }, []);
+
   const handleConfirm = async () => {
-    if (!user || !gender || !country || isSubmitting || !firestore) return
+    if (!user || !gender || isSubmitting || !firestore) return
     setIsSubmitting(true)
 
     try {
@@ -35,7 +43,7 @@ export default function FastOnboardingPage() {
         authProviderId: "anonymous",
         username: `Guest_${user.uid.slice(0, 5)}`,
         gender,
-        location: country,
+        location: location || "Nairobi, Kenya",
         profilePhotoUrls: [`https://picsum.photos/seed/${user.uid}/600/800`],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -100,21 +108,22 @@ export default function FastOnboardingPage() {
           </div>
 
           <div className="space-y-4">
-            <Label className={cn("text-[10px] font-black uppercase tracking-[0.2em] ml-1", primaryBlueText)}>My Country</Label>
-            <Select onValueChange={setCountry}>
-              <SelectTrigger className="h-16 rounded-[2.25rem] bg-white border-sky-100 text-gray-900 text-lg font-black px-8 shadow-sm">
-                <SelectValue placeholder="Select country" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-zinc-100 text-gray-900 rounded-[2rem] p-2">
-                {TARGET_COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Label className={cn("text-[10px] font-black uppercase tracking-[0.2em] ml-1", primaryBlueText)}>Your Location</Label>
+            <div className="h-16 rounded-[2.25rem] bg-white border border-sky-100 flex items-center px-8 gap-3 shadow-sm">
+              {isDetecting ? (
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              ) : (
+                <MapPin className="w-4 h-4 text-primary" />
+              )}
+              <span className="text-sm font-black text-gray-900">{location}</span>
+            </div>
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">Country is limited to Kenya</p>
           </div>
         </div>
 
         <Button 
           className={cn("w-full h-18 rounded-full text-white text-xl font-black mb-10 shadow-2xl active:scale-95 transition-all", primaryBlueBg)} 
-          disabled={!gender || !country || isSubmitting} 
+          disabled={!gender || isDetecting || isSubmitting} 
           onClick={handleConfirm}
         >
           {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Confirm & Start"}

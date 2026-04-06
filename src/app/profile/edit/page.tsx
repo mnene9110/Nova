@@ -1,9 +1,8 @@
-
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Camera, Loader2, Save, User, Plus, X, Sparkles, Check, Tag } from "lucide-react"
+import { ChevronLeft, Camera, Loader2, Save, User, Plus, X, MapPin, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,8 +16,7 @@ import { cn } from "@/lib/utils"
 import Image from "next/image"
 import Cropper from "react-easy-crop"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-
-const COUNTRIES = ["Kenya"]
+import { getKenyanLocation } from "@/lib/location"
 
 const INTERESTS_OPTIONS = [
   'Music', 'Travel', 'Sports', 'Movies', 'Gaming', 'Cooking', 
@@ -61,6 +59,7 @@ export default function EditProfilePage() {
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
   const [isCropping, setIsCropping] = useState(false)
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false)
 
   const [formData, setFormData] = useState({
     username: "",
@@ -149,6 +148,14 @@ export default function EditProfilePage() {
     })
   }
 
+  const handleDetectLocation = async () => {
+    setIsDetectingLocation(true);
+    const loc = await getKenyanLocation();
+    setFormData(prev => ({ ...prev, location: loc }));
+    setIsDetectingLocation(false);
+    toast({ title: "Location Updated", description: `Resolved to ${loc}` });
+  }
+
   const handleSave = async () => {
     if (!currentUser || !firestore || isSaving) return
     setIsSaving(true)
@@ -222,11 +229,22 @@ export default function EditProfilePage() {
           </div>
 
           <div className="space-y-3">
-            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Country</Label>
-            <Select value={formData.location} onValueChange={(val) => setFormData(prev => ({ ...prev, location: val }))}>
-              <SelectTrigger className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner"><SelectValue placeholder="Location" /></SelectTrigger>
-              <SelectContent className="rounded-2xl">{COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-            </Select>
+            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Current Location (Kenya Only)</Label>
+            <div className="flex gap-2">
+              <div className="flex-1 h-14 rounded-2xl bg-white/80 border-none px-4 flex items-center gap-3 shadow-inner">
+                <MapPin className="w-4 h-4 text-primary/40" />
+                <span className="text-sm font-bold text-gray-900 truncate">{formData.location || "Detecting..."}</span>
+              </div>
+              <Button 
+                onClick={handleDetectLocation} 
+                disabled={isDetectingLocation}
+                variant="ghost" 
+                size="icon" 
+                className="h-14 w-14 rounded-2xl bg-white/80 text-primary shadow-inner"
+              >
+                <RefreshCw className={cn("w-5 h-5", isDetectingLocation && "animate-spin")} />
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-3">

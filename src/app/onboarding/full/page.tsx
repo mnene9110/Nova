@@ -1,25 +1,24 @@
-
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { useUser, useFirebase } from "@/firebase"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
-
-const TARGET_COUNTRIES = ["Kenya"]
+import { MapPin, Loader2 } from "lucide-react"
+import { getKenyanLocation } from "@/lib/location"
 
 export default function FullOnboardingPage() {
   const [name, setName] = useState("")
   const [dob, setDob] = useState("")
   const [gender, setGender] = useState("")
-  const [country, setCountry] = useState("")
+  const [location, setLocation] = useState("Detecting...")
+  const [isDetecting, setIsDetecting] = useState(true)
   const [lookingFor, setLookingFor] = useState("")
   
   const router = useRouter()
@@ -27,8 +26,17 @@ export default function FullOnboardingPage() {
   const { firestore } = useFirebase()
   const { toast } = useToast()
 
+  useEffect(() => {
+    const detect = async () => {
+      const loc = await getKenyanLocation();
+      setLocation(loc);
+      setIsDetecting(false);
+    };
+    detect();
+  }, []);
+
   const handleSave = useCallback(async () => {
-    if (!user || !name || !dob || !gender || !country || !lookingFor || !firestore) return
+    if (!user || !name || !dob || !gender || !lookingFor || !firestore) return
 
     const birthDate = new Date(dob)
     const today = new Date()
@@ -58,7 +66,7 @@ export default function FullOnboardingPage() {
       dateOfBirth: dob,
       gender,
       relationshipGoal: lookingFor,
-      location: country,
+      location: location || "Nairobi, Kenya",
       profilePhotoUrls: [`https://picsum.photos/seed/${user.uid}/600/800`],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -77,7 +85,7 @@ export default function FullOnboardingPage() {
 
     await setDoc(doc(firestore, "userProfiles", user.uid), profileData);
     router.push("/discover")
-  }, [user, name, dob, gender, country, lookingFor, firestore, router, toast])
+  }, [user, name, dob, gender, location, lookingFor, firestore, router, toast])
 
   const primaryBlueText = "text-sky-900";
   const primaryBlueBg = "bg-primary";
@@ -160,23 +168,21 @@ export default function FullOnboardingPage() {
             </div>
 
             <div className="space-y-3">
-              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", primaryBlueText)}>Country</Label>
-              <Select onValueChange={setCountry}>
-                <SelectTrigger className="h-16 rounded-[2rem] bg-white border-none text-gray-900 font-bold px-6 shadow-sm">
-                  <SelectValue placeholder="Select country" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border-zinc-100 text-gray-900 rounded-[2rem] p-2">
-                  {TARGET_COUNTRIES.map(c => (
-                    <SelectItem key={c} value={c} className="rounded-xl py-3 px-4 font-bold">{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", primaryBlueText)}>Location (Kenya Only)</Label>
+              <div className="h-16 rounded-[2rem] bg-white flex items-center px-6 gap-3 shadow-sm">
+                {isDetecting ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                ) : (
+                  <MapPin className="w-4 h-4 text-primary" />
+                )}
+                <span className="text-sm font-bold text-gray-900">{location}</span>
+              </div>
             </div>
           </div>
 
           <Button 
             className={cn("w-full h-18 rounded-full text-white text-xl font-black shadow-2xl active:scale-95 transition-all mt-6", primaryBlueBg)}
-            disabled={!name || !dob || !gender || !country || !lookingFor}
+            disabled={!name || !dob || !gender || !lookingFor || isDetecting}
             onClick={handleSave}
           >
             Finish Setup
