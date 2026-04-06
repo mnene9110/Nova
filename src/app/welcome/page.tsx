@@ -67,10 +67,22 @@ export default function WelcomePage() {
   }
 
   return (
-    <div className="flex flex-col h-svh bg-transparent relative overflow-hidden">
+    <div className="flex flex-col h-svh bg-black relative overflow-hidden">
+      {/* Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover z-0 opacity-60"
+      >
+        <source src="/welcome-bg.mp4" type="video/mp4" />
+      </video>
+
+      {/* Content Overlay */}
       <main className="flex-1 flex flex-col items-center justify-center px-8 text-center relative z-10">
         <div className="mb-10 relative">
-          <div className="w-48 h-48 bg-zinc-950 rounded-[3rem] shadow-2xl flex flex-col items-center justify-center border border-white/10 animate-float overflow-hidden relative">
+          <div className="w-48 h-48 bg-zinc-950/40 backdrop-blur-md rounded-[3rem] shadow-2xl flex flex-col items-center justify-center border border-white/10 animate-float overflow-hidden relative">
             <div className="relative w-24 h-24 mb-2 flex items-center justify-center">
               <svg viewBox="0 0 24 24" className="w-full h-full text-primary fill-current filter drop-shadow-[0_0_15px_rgba(14,165,233,0.9)]" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
@@ -81,7 +93,7 @@ export default function WelcomePage() {
         </div>
 
         <h1 className="text-5xl font-logo text-primary mb-2 drop-shadow-md">Nova</h1>
-        <p className="text-sky-900/80 text-[15px] font-black uppercase tracking-[0.1em] leading-relaxed max-w-[240px] mb-12">Connect with Heart</p>
+        <p className="text-white/90 text-[15px] font-black uppercase tracking-[0.1em] leading-relaxed max-w-[240px] mb-12">Connect with Heart</p>
 
         <div className="w-full space-y-4 max-w-xs">
           <Button 
@@ -95,7 +107,7 @@ export default function WelcomePage() {
           
           <Button 
             variant="ghost" 
-            className="w-full h-16 rounded-full bg-white/40 text-gray-900 border border-white/30 hover:bg-white/60 text-lg font-black gap-3 transition-all active:scale-95 backdrop-blur-md shadow-sm flex items-center justify-center" 
+            className="w-full h-16 rounded-full bg-white/20 text-white border border-white/30 hover:bg-white/30 text-lg font-black gap-3 transition-all active:scale-95 backdrop-blur-md shadow-sm flex items-center justify-center" 
             onClick={handleFastLogin} 
             disabled={isLoggingIn || isNavigatingEmail}
           >
