@@ -118,6 +118,21 @@ function ChatDetailContent() {
   const handleInitiateCall = async (type: 'video' | 'audio') => {
     if (!firestore || !chatId || !currentUser || !currentUserProfile || !otherUser) return
 
+    // 1. Permission check first
+    try {
+      const constraints = type === 'video' ? { video: true, audio: true } : { audio: true };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      // Stop immediately after check, the global overlay will re-acquire
+      stream.getTracks().forEach(t => t.stop());
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Permission Required",
+        description: `Please allow ${type === 'video' ? 'camera and microphone' : 'microphone'} access to start a call.`,
+      });
+      return;
+    }
+
     if (otherUser.inCall) {
       toast({ variant: "destructive", title: "User Busy", description: "This user is currently on another call." });
       return;

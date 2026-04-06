@@ -4,8 +4,8 @@
 
 export async function getKenyanLocation(): Promise<string> {
   return new Promise((resolve) => {
-    if (!navigator.geolocation) {
-      resolve("Nairobi, Kenya");
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      resolve("Kenya");
       return;
     }
 
@@ -32,14 +32,15 @@ export async function getKenyanLocation(): Promise<string> {
           resolve(`${cleanCounty}, Kenya`);
         } catch (error) {
           console.error("Geocoding error:", error);
-          resolve("Nairobi, Kenya");
+          resolve("Kenya");
         }
       },
       (error) => {
-        console.error("Geolocation error:", error);
-        resolve("Nairobi, Kenya");
+        // Silently fallback if permission denied or error
+        console.warn("Geolocation error or denied:", error);
+        resolve("Kenya");
       },
-      { timeout: 10000 }
+      { timeout: 8000 }
     );
   });
 }

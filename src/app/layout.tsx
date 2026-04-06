@@ -26,6 +26,13 @@ export default function RootLayout({
     };
     window.addEventListener('beforeunload', preventConfirm);
 
+    // Notification Permission Request
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
+
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       const registerSW = () => {
         navigator.serviceWorker.register('/sw.js')

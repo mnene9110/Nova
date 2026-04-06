@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Phone, PhoneOff, Loader2 } from "lucide-react"
+import { Phone, PhoneOff, Loader2, Camera, ShieldAlert } from "lucide-react"
 import { useFirebase, useUser } from "@/firebase"
 import { 
   collection, 
@@ -17,6 +17,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import { getAgoraToken } from "@/app/actions/agora"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 
 let AgoraRTC: any = null;
 
@@ -29,6 +31,7 @@ export function GlobalCallOverlay() {
   const [callDuration, setCallDuration] = useState(0)
   const [isConnecting, setIsConnecting] = useState(false)
   const [agoraTokenData, setAgoraTokenData] = useState<{token: string, appId: string} | null>(null)
+  const [hasHardwarePermission, setHasHardwarePermission] = useState<boolean | null>(null)
   
   const agoraClientRef = useRef<any>(null)
   const localTracksRef = useRef<{ videoTrack?: any; audioTrack?: any }>({})
@@ -176,8 +179,10 @@ export function GlobalCallOverlay() {
           videoTrack.play(previewVideoRef.current);
         }
       }
+      setHasHardwarePermission(true);
     } catch (e) {
       console.error("Hardware failed:", e);
+      setHasHardwarePermission(false);
     }
   };
 
@@ -308,6 +313,7 @@ export function GlobalCallOverlay() {
     setCallData(null);
     setCallDuration(0);
     setAgoraTokenData(null);
+    setHasHardwarePermission(null);
     callDurationRef.current = 0;
     activeChatIdRef.current = null;
     wasCallAcceptedRef.current = false;
@@ -318,6 +324,18 @@ export function GlobalCallOverlay() {
 
   const handleAcceptCall = async () => {
     if (!firestore || !activeChatIdRef.current || !callData) return;
+    
+    // Check permission again before accepting
+    try {
+      const constraints = callData.callType === 'video' ? { video: true, audio: true } : { audio: true };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      stream.getTracks().forEach(t => t.stop());
+      setHasHardwarePermission(true);
+    } catch (e) {
+      setHasHardwarePermission(false);
+      return; // Don't accept if denied
+    }
+
     if (ringtoneRef.current) {
       ringtoneRef.current.pause();
       ringtoneRef.current.currentTime = 0;
@@ -451,6 +469,19 @@ export function GlobalCallOverlay() {
                 </div>
               )}
             </div>
+
+            {hasHardwarePermission === false && (
+              <Alert variant="destructive" className="max-w-xs bg-red-950/80 border-red-500/50 text-white mt-4 animate-in zoom-in">
+                <ShieldAlert className="h-4 w-4" />
+                <AlertTitle className="font-black uppercase tracking-widest text-[10px]">Access Denied</AlertTitle>
+                <AlertDescription className="text-[11px] font-medium opacity-90 leading-tight">
+                  Please enable camera and microphone permissions in your browser settings to continue.
+                </AlertDescription>
+                <Button variant="outline" size="sm" onClick={() => engageHardware(callData?.callType)} className="mt-3 w-full h-10 border-white/20 hover:bg-white/10 text-white font-black text-[9px] uppercase tracking-[0.2em]">
+                  Retry Permission
+                </Button>
+              </Alert>
+            )}
           </div>
         </div>
       )}
