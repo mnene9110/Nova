@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef } from "react"
@@ -353,20 +352,28 @@ export function GlobalCallOverlay() {
   }
 
   const logCallInChat = async (chatId: string, duration: number, label: string) => {
-    if (!firestore || !currentUser || logRecordedRef.current) return;
+    if (!firestore || !currentUser || logRecordedRef.current || !callData) return;
     
     logRecordedRef.current = true;
-    const otherId = callData?.receiverId === currentUser.uid ? callData?.callerId : callData?.receiverId;
-    if (!otherId) return;
+    const otherId = callData.receiverId === currentUser.uid ? callData.callerId : callData.receiverId;
     
     const chatRef = doc(firestore, "chats", chatId);
     const msgRef = doc(collection(chatRef, "messages"));
     
-    await setDoc(msgRef, { messageText: label, senderId: currentUser.uid, sentAt: serverTimestamp(), isCallLog: true });
-    await updateDoc(chatRef, {
-      lastMessage: label,
-      timestamp: serverTimestamp()
+    await setDoc(msgRef, { 
+      messageText: label, 
+      senderId: currentUser.uid, 
+      sentAt: serverTimestamp(), 
+      isCallLog: true 
     });
+
+    await setDoc(chatRef, {
+      lastMessage: label,
+      timestamp: serverTimestamp(),
+      participants: [callData.callerId, callData.receiverId],
+      [`unreadCount_${otherId}`]: increment(1),
+      [`userHasSent_${currentUser.uid}`]: true
+    }, { merge: true });
   };
 
   useEffect(() => {

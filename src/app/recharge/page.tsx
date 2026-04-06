@@ -12,7 +12,6 @@ import { cn } from "@/lib/utils"
 
 // Standard Pricing (Normal Users)
 export const STANDARD_PACKAGES = [
-  { amount: 35, priceKes: 5 },
   { amount: 500, priceKes: 70 },
   { amount: 1000, priceKes: 120 },
   { amount: 2000, priceKes: 240 },
