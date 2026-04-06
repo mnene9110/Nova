@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useRouter } from "next/navigation"
@@ -5,7 +6,7 @@ import { ChevronLeft, Shield, Globe, Video } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 /**
- * @fileOverview About Nova page.
+ * @fileOverview About nova page.
  */
 export default function AboutPage() {
   const router = useRouter()
@@ -21,16 +22,16 @@ export default function AboutPage() {
         >
           <ChevronLeft className="w-6 h-6" />
         </Button>
-        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-white drop-shadow-md">About Nova</h1>
+        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-white drop-shadow-md">About nova</h1>
       </header>
 
       <main className="flex-1 px-8 pt-4 pb-20 space-y-12">
         <div className="flex flex-col items-center text-center space-y-6">
           <div className="w-24 h-24 bg-zinc-950 rounded-[3rem] shadow-2xl flex items-center justify-center border border-white/10">
-             <span className="text-primary font-logo text-4xl">N</span>
+             <span className="text-primary font-logo text-4xl">n</span>
           </div>
           <div className="space-y-2">
-            <h2 className="text-3xl font-logo text-primary">Nova</h2>
+            <h2 className="text-3xl font-logo text-primary">nova</h2>
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Version 3.1.0 • Global</p>
           </div>
         </div>
@@ -39,7 +40,7 @@ export default function AboutPage() {
           <section className="space-y-4">
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary">Our Mission</h3>
             <p className="text-sm font-medium text-gray-600 leading-relaxed bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/40 shadow-sm">
-              Nova is designed to bring people together through genuine, high-quality interactions. We believe that real connection starts with seeing and hearing the person on the other side of the screen.
+              nova is designed to bring people together through genuine, high-quality interactions. We believe that real connection starts with seeing and hearing the person on the other side of the screen.
             </p>
           </section>
 
@@ -57,9 +58,9 @@ export default function AboutPage() {
           </div>
 
           <section className="space-y-4">
-            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary">Why Nova?</h3>
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary">Why nova?</h3>
             <p className="text-sm font-medium text-gray-600 leading-relaxed bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/40 shadow-sm">
-              Unlike traditional apps that focus on swiping, Nova prioritizes active engagement. Our unique coin-based economy ensures that every interaction is intentional and valued.
+              Unlike traditional apps that focus on swiping, nova prioritizes active engagement. Our unique coin-based economy ensures that every interaction is intentional and valued.
             </p>
           </section>
         </div>

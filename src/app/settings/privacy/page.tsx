@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useRouter } from "next/navigation"
@@ -32,14 +33,14 @@ export default function PrivacyPage() {
         <section className="space-y-4">
           <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">2. Real-time Communication Security</h2>
           <p className="text-sm font-medium text-gray-600 leading-relaxed bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/40">
-            All audio and video calls on Nova are end-to-end encrypted using Agora and TRTC technology. We do not record, store, or monitor your private calls. Chat messages are stored securely in Firestore to allow synchronization across devices, and you have the right to delete them at any time.
+            All audio and video calls on nova are end-to-end encrypted using Agora and TRTC technology. We do not record, store, or monitor your private calls. Chat messages are stored securely in Firestore to allow synchronization across devices, and you have the right to delete them at any time.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">3. Financial Information</h2>
           <p className="text-sm font-medium text-gray-600 leading-relaxed bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/40">
-            Payment processing is handled by third-party providers like Paystack. Nova does not store your credit card or mobile money PINs. We only retain transaction records (amount, date, package) to maintain your coin balance and provide customer support.
+            Payment processing is handled by third-party providers like Paystack. nova does not store your credit card or mobile money PINs. We only retain transaction records (amount, date, package) to maintain your coin balance and provide customer support.
           </p>
         </section>
 

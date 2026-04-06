@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useCallback } from "react"
@@ -41,7 +42,7 @@ export default function FullOnboardingPage() {
       toast({
         variant: "destructive",
         title: "Access Denied",
-        description: "You must be 18 or older to use Nova.",
+        description: "You must be 18 or older to use nova.",
       })
       return
     }

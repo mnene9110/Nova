@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useRouter } from "next/navigation"
@@ -25,35 +26,35 @@ export default function TermsPage() {
         <section className="space-y-4">
           <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">1. Acceptance and Eligibility</h2>
           <p className="text-sm font-medium text-gray-600 leading-relaxed bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/40">
-            By creating an account on Nova, you agree to these terms. You must be at least 18 years of age. Any use of the platform by minors is strictly prohibited. You represent that all information provided during signup is accurate and that you will maintain the security of your account.
+            By creating an account on nova, you agree to these terms. You must be at least 18 years of age. Any use of the platform by minors is strictly prohibited. You represent that all information provided during signup is accurate and that you will maintain the security of your account.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">2. Coin and Diamond Economy</h2>
           <p className="text-sm font-medium text-gray-600 leading-relaxed bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/40">
-            Nova operates on a virtual currency system. Coins are purchased for use within the app and are non-refundable. Diamonds earned through gifts can be converted to coins or requested as cash payouts if you are an approved Agency member. Nova reserves the right to adjust conversion rates and transaction fees at any time to maintain the platform's stability.
+            nova operates on a virtual currency system. Coins are purchased for use within the app and are non-refundable. Diamonds earned through gifts can be converted to coins or requested as cash payouts if you are an approved Agency member. nova reserves the right to adjust conversion rates and transaction fees at any time to maintain the platform's stability.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">3. Community Standards</h2>
           <p className="text-sm font-medium text-gray-600 leading-relaxed bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/40">
-            We maintain a zero-tolerance policy for harassment, explicit sexual content, hate speech, or scamming. Users found violating these standards will be banned permanently. Nova is a place for genuine connection; creating fake profiles or using bots is a breach of these terms.
+            We maintain a zero-tolerance policy for harassment, explicit sexual content, hate speech, or scamming. Users found violating these standards will be banned permanently. nova is a place for genuine connection; creating fake profiles or using bots is a breach of these terms.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">4. Subscriptions and Agencies</h2>
           <p className="text-sm font-medium text-gray-600 leading-relaxed bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/40">
-            Official Hosts and Agency Heads are subject to additional vetting. Agency members agree to allow their respective Agency Head to process their financial payouts. Nova is not responsible for disputes between Agency members and their Heads, though we will investigate reported misconduct.
+            Official Hosts and Agency Heads are subject to additional vetting. Agency members agree to allow their respective Agency Head to process their financial payouts. nova is not responsible for disputes between Agency members and their Heads, though we will investigate reported misconduct.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">5. Limitation of Liability</h2>
           <p className="text-sm font-medium text-gray-600 leading-relaxed bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/40">
-            Nova is provided "as is." While we strive for 100% uptime and high call quality, we are not liable for technical interruptions, data loss, or the conduct of other users. We reserve the right to modify or terminate services at our discretion.
+            nova is provided "as is." While we strive for 100% uptime and high call quality, we are not liable for technical interruptions, data loss, or the conduct of other users. We reserve the right to modify or terminate services at our discretion.
           </p>
         </section>
 

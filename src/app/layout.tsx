@@ -11,7 +11,7 @@ import { GlobalCallOverlay } from "@/components/GlobalCallOverlay"
 
 /**
  * @fileOverview Root layout component.
- * Branding: NOVA.
+ * Branding: nova.
  */
 
 export default function RootLayout({
@@ -63,11 +63,11 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="NOVA" />
+        <meta name="apple-mobile-web-app-title" content="nova" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
-        <title>Nova</title>
+        <title>nova</title>
       </head>
       <body className="font-body antialiased selection:bg-none">
         <FirebaseClientProvider>
