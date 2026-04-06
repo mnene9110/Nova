@@ -3,7 +3,7 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ChevronLeft, Check, History, Loader2, Zap, Users, MessageCircle, Copy } from "lucide-react"
+import { ChevronLeft, Check, History, Loader2, Zap, Users, MessageCircle, Copy, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { useFirebase, useDoc, useUser, useMemoFirebase, useCollection } from "@/firebase"
@@ -12,6 +12,14 @@ import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { initializePaystackTransaction } from "@/app/actions/paystack"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
 // Standard Pricing
 export const STANDARD_PACKAGES = [
@@ -36,6 +44,7 @@ function RechargeContent() {
   
   const [selectedPackage, setSelectedPackage] = useState<any | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isSellersOpen, setIsSellersOpen] = useState(false)
 
   const meRef = useMemoFirebase(() => user ? doc(firestore, "userProfiles", user.uid) : null, [firestore, user])
   const { data: profile } = useDoc(meRef)
@@ -50,10 +59,7 @@ function RechargeContent() {
 
   const { data: coinsellers, isLoading: isSellersLoading } = useCollection(coinsellersQuery)
 
-  // Fix: Reset loading state when returning to the page (handling back-forward cache and visibility)
   useEffect(() => {
-    const handleReset = () => setIsProcessing(false)
-    
     const handlePageShow = (event: PageTransitionEvent) => {
       if (event.persisted || isProcessing) {
         setIsProcessing(false)
@@ -62,7 +68,6 @@ function RechargeContent() {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // Give Paystack callback room to process before resetting UI
         setTimeout(() => setIsProcessing(false), 1500)
       }
     }
@@ -119,6 +124,7 @@ function RechargeContent() {
       ? `Hello! I want to buy ${selectedPackage.amount} coins for ${currencyInfo.symbol} ${localPrice.toLocaleString()}` 
       : "Hello! I want to buy coins."
     
+    setIsSellersOpen(false)
     router.push(`/chat/${sellerId}?msg=${encodeURIComponent(message)}`)
   }
 
@@ -193,51 +199,72 @@ function RechargeContent() {
               </>
             )}
           </Button>
-        </div>
 
-        <section className="mt-12 space-y-4 pb-10">
-          <div className="flex items-center justify-between px-2">
-            <h3 className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Official Coinsellers</h3>
-            <Users className="w-3.5 h-3.5 text-white/40" />
-          </div>
-
-          <div className="space-y-3">
-            {isSellersLoading ? (
-              <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
-            ) : coinsellers && coinsellers.length > 0 ? (
-              coinsellers.map((seller: any) => (
-                <div 
-                  key={seller.id}
-                  className="w-full flex items-center justify-between p-4 bg-white/40 backdrop-blur-md border border-white/30 rounded-[2rem] shadow-sm hover:bg-white transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-10 h-10 border border-white shadow-sm">
-                      <AvatarImage src={seller.profilePhotoUrls?.[0]} className="object-cover" />
-                      <AvatarFallback className="bg-primary text-white text-[10px] font-black">{seller.username?.[0]}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-black text-gray-900">{seller.username}</span>
-                      <button onClick={() => copySellerId(seller.numericId?.toString())} className="text-[8px] font-black text-green-500 uppercase tracking-widest text-left active:opacity-50">ID: {seller.numericId || "---"}</button>
-                    </div>
-                  </div>
-                  <Button 
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleChatWithSeller(seller.id)}
-                    className="h-10 px-4 rounded-full bg-white/50 text-primary hover:bg-white font-black text-[9px] uppercase tracking-widest gap-2"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    Buy via Chat
-                  </Button>
+          <Sheet open={isSellersOpen} onOpenChange={setIsSellersOpen}>
+            <SheetTrigger asChild>
+              <button className="w-full h-20 rounded-full bg-white/40 backdrop-blur-xl border border-white/40 flex items-center px-8 gap-4 active:scale-95 transition-all shadow-lg group">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 group-hover:bg-amber-500/20 transition-colors">
+                  <Users className="w-5 h-5 text-amber-600" />
                 </div>
-              ))
-            ) : (
-              <div className="p-8 text-center bg-white/10 rounded-[2rem] border border-white/20 border-dashed">
-                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">No sellers currently online</p>
+                <div className="flex-1 text-left">
+                  <span className="text-[10px] font-black uppercase text-gray-400 block tracking-widest">Manual Purchase</span>
+                  <span className="text-sm font-black text-gray-900 uppercase tracking-tighter">Official Coinsellers</span>
+                </div>
+                <ArrowRight className="w-5 h-5 text-gray-300" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-[3rem] p-0 border-none bg-white overflow-hidden flex flex-col max-h-[85svh]">
+              <SheetHeader className="px-8 pt-10 pb-4 shrink-0">
+                <SheetTitle className="text-2xl font-black font-headline text-gray-900">Verified Sellers</SheetTitle>
+                <SheetDescription className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  Select a seller to purchase via Chat/M-Pesa
+                </SheetDescription>
+              </SheetHeader>
+              
+              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 pb-20">
+                {isSellersLoading ? (
+                  <div className="flex flex-col items-center justify-center py-20 gap-4">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary/20" />
+                    <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Finding sellers...</span>
+                  </div>
+                ) : coinsellers && coinsellers.length > 0 ? (
+                  coinsellers.map((seller: any) => (
+                    <div 
+                      key={seller.id}
+                      className="w-full flex items-center justify-between p-5 bg-gray-50/50 border border-gray-100 rounded-[2.5rem] transition-all"
+                    >
+                      <div className="flex items-center gap-4">
+                        <Avatar className="w-14 h-14 border-2 border-white shadow-md">
+                          <AvatarImage src={seller.profilePhotoUrls?.[0]} className="object-cover" />
+                          <AvatarFallback className="bg-primary text-white text-xs font-black">{seller.username?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="text-[13px] font-black text-gray-900">{seller.username}</span>
+                          <button onClick={() => copySellerId(seller.numericId?.toString())} className="text-[9px] font-bold text-green-500 uppercase tracking-widest flex items-center gap-1 active:opacity-50">
+                            ID: {seller.numericId || "---"}
+                            <Copy className="w-2.5 h-2.5" />
+                          </button>
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={() => handleChatWithSeller(seller.id)}
+                        className="h-12 px-6 rounded-full bg-primary text-white font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-90 transition-all gap-2"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        Chat
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-20 text-center space-y-4 opacity-30">
+                    <Users className="w-12 h-12 mx-auto" />
+                    <p className="text-[10px] font-black uppercase tracking-widest">No Sellers Online</p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </section>
+            </SheetContent>
+          </Sheet>
+        </div>
       </main>
 
       <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-6 bg-white/80 backdrop-blur-xl border-t border-gray-100 z-50 text-center">
