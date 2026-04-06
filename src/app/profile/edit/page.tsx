@@ -122,9 +122,13 @@ export default function EditProfilePage() {
           if (activePhotoSlot < newUrls.length) {
             newUrls[activePhotoSlot] = croppedImage;
           } else {
-            newUrls.push(croppedImage);
+            // Grow array to match slot if needed
+            while (newUrls.length <= activePhotoSlot) {
+              newUrls.push("");
+            }
+            newUrls[activePhotoSlot] = croppedImage;
           }
-          return { ...prev, profilePhotoUrls: newUrls }
+          return { ...prev, profilePhotoUrls: newUrls.filter(u => u !== "" || newUrls.indexOf(u) === 0) }
         });
         setImageToCrop(null); setActivePhotoSlot(null);
       }
@@ -134,7 +138,8 @@ export default function EditProfilePage() {
   const removePhoto = (index: number) => {
     if (index === 0) { toast({ title: "Primary Photo Required" }); return }
     setFormData(prev => {
-      const newUrls = [...prev.profilePhotoUrls]; newUrls.splice(index, 1);
+      const newUrls = [...prev.profilePhotoUrls]; 
+      newUrls.splice(index, 1);
       return { ...prev, profilePhotoUrls: newUrls }
     })
   }
@@ -188,13 +193,13 @@ export default function EditProfilePage() {
                 <AvatarImage src={formData.profilePhotoUrls[0] || ""} className="object-cover" />
                 <AvatarFallback className="bg-primary text-white text-4xl font-black">{formData.username?.[0] || <User className="w-16 h-16" />}</AvatarFallback>
               </Avatar>
-              <button onClick={() => { setActivePhotoSlot(0); mainFileInputRef.current?.click(); }} className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-[#5A1010] flex items-center justify-center shadow-xl active:scale-90 transition-transform z-10"><Camera className="w-5 h-5 text-white" /></button>
+              <button onClick={() => { setActivePhotoSlot(0); mainFileInputRef.current?.click(); }} className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-zinc-900 border-2 border-white flex items-center justify-center shadow-xl active:scale-90 transition-transform z-10"><Camera className="w-5 h-5 text-white" /></button>
             </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70 mt-5 drop-shadow-sm">Main Photo</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-950/60 mt-5 drop-shadow-sm">Main Profile Photo</p>
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 ml-1">Gallery (Max 4 Extra)</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-950/40 ml-1">Profile Gallery</h3>
             <div className="grid grid-cols-4 gap-3">
               {extraPhotoSlots.map((slotIndex) => {
                 const photoUrl = formData.profilePhotoUrls[slotIndex];
@@ -202,16 +207,22 @@ export default function EditProfilePage() {
                   <div key={slotIndex} className="relative aspect-square">
                     {photoUrl ? (
                       <>
-                        <div className="w-full h-full rounded-2xl overflow-hidden border-2 border-white/50 shadow-lg"><Image src={photoUrl} alt="Extra" fill className="object-cover" /></div>
-                        <button onClick={() => removePhoto(slotIndex)} className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-red-50 rounded-full flex items-center justify-center text-white shadow-md active:scale-90 transition-all z-20"><X className="w-3 h-3" /></button>
+                        <div className="w-full h-full rounded-2xl overflow-hidden border-2 border-white shadow-lg"><Image src={photoUrl} alt="Extra" fill className="object-cover" /></div>
+                        <button onClick={() => removePhoto(slotIndex)} className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white shadow-md active:scale-90 transition-all z-20"><X className="w-3 h-3" /></button>
                       </>
                     ) : (
-                      <button onClick={() => { setActivePhotoSlot(slotIndex); extraPhotosInputRef.current?.click(); }} className="w-full h-full rounded-2xl border-2 border-dashed border-white/30 flex items-center justify-center bg-white/5 hover:bg-white/10 transition-colors"><Plus className="w-5 h-5 text-white/40" /></button>
+                      <button 
+                        onClick={() => { setActivePhotoSlot(slotIndex); extraPhotosInputRef.current?.click(); }} 
+                        className="w-full h-full rounded-2xl border-2 border-dashed border-white bg-white/60 flex items-center justify-center shadow-sm hover:bg-white hover:border-primary/30 active:scale-95 transition-all group"
+                      >
+                        <Plus className="w-6 h-6 text-primary/40 group-hover:text-primary transition-colors" />
+                      </button>
                     )}
                   </div>
                 )
               })}
             </div>
+            <p className="text-[9px] font-bold text-sky-950/30 uppercase tracking-widest text-center">Add up to 4 extra photos</p>
           </div>
           <input type="file" ref={mainFileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
           <input type="file" ref={extraPhotosInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
