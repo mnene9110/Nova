@@ -2,15 +2,17 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ChevronLeft, Check, History, Loader2, Zap } from "lucide-react"
+import { ChevronLeft, Check, History, Loader2, Zap, Users, MessageCircle, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { useFirebase, useDoc, useUser, useMemoFirebase } from "@/firebase"
-import { doc } from "firebase/firestore"
+import { useFirebase, useDoc, useUser, useMemoFirebase, useCollection } from "@/firebase"
+import { doc, collection, query, where } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
+import { initializePaystackTransaction } from "@/app/actions/paystack"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-// Standard Pricing (Normal Users)
+// Standard Pricing
 export const STANDARD_PACKAGES = [
   { amount: 500, priceKes: 70 },
   { amount: 1000, priceKes: 120 },
@@ -50,13 +52,21 @@ function RechargeContent() {
   const { toast } = useToast()
   
   const [selectedPackage, setSelectedPackage] = useState<any | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
 
   const meRef = useMemoFirebase(() => user ? doc(firestore, "userProfiles", user.uid) : null, [firestore, user])
   const { data: profile } = useDoc(meRef)
 
-  const packages = STANDARD_PACKAGES;
   const currencyInfo = COUNTRY_CURRENCIES[profile?.location || "Kenya"] || COUNTRY_CURRENCIES["Kenya"];
   const isKenyan = profile?.location === "Kenya";
+
+  // Get Coinsellers for Kenyan region
+  const coinsellersQuery = useMemoFirebase(() => {
+    if (!firestore) return null
+    return query(collection(firestore, "userProfiles"), where("isCoinseller", "==", true))
+  }, [firestore])
+
+  const { data: coinsellers, isLoading: isSellersLoading } = useCollection(coinsellersQuery)
 
   useEffect(() => {
     const status = searchParams?.get('status')
@@ -67,10 +77,46 @@ function RechargeContent() {
     }
   }, [searchParams, toast])
 
-  const handleNext = () => {
-    if (!selectedPackage) return;
-    const localPrice = Math.round(selectedPackage.priceKes * currencyInfo.rate);
-    router.push(`/recharge/payment-method?amount=${selectedPackage.amount}&price=${localPrice}&currency=${currencyInfo.code}`);
+  const handlePaystack = async () => {
+    if (!user || !selectedPackage || isProcessing) return
+    setIsProcessing(true)
+
+    const localPrice = Math.round(selectedPackage.priceKes * currencyInfo.rate)
+    const email = user.email || `guest_${user.uid.slice(0, 8)}@nova.app`
+    
+    try {
+      const result = await initializePaystackTransaction(email, localPrice, {
+        userId: user.uid,
+        packageAmount: selectedPackage.amount
+      })
+
+      if (result.error) {
+        setIsProcessing(false)
+        toast({ variant: "destructive", title: "Error", description: result.error })
+        return
+      }
+
+      if (result.authorization_url) {
+        window.location.href = result.authorization_url
+      }
+    } catch (e) {
+      setIsProcessing(false)
+      toast({ variant: "destructive", title: "Error", description: "Could not initialize payment." })
+    }
+  }
+
+  const handleChatWithSeller = (sellerId: string) => {
+    const localPrice = selectedPackage ? Math.round(selectedPackage.priceKes * currencyInfo.rate) : 0;
+    const message = selectedPackage 
+      ? `Hello! I want to buy ${selectedPackage.amount} coins for ${currencyInfo.symbol} ${localPrice.toLocaleString()}` 
+      : "Hello! I want to buy coins."
+    
+    router.push(`/chat/${sellerId}?msg=${encodeURIComponent(message)}`)
+  }
+
+  const copySellerId = (id: string) => {
+    navigator.clipboard.writeText(id)
+    toast({ title: "ID Copied", description: "Coinseller ID copied." })
   }
 
   return (
@@ -98,7 +144,7 @@ function RechargeContent() {
         <section className="space-y-4">
           <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em] mb-3 ml-2 drop-shadow-sm">Select Package</h2>
           <div className="grid grid-cols-3 gap-3">
-            {packages.map((pkg) => {
+            {STANDARD_PACKAGES.map((pkg) => {
               const isSelected = selectedPackage?.amount === pkg.amount;
               const localPrice = Math.round(pkg.priceKes * currencyInfo.rate);
               
@@ -118,17 +164,68 @@ function RechargeContent() {
           </div>
         </section>
 
+        {selectedPackage && (
+          <div className="mt-10 space-y-4 animate-in fade-in slide-in-from-bottom-4">
+            <h3 className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-2">Digital Top-up</h3>
+            <Button 
+              onClick={handlePaystack} 
+              disabled={isProcessing}
+              className="w-full h-18 rounded-full bg-zinc-900 text-white font-black text-lg shadow-2xl transition-all active:scale-95 gap-3"
+            >
+              {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <><span>Pay via M-Pesa / Card</span><Zap className="w-4 h-4 text-amber-400 fill-current" /></>}
+            </Button>
+          </div>
+        )}
+
         {isKenyan && (
-          <section className="mt-12 flex flex-col items-center pb-10">
-            <button onClick={() => router.push(`/recharge/coinsellers`)} className="text-[10px] font-black text-white uppercase tracking-[0.3em] border-b border-white/30 pb-1.5 active:opacity-50">Contact Coinsellers</button>
+          <section className="mt-12 space-y-4 pb-10">
+            <div className="flex items-center justify-between px-2">
+              <h3 className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Official Coinsellers</h3>
+              <Users className="w-3.5 h-3.5 text-white/40" />
+            </div>
+
+            <div className="space-y-3">
+              {isSellersLoading ? (
+                <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+              ) : coinsellers && coinsellers.length > 0 ? (
+                coinsellers.map((seller: any) => (
+                  <div 
+                    key={seller.id}
+                    className="w-full flex items-center justify-between p-4 bg-white/40 backdrop-blur-md border border-white/30 rounded-[2rem] shadow-sm hover:bg-white transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-10 h-10 border border-white shadow-sm">
+                        <AvatarImage src={seller.profilePhotoUrls?.[0]} className="object-cover" />
+                        <AvatarFallback className="bg-primary text-white text-[10px] font-black">{seller.username?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="text-[11px] font-black text-gray-900">{seller.username}</span>
+                        <button onClick={() => copySellerId(seller.numericId?.toString())} className="text-[8px] font-black text-green-500 uppercase tracking-widest text-left active:opacity-50">ID: {seller.numericId || "---"}</button>
+                      </div>
+                    </div>
+                    <Button 
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleChatWithSeller(seller.id)}
+                      className="h-10 px-4 rounded-full bg-white/50 text-primary hover:bg-white font-black text-[9px] uppercase tracking-widest gap-2"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      Buy via Chat
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center bg-white/10 rounded-[2rem] border border-white/20 border-dashed">
+                  <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">No sellers currently online</p>
+                </div>
+              )}
+            </div>
           </section>
         )}
       </main>
 
-      <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-6 bg-white/80 backdrop-blur-xl border-t border-gray-100 z-50">
-        <Button className="w-full h-16 rounded-full bg-primary text-white font-black text-lg shadow-2xl transition-all" onClick={handleNext} disabled={!selectedPackage}>
-          {selectedPackage ? `Pay ${currencyInfo.symbol} ${Math.round(selectedPackage.priceKes * currencyInfo.rate).toLocaleString()}` : "Select a Package"}
-        </Button>
+      <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-6 bg-white/80 backdrop-blur-xl border-t border-gray-100 z-50 text-center">
+        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2">Encrypted & Secure Payments</p>
       </footer>
     </div>
   )
