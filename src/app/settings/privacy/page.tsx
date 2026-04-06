@@ -21,43 +21,43 @@ export default function PrivacyPage() {
         <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase">Privacy Policy</h1>
       </header>
 
-      <main className="flex-1 px-8 pt-4 pb-20 space-y-8 overflow-y-auto">
+      <main className="flex-1 px-8 pt-4 pb-20 space-y-10 overflow-y-auto">
         <section className="space-y-4">
-          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">1. Data Collection</h2>
-          <p className="text-sm font-medium text-gray-600 leading-relaxed">
-            We collect information you provide directly to us when you create an account, such as your username, gender, date of birth, and profile photos.
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">1. Information We Collect</h2>
+          <p className="text-sm font-medium text-gray-600 leading-relaxed bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/40">
+            We collect profile information such as your name, date of birth, gender, and profile photos. To provide local matching, we also process your approximate location based on your network. We use AI models to analyze live selfies for identity verification, ensuring a safe community. Biometric data from these selfies is processed in real-time and is not permanently stored.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">2. Real-time Communication</h2>
-          <p className="text-sm font-medium text-gray-600 leading-relaxed">
-            All video and audio calls are end-to-end encrypted. Nova does not record or store your private conversations or calls.
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">2. Real-time Communication Security</h2>
+          <p className="text-sm font-medium text-gray-600 leading-relaxed bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/40">
+            All audio and video calls on Nova are end-to-end encrypted using Agora and TRTC technology. We do not record, store, or monitor your private calls. Chat messages are stored securely in Firestore to allow synchronization across devices, and you have the right to delete them at any time.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">3. Verification Data</h2>
-          <p className="text-sm font-medium text-gray-600 leading-relaxed">
-            Selfie photos taken for identity verification are processed using AI to ensure profile authenticity. This biometric data is never permanently stored on our servers.
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">3. Financial Information</h2>
+          <p className="text-sm font-medium text-gray-600 leading-relaxed bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/40">
+            Payment processing is handled by third-party providers like Paystack. Nova does not store your credit card or mobile money PINs. We only retain transaction records (amount, date, package) to maintain your coin balance and provide customer support.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">4. Data Sharing</h2>
-          <p className="text-sm font-medium text-gray-600 leading-relaxed">
-            We do not sell your personal data to third parties. Information is only shared when required by law or to protect the safety of our community.
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">4. Data Sharing and Third Parties</h2>
+          <p className="text-sm font-medium text-gray-600 leading-relaxed bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/40">
+            We do not sell your personal data. We share information with service providers (Firebase, Agora, Paystack) only to the extent necessary to run the app. We may disclose information if required by law or to enforce our community guidelines in cases of harassment or illegal activity.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">5. Your Rights</h2>
-          <p className="text-sm font-medium text-gray-600 leading-relaxed">
-            You have the right to access, correct, or delete your personal data at any time. Account deletion is permanent and wipes all associated data from our systems.
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-primary">5. User Rights and Deletion</h2>
+          <p className="text-sm font-medium text-gray-600 leading-relaxed bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/40">
+            You have full control over your data. You can edit your profile or delete your account permanently through the settings menu. Deletion removes your profile, photos, and messages from our active database immediately.
           </p>
         </section>
 
-        <p className="text-[10px] font-black text-gray-300 uppercase pt-10">Last updated: June 2024</p>
+        <p className="text-[10px] font-black text-gray-300 uppercase pt-10">Last updated: February 2025</p>
       </main>
     </div>
   )

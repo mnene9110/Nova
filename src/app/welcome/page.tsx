@@ -115,6 +115,12 @@ export default function WelcomePage() {
             Fast Login
           </Button>
         </div>
+
+        <footer className="mt-12 pb-10">
+          <p className="text-[10px] text-white/40 text-center leading-relaxed max-w-[280px]">
+            By continuing, you agree to our <span onClick={() => router.push('/settings/terms')} className="underline cursor-pointer hover:text-white transition-colors">Terms of Service</span> and <span onClick={() => router.push('/settings/privacy')} className="underline cursor-pointer hover:text-white transition-colors">Privacy Policy</span>.
+          </p>
+        </footer>
       </main>
     </div>
   )
