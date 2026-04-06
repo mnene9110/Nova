@@ -33,7 +33,8 @@ import {
   orderBy, 
   limit, 
   startAfter, 
-  getDocs 
+  getDocs,
+  where
 } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -41,9 +42,8 @@ import { cn } from "@/lib/utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const PAGE_SIZE = 20
-const MAX_AGENCY_MEMBERS = 100 // Agency Owner (1) + Members (99)
+const MAX_AGENCY_MEMBERS = 100
 
-// Module-level persistent cache for members
 let cachedMembers: any[] = []
 let lastVisibleMember: any = null
 let hasMoreMembersToLoad = true
@@ -74,9 +74,12 @@ export default function AgentCenterPage() {
       setPendingRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })))
     })
 
-    const unsubWith = onSnapshot(collection(firestore, "agencies", profile.agencyId, "withdrawals"), (snap) => {
-      setWithdrawals(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-    })
+    const unsubWith = onSnapshot(
+      query(collection(firestore, "agencies", profile.agencyId, "withdrawals"), where("status", "==", "pending")), 
+      (snap) => {
+        setWithdrawals(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+      }
+    )
 
     if (cachedMembers.length === 0) {
       loadMembers()
@@ -131,17 +134,15 @@ export default function AgentCenterPage() {
       const generatedId = Math.random().toString(36).substring(2, 8).toUpperCase()
       
       await runTransaction(firestore, async (transaction) => {
-        // Create agency doc
         const agencyRef = doc(firestore, "agencies", generatedId)
         transaction.set(agencyRef, {
           id: generatedId,
           name: agencyName,
           agentId: currentUser.uid,
-          memberCount: 1, // Start with owner
+          memberCount: 1,
           createdAt: serverTimestamp()
         })
 
-        // Add owner as the first member
         const memberRef = doc(firestore, "agencies", generatedId, "members", currentUser.uid)
         transaction.set(memberRef, {
           userId: currentUser.uid,
@@ -152,7 +153,6 @@ export default function AgentCenterPage() {
           joinedAt: Date.now()
         })
 
-        // Update user profile
         transaction.update(doc(firestore, "userProfiles", currentUser.uid), {
           agencyId: generatedId,
           agencyJoinStatus: "approved",
@@ -239,7 +239,7 @@ export default function AgentCenterPage() {
         }, { merge: true })
       });
 
-      toast({ title: "Paid", description: "Message sent to member." })
+      toast({ title: "Paid", description: "Request removed and message sent to member." })
     } catch (e) {
       toast({ variant: "destructive", title: "Error" })
     } finally {
@@ -361,8 +361,8 @@ export default function AgentCenterPage() {
               </TabsContent>
 
               <TabsContent value="withdrawals" className="space-y-4">
-                {withdrawals.map(w => (
-                  <div key={w.id} className="bg-white border border-gray-100 p-5 rounded-[2.25rem] space-y-4 shadow-sm">
+                {withdrawals.length > 0 ? withdrawals.map(w => (
+                  <div key={w.id} className="bg-white border border-gray-100 p-5 rounded-[2.25rem] space-y-4 shadow-sm animate-in fade-in zoom-in">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10"><AvatarImage src={w.photo} /><AvatarFallback>{w.username?.[0]}</AvatarFallback></Avatar>
@@ -376,14 +376,13 @@ export default function AgentCenterPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-black text-green-600">{w.amount?.toLocaleString()} KES</p>
-                        <span className={cn("text-[8px] font-black uppercase px-2 py-0.5 rounded-full", w.status === 'paid' ? "bg-green-50 text-green-500" : "bg-amber-50 text-amber-500")}>{w.status}</span>
+                        <span className={cn("text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-500")}>pending</span>
                       </div>
                     </div>
-                    {w.status !== 'paid' && <Button onClick={() => handleMarkAsPaid(w)} disabled={!!processingId} className="w-full h-12 rounded-full bg-zinc-900 text-white font-black text-xs uppercase tracking-widest gap-2">{processingId === w.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}Confirm Paid</Button>}
+                    <Button onClick={() => handleMarkAsPaid(w)} disabled={!!processingId} className="w-full h-12 rounded-full bg-zinc-900 text-white font-black text-xs uppercase tracking-widest gap-2">{processingId === w.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}Confirm Paid</Button>
                   </div>
-                ))}
-                {withdrawals.length === 0 && (
-                  <div className="py-10 text-center opacity-30"><p className="text-[10px] font-black uppercase tracking-widest">No withdrawal requests</p></div>
+                )) : (
+                  <div className="py-10 text-center opacity-30"><p className="text-[10px] font-black uppercase tracking-widest">No pending payouts</p></div>
                 )}
               </TabsContent>
             </Tabs>

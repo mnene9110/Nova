@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
@@ -145,18 +146,24 @@ function RechargeContent() {
           </div>
         </section>
 
-        {selectedPackage && (
-          <div className="mt-10 space-y-4 animate-in fade-in slide-in-from-bottom-4">
-            <h3 className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-2">Digital Top-up</h3>
-            <Button 
-              onClick={handlePaystack} 
-              disabled={isProcessing}
-              className="w-full h-18 rounded-full bg-zinc-900 text-white font-black text-lg shadow-2xl transition-all active:scale-95 gap-3"
-            >
-              {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <><span>Pay via M-Pesa / Card</span><Zap className="w-4 h-4 text-amber-400 fill-current" /></>}
-            </Button>
-          </div>
-        )}
+        <div className="mt-10 space-y-4">
+          <h3 className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-2">Digital Top-up</h3>
+          <Button 
+            onClick={handlePaystack} 
+            disabled={isProcessing || !selectedPackage}
+            className={cn(
+              "w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all active:scale-95 gap-3",
+              selectedPackage ? "bg-zinc-900" : "bg-zinc-900/50"
+            )}
+          >
+            {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+              <>
+                <span>Pay {selectedPackage ? `Ksh ${Math.round(selectedPackage.priceKes).toLocaleString()}` : "Ksh ---"}</span>
+                <Zap className="w-4 h-4 text-amber-400 fill-current" />
+              </>
+            )}
+          </Button>
+        </div>
 
         <section className="mt-12 space-y-4 pb-10">
           <div className="flex items-center justify-between px-2">

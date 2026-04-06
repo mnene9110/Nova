@@ -3,14 +3,15 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Loader2, Building2, Clock, CheckCircle2, LogOut, Wallet, ArrowRight, Gem, CalendarDays } from "lucide-react"
+import { ChevronLeft, Loader2, Building2, Clock, CheckCircle2, LogOut, Wallet, ArrowRight, Gem, CalendarDays, History } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useDoc, useMemoFirebase, useFirebase } from "@/firebase"
-import { doc, updateDoc, getDoc, setDoc, collection, addDoc, serverTimestamp, deleteDoc, getDocs, query, limit, increment, runTransaction } from "firebase/firestore"
+import { doc, updateDoc, getDoc, setDoc, collection, addDoc, serverTimestamp, deleteDoc, getDocs, query, limit, increment, runTransaction, where, orderBy, onSnapshot } from "firebase/firestore"
 import { cn } from "@/lib/utils"
+import { format } from "date-fns"
 import {
   Dialog,
   DialogContent,
@@ -33,11 +34,24 @@ export default function JoinAgencyPage() {
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false)
   const [diamondToConvert, setDiamondToConvert] = useState("")
   const [isSaturday, setIsSaturday] = useState(false)
+  const [withdrawalHistory, setWithdrawalHistory] = useState<any[]>([])
 
   useEffect(() => {
-    // 6 is Saturday in JavaScript (0 is Sunday)
     setIsSaturday(new Date().getDay() === 6);
   }, []);
+
+  useEffect(() => {
+    if (!firestore || !profile?.memberOfAgencyId || !currentUser) return
+    const q = query(
+      collection(firestore, "agencies", profile.memberOfAgencyId, "withdrawals"),
+      where("userId", "==", currentUser.uid),
+      orderBy("timestamp", "desc"),
+      limit(10)
+    )
+    return onSnapshot(q, (snap) => {
+      setWithdrawalHistory(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    })
+  }, [firestore, profile?.memberOfAgencyId, currentUser])
 
   const diamondBalance = profile?.diamondBalance || 0;
   const diamondAmount = Number(diamondToConvert);
@@ -137,7 +151,6 @@ export default function JoinAgencyPage() {
         
         if (currentBalance < diamondAmount) throw new Error("INSUFFICIENT_DIAMONDS");
 
-        // Create withdrawal request doc
         const withdrawalsRef = doc(collection(firestore, "agencies", aid, "withdrawals"))
         transaction.set(withdrawalsRef, {
           id: withdrawalsRef.id,
@@ -145,23 +158,21 @@ export default function JoinAgencyPage() {
           username: profile.username,
           photo: profile.profilePhotoUrls?.[0] || "",
           diamondAmount: diamondAmount,
-          amount: kesValue, // KES
+          amount: kesValue,
           status: 'pending',
           timestamp: serverTimestamp()
         })
 
-        // Deduct diamonds from user
         transaction.update(userRef!, {
           diamondBalance: increment(-diamondAmount),
           updatedAt: new Date().toISOString()
         })
 
-        // Log transaction
         const txRef = doc(collection(userRef!, "transactions"));
         transaction.set(txRef, {
           id: txRef.id,
           type: "agency_conversion",
-          amount: -kesValue, // Not actual coins, just for log
+          amount: -kesValue,
           diamondAmount: -diamondAmount,
           transactionDate: new Date().toISOString(),
           description: `Requested cash conversion for ${diamondAmount} diamonds (Ksh ${kesValue})`
@@ -182,12 +193,12 @@ export default function JoinAgencyPage() {
 
   if (profile?.agencyJoinStatus === 'approved') {
     return (
-      <div className="flex flex-col h-svh bg-white text-gray-900 font-body">
-        <header className="px-4 py-6 flex items-center border-b border-gray-50 shrink-0">
+      <div className="flex flex-col h-svh bg-white text-gray-900 font-body overflow-y-auto">
+        <header className="px-4 py-6 flex items-center border-b border-gray-50 shrink-0 sticky top-0 bg-white z-10">
           <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10 bg-gray-50 rounded-full"><ChevronLeft className="w-6 h-6" /></Button>
           <h1 className="flex-1 text-center text-sm font-black uppercase tracking-widest mr-10">My Agency</h1>
         </header>
-        <main className="flex-1 p-8 space-y-10">
+        <main className="flex-1 p-8 space-y-10 pb-20">
           <div className="flex flex-col items-center text-center space-y-6">
             <div className="w-24 h-24 bg-green-50 rounded-[2.5rem] flex items-center justify-center border-4 border-green-100">
               <CheckCircle2 className="w-12 h-12 text-green-500" />
@@ -221,6 +232,37 @@ export default function JoinAgencyPage() {
               <div className="flex-1 text-left"><span className="text-[10px] font-black uppercase text-red-400/60 block tracking-widest">Membership</span><span className="text-sm font-black">Leave Agency Anchor</span></div>
             </button>
           </div>
+
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 px-2">
+              <History className="w-4 h-4 text-gray-400" />
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Withdrawal History</h3>
+            </div>
+            <div className="space-y-3">
+              {withdrawalHistory.length > 0 ? (
+                withdrawalHistory.map((item) => (
+                  <div key={item.id} className="p-5 bg-gray-50 border border-gray-100 rounded-[2.25rem] flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", item.status === 'paid' ? "bg-green-100 text-green-600" : "bg-amber-100 text-amber-600")}>
+                        {item.status === 'paid' ? <CheckCircle2 className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <p className="text-xs font-black">{item.amount.toLocaleString()} KES</p>
+                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">
+                          {item.timestamp ? format(item.timestamp.toDate(), "MMM d, HH:mm") : "Recently"}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={cn("text-[8px] font-black uppercase px-2 py-1 rounded-full", item.status === 'paid' ? "bg-green-500/10 text-green-500" : "bg-amber-500/10 text-amber-500")}>
+                      {item.status}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="py-10 text-center opacity-30"><p className="text-[10px] font-black uppercase tracking-widest">No previous requests</p></div>
+              )}
+            </div>
+          </section>
         </main>
 
         <Dialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
