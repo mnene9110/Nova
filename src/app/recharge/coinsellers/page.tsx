@@ -24,7 +24,7 @@ function CoinsellersContent() {
   const meRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser])
   const { data: profile } = useDoc(meRef)
 
-  const currencyInfo = COUNTRY_CURRENCIES[profile?.location || "Kenya"] || COUNTRY_CURRENCIES["Kenya"];
+  const currencyInfo = COUNTRY_CURRENCIES["Kenya"];
 
   useEffect(() => {
     if (!firestore) return

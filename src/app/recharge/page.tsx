@@ -23,25 +23,7 @@ export const STANDARD_PACKAGES = [
 ]
 
 export const COUNTRY_CURRENCIES: Record<string, { code: string; symbol: string; rate: number }> = {
-  "Burundi": { code: "BIF", symbol: "FBu", rate: 22.1 },
-  "Comoros": { code: "KMF", symbol: "CF", rate: 3.5 },
-  "Djibouti": { code: "DJF", symbol: "Fdj", rate: 1.37 },
-  "Eritrea": { code: "ERN", symbol: "Nfk", rate: 0.115 },
-  "Ethiopia": { code: "ETB", symbol: "Br", rate: 0.94 },
   "Kenya": { code: "KES", symbol: "Ksh", rate: 1.0 },
-  "Madagascar": { code: "MGA", symbol: "Ar", rate: 35.2 },
-  "Malawi": { code: "MWK", symbol: "MK", rate: 13.2 },
-  "Mauritius": { code: "MUR", symbol: "₨", rate: 0.35 },
-  "Mozambique": { code: "MZN", symbol: "MT", rate: 0.49 },
-  "Nigeria": { code: "NGN", symbol: "₦", rate: 12.4 },
-  "Rwanda": { code: "RWF", symbol: "FRw", rate: 10.1 },
-  "Seychelles": { code: "SCR", symbol: "SR", rate: 0.105 },
-  "Somalia": { code: "SOS", symbol: "Sh.So.", rate: 4.4 },
-  "South Sudan": { code: "SSP", symbol: "£", rate: 1.0 },
-  "Tanzania": { code: "TZS", symbol: "TSh", rate: 20.2 },
-  "Uganda": { code: "UGX", symbol: "USh", rate: 28.6 },
-  "Zambia": { code: "ZMW", symbol: "ZK", rate: 0.20 },
-  "Zimbabwe": { code: "USD", symbol: "$", rate: 0.0077 }
 };
 
 function RechargeContent() {
@@ -57,10 +39,9 @@ function RechargeContent() {
   const meRef = useMemoFirebase(() => user ? doc(firestore, "userProfiles", user.uid) : null, [firestore, user])
   const { data: profile } = useDoc(meRef)
 
-  const currencyInfo = COUNTRY_CURRENCIES[profile?.location || "Kenya"] || COUNTRY_CURRENCIES["Kenya"];
-  const isKenyan = profile?.location === "Kenya";
+  const currencyInfo = COUNTRY_CURRENCIES["Kenya"];
 
-  // Get Coinsellers for Kenyan region
+  // Get Coinsellers
   const coinsellersQuery = useMemoFirebase(() => {
     if (!firestore) return null
     return query(collection(firestore, "userProfiles"), where("isCoinseller", "==", true))
@@ -125,7 +106,7 @@ function RechargeContent() {
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-gray-900 h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
         <div className="flex flex-col items-center">
           <h1 className="text-lg font-black font-headline tracking-widest uppercase text-white drop-shadow-md">Wallet</h1>
-          <p className="text-[8px] font-black text-white/60 uppercase tracking-widest">{currencyInfo.code} Region</p>
+          <p className="text-[8px] font-black text-white/60 uppercase tracking-widest">Kenya Region</p>
         </div>
         <Button variant="ghost" size="icon" onClick={() => router.push('/recharge/history')} className="text-gray-900 h-10 w-10 bg-white/20 backdrop-blur-md rounded-full"><History className="w-5 h-5" /></Button>
       </header>
@@ -177,51 +158,49 @@ function RechargeContent() {
           </div>
         )}
 
-        {isKenyan && (
-          <section className="mt-12 space-y-4 pb-10">
-            <div className="flex items-center justify-between px-2">
-              <h3 className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Official Coinsellers</h3>
-              <Users className="w-3.5 h-3.5 text-white/40" />
-            </div>
+        <section className="mt-12 space-y-4 pb-10">
+          <div className="flex items-center justify-between px-2">
+            <h3 className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Official Coinsellers</h3>
+            <Users className="w-3.5 h-3.5 text-white/40" />
+          </div>
 
-            <div className="space-y-3">
-              {isSellersLoading ? (
-                <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
-              ) : coinsellers && coinsellers.length > 0 ? (
-                coinsellers.map((seller: any) => (
-                  <div 
-                    key={seller.id}
-                    className="w-full flex items-center justify-between p-4 bg-white/40 backdrop-blur-md border border-white/30 rounded-[2rem] shadow-sm hover:bg-white transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-10 h-10 border border-white shadow-sm">
-                        <AvatarImage src={seller.profilePhotoUrls?.[0]} className="object-cover" />
-                        <AvatarFallback className="bg-primary text-white text-[10px] font-black">{seller.username?.[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-black text-gray-900">{seller.username}</span>
-                        <button onClick={() => copySellerId(seller.numericId?.toString())} className="text-[8px] font-black text-green-500 uppercase tracking-widest text-left active:opacity-50">ID: {seller.numericId || "---"}</button>
-                      </div>
+          <div className="space-y-3">
+            {isSellersLoading ? (
+              <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+            ) : coinsellers && coinsellers.length > 0 ? (
+              coinsellers.map((seller: any) => (
+                <div 
+                  key={seller.id}
+                  className="w-full flex items-center justify-between p-4 bg-white/40 backdrop-blur-md border border-white/30 rounded-[2rem] shadow-sm hover:bg-white transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <Avatar className="w-10 h-10 border border-white shadow-sm">
+                      <AvatarImage src={seller.profilePhotoUrls?.[0]} className="object-cover" />
+                      <AvatarFallback className="bg-primary text-white text-[10px] font-black">{seller.username?.[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-black text-gray-900">{seller.username}</span>
+                      <button onClick={() => copySellerId(seller.numericId?.toString())} className="text-[8px] font-black text-green-500 uppercase tracking-widest text-left active:opacity-50">ID: {seller.numericId || "---"}</button>
                     </div>
-                    <Button 
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleChatWithSeller(seller.id)}
-                      className="h-10 px-4 rounded-full bg-white/50 text-primary hover:bg-white font-black text-[9px] uppercase tracking-widest gap-2"
-                    >
-                      <MessageCircle className="w-3.5 h-3.5" />
-                      Buy via Chat
-                    </Button>
                   </div>
-                ))
-              ) : (
-                <div className="p-8 text-center bg-white/10 rounded-[2rem] border border-white/20 border-dashed">
-                  <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">No sellers currently online</p>
+                  <Button 
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleChatWithSeller(seller.id)}
+                    className="h-10 px-4 rounded-full bg-white/50 text-primary hover:bg-white font-black text-[9px] uppercase tracking-widest gap-2"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    Buy via Chat
+                  </Button>
                 </div>
-              )}
-            </div>
-          </section>
-        )}
+              ))
+            ) : (
+              <div className="p-8 text-center bg-white/10 rounded-[2rem] border border-white/20 border-dashed">
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">No sellers currently online</p>
+              </div>
+            )}
+          </div>
+        </section>
       </main>
 
       <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-6 bg-white/80 backdrop-blur-xl border-t border-gray-100 z-50 text-center">
