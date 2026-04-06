@@ -27,7 +27,7 @@ import {
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
-import { doc, collection, addDoc, serverTimestamp } from "firebase/firestore"
+import { doc, collection, addDoc, serverTimestamp, setDoc, arrayUnion } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
@@ -96,11 +96,20 @@ export default function ProfileDetailPage() {
   const handleBlock = async () => {
     if (!currentUser || !id || userProfile?.isSupport || userProfile?.isAdmin || !firestore) return
     try {
-      await addDoc(collection(firestore, "userProfiles", currentUser.uid, "blockedUsers"), {
+      // 1. Log block in current user's list
+      await setDoc(doc(firestore, "userProfiles", currentUser.uid, "blockedUsers", id as string), {
         blockedUserId: id,
         username: userProfile?.username || "Unknown",
         blockedAt: serverTimestamp()
       });
+
+      // 2. Mark chat as restricted
+      const chatId = [currentUser.uid, id as string].sort().join("_");
+      await setDoc(doc(firestore, "chats", chatId), {
+        blockedBy: arrayUnion(currentUser.uid),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
       toast({ title: "User Blocked", description: `${userProfile?.username} has been blocked.` })
       router.push('/discover')
     } catch (error) {

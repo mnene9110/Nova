@@ -1,18 +1,18 @@
+
 "use client"
 
 import { useState, useEffect, useRef, useMemo, Suspense } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { ChevronLeft, Video, Send, Phone, Loader2, Gift, CheckCircle, UserX, ArrowUp, Zap, Sparkles } from "lucide-react"
+import { ChevronLeft, Video, Send, Phone, Loader2, Gift, CheckCircle, UserX, ArrowUp, Zap, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useToast } from "@/hooks/use-toast"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useFirebase, useUser, useDoc, useMemoFirebase, useCollection } from "@/firebase"
+import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { 
   collection, 
   doc, 
-  addDoc, 
   updateDoc, 
   query, 
   orderBy, 
@@ -21,9 +21,6 @@ import {
   serverTimestamp, 
   increment, 
   runTransaction,
-  where,
-  getDoc,
-  getDocs,
   setDoc
 } from "firebase/firestore"
 import { cn } from "@/lib/utils"
@@ -80,6 +77,11 @@ function ChatDetailContent() {
   const meRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser?.uid])
   const { data: currentUserProfile } = useDoc(meRef)
 
+  const chatRef = useMemoFirebase(() => chatId ? doc(firestore, "chats", chatId) : null, [firestore, chatId])
+  const { data: chatData } = useDoc(chatRef)
+
+  const isBlocked = chatData?.blockedBy && chatData.blockedBy.length > 0;
+
   useEffect(() => {
     if (!firestore || !chatId) return
     const msgQuery = query(
@@ -97,7 +99,7 @@ function ChatDetailContent() {
   }, [firestore, chatId, msgLimit])
 
   useEffect(() => {
-    if (initialMsg && currentUser && otherUserId && otherUser && !isSending) {
+    if (initialMsg && currentUser && otherUserId && otherUser && !isSending && !isBlocked) {
       const timer = setTimeout(() => {
         handleSendMessage(initialMsg);
         const newUrl = window.location.pathname;
@@ -105,7 +107,7 @@ function ChatDetailContent() {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [initialMsg, !!currentUser, otherUserId, !!otherUser]);
+  }, [initialMsg, !!currentUser, otherUserId, !!otherUser, isBlocked]);
 
   useEffect(() => {
     if (!firestore || !currentUser || !chatId) return
@@ -116,13 +118,12 @@ function ChatDetailContent() {
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
   const handleInitiateCall = async (type: 'video' | 'audio') => {
-    if (!firestore || !chatId || !currentUser || !currentUserProfile || !otherUser) return
+    if (!firestore || !chatId || !currentUser || !currentUserProfile || !otherUser || isBlocked) return
 
     // 1. Permission check first
     try {
       const constraints = type === 'video' ? { video: true, audio: true } : { audio: true };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      // Stop immediately after check, the global overlay will re-acquire
       stream.getTracks().forEach(t => t.stop());
     } catch (e) {
       toast({
@@ -176,12 +177,11 @@ function ChatDetailContent() {
 
   const handleSendMessage = async (textOverride?: string) => {
     const textToUse = textOverride || inputText;
-    if (!textToUse.trim() || !currentUser || !chatId || !firestore || !otherUserId || !otherUser || isSending || !currentUserProfile) return
+    if (!textToUse.trim() || !currentUser || !chatId || !firestore || !otherUserId || !otherUser || isSending || !currentUserProfile || isBlocked) return
     
     const isMemberOfMyAgency = currentUserProfile.agencyId && otherUser.memberOfAgencyId === currentUserProfile.agencyId;
     const isMyAgent = currentUserProfile.memberOfAgencyId && otherUser.agencyId === currentUserProfile.memberOfAgencyId;
     
-    // Messaging is free for females, or between agents and their members
     const isFree = currentUserProfile.isAdmin || 
                    currentUserProfile.isSupport || 
                    currentUserProfile.isCoinseller || 
@@ -248,7 +248,7 @@ function ChatDetailContent() {
 
   const handleSendGift = async (giftOverride?: typeof GIFTS[0]) => {
     const gift = giftOverride || selectedGift;
-    if (!gift || !currentUser || !otherUserId || isSendingGift || !currentUserProfile || !firestore || !otherUser) return;
+    if (!gift || !currentUser || !otherUserId || isSendingGift || !currentUserProfile || !firestore || !otherUser || isBlocked) return;
     
     setIsSendingGift(true);
     const giftPrice = gift.price;
@@ -342,7 +342,7 @@ function ChatDetailContent() {
         </div>
       </header>
 
-      <ScrollArea className="flex-1 px-4 py-4 bg-white">
+      <ScrollArea className="flex-1 px-4 py-4 bg-white relative">
         <div className="flex flex-col gap-4">
           {hasMore && (
             <button onClick={() => setMsgLimit(prev => prev + 30)} className="py-4 flex flex-col items-center gap-1 group active:opacity-50 transition-all">
@@ -372,7 +372,7 @@ function ChatDetailContent() {
                           <div className="text-5xl mb-2 drop-shadow-sm">{GIFTS.find(g => g.id === msg.giftId)?.emoji || '🎁'}</div>
                           <div className="absolute bottom-4 right-4 italic font-black text-sky-500 text-2xl">x 1</div>
                         </div>
-                        {isMe && (
+                        {isMe && !isBlocked && (
                           <button 
                             onClick={() => {
                               const gift = GIFTS.find(g => g.id === msg.giftId);
@@ -400,22 +400,34 @@ function ChatDetailContent() {
           })}
           <div ref={scrollRef} className="h-4" />
         </div>
+
+        {isBlocked && (
+          <div className="absolute inset-0 z-50 bg-white/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
+            <div className="w-20 h-20 bg-red-50 rounded-[2.5rem] flex items-center justify-center mb-6 border border-red-100 shadow-xl">
+              <ShieldAlert className="w-10 h-10 text-red-500" />
+            </div>
+            <h3 className="text-xl font-black font-headline text-gray-900 mb-2">Chat Restricted</h3>
+            <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-[200px]">
+              You have been blocked or have blocked this user.
+            </p>
+          </div>
+        )}
       </ScrollArea>
 
-      <footer className="px-5 py-5 pb-8 space-y-4 bg-white border-t border-gray-50">
+      <footer className={cn("px-5 py-5 pb-8 space-y-4 bg-white border-t border-gray-50 relative", isBlocked && "opacity-20 pointer-events-none")}>
         <div className="relative group">
-          <Input value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="Message..." className="rounded-full h-12 bg-gray-50 border-none px-6 text-[13px]" onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} />
-          <Button size="icon" className={cn("absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full w-9 h-9", inputText.trim() && !isSending ? "bg-primary text-white" : "bg-gray-200 text-gray-400")} onClick={() => handleSendMessage()} disabled={!inputText.trim() || isSending}>
+          <Input value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="Message..." className="rounded-full h-12 bg-gray-50 border-none px-6 text-[13px]" onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} disabled={isBlocked} />
+          <Button size="icon" className={cn("absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full w-9 h-9", inputText.trim() && !isSending ? "bg-primary text-white" : "bg-gray-200 text-gray-400")} onClick={() => handleSendMessage()} disabled={!inputText.trim() || isSending || isBlocked}>
             {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </Button>
         </div>
         {!otherUser.isSupport && (
           <div className="grid grid-cols-3 gap-2">
-            <button onClick={() => handleInitiateCall('audio')} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm"><Phone className="w-4 h-4 text-gray-500" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Voice</span></button>
-            <button onClick={() => handleInitiateCall('video')} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm"><Video className="w-4 h-4 text-gray-500" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Video</span></button>
+            <button onClick={() => handleInitiateCall('audio')} disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm disabled:opacity-50"><Phone className="w-4 h-4 text-gray-500" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Voice</span></button>
+            <button onClick={() => handleInitiateCall('video')} disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm disabled:opacity-50"><Video className="w-4 h-4 text-gray-500" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Video</span></button>
             <Sheet open={isGiftSheetOpen} onOpenChange={setIsGiftSheetOpen}>
               <SheetTrigger asChild>
-                <button className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm">
+                <button disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm disabled:opacity-50">
                   <Gift className="w-4 h-4 text-primary" />
                   <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Gift</span>
                 </button>

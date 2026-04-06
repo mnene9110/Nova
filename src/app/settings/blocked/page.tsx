@@ -4,8 +4,8 @@
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Loader2, Ban, UserCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useCollection, useFirebase, useUser, useMemoFirebase, deleteDocumentNonBlocking } from "@/firebase"
-import { collection, doc } from "firebase/firestore"
+import { useCollection, useFirebase, useUser, useMemoFirebase } from "@/firebase"
+import { collection, doc, deleteDoc, updateDoc, arrayRemove, serverTimestamp } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
@@ -23,10 +23,19 @@ export default function BlockedListPage() {
   const { data: blockedUsers, isLoading } = useCollection(blockedQuery)
 
   const handleUnblock = async (blockedUserId: string, username: string) => {
-    if (!user) return
+    if (!user || !firestore) return
     try {
+      // 1. Remove from blocked collection
       const blockRef = doc(firestore, "userProfiles", user.uid, "blockedUsers", blockedUserId)
-      deleteDocumentNonBlocking(blockRef)
+      await deleteDoc(blockRef)
+
+      // 2. Remove from chat restricted list
+      const chatId = [user.uid, blockedUserId].sort().join("_")
+      await updateDoc(doc(firestore, "chats", chatId), {
+        blockedBy: arrayRemove(user.uid),
+        updatedAt: serverTimestamp()
+      }).catch(() => {}) // Ignore if chat doesn't exist
+
       toast({
         title: "User Unblocked",
         description: `${username} has been unblocked.`,

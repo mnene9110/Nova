@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { 
   ChevronLeft, 
@@ -14,7 +14,9 @@ import {
   CheckCircle,
   ArrowRight,
   AlertCircle,
-  Gem
+  Gem,
+  Coins,
+  Wallet
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -87,6 +89,10 @@ export default function AgentCenterPage() {
 
     return () => { unsubRequests(); unsubWith(); }
   }, [firestore, profile?.agencyId])
+
+  const pendingWithdrawalTotal = useMemo(() => {
+    return withdrawals.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+  }, [withdrawals]);
 
   const loadMembers = async (isLoadMore = false) => {
     if (!firestore || !profile?.agencyId || (!hasMoreMembersToLoad && isLoadMore)) return
@@ -172,7 +178,7 @@ export default function AgentCenterPage() {
   const handleRequestAction = async (userId: string, action: 'approved' | 'rejected', userData: any) => {
     if (!firestore || !profile?.agencyId || processingId) return
     
-    if (action === 'approved' && members.length >= (MAX_AGENCY_MEMBERS - 1)) {
+    if (action === 'approved' && members.length >= MAX_AGENCY_MEMBERS) {
       toast({ variant: "destructive", title: "Capacity Full", description: "Your agency has reached the maximum of 100 members." });
       return;
     }
@@ -239,7 +245,7 @@ export default function AgentCenterPage() {
         }, { merge: true })
       });
 
-      toast({ title: "Paid", description: "Request removed and message sent to member." })
+      toast({ title: "Paid", description: "Request marked as paid and user notified." })
     } catch (e) {
       toast({ variant: "destructive", title: "Error" })
     } finally {
@@ -361,28 +367,51 @@ export default function AgentCenterPage() {
               </TabsContent>
 
               <TabsContent value="withdrawals" className="space-y-4">
-                {withdrawals.length > 0 ? withdrawals.map(w => (
-                  <div key={w.id} className="bg-white border border-gray-100 p-5 rounded-[2.25rem] space-y-4 shadow-sm animate-in fade-in zoom-in">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-10 h-10"><AvatarImage src={w.photo} /><AvatarFallback>{w.username?.[0]}</AvatarFallback></Avatar>
-                        <div>
-                          <p className="text-xs font-black">{w.username}</p>
-                          <div className="flex items-center gap-1">
-                            <Gem className="w-3 h-3 text-blue-400" />
-                            <span className="text-[10px] font-bold text-gray-400">{w.diamondAmount?.toLocaleString() || 0}</span>
+                <div className="space-y-3">
+                  {withdrawals.length > 0 ? withdrawals.map(w => (
+                    <div key={w.id} className="bg-white border border-gray-100 p-5 rounded-[2.25rem] space-y-4 shadow-sm animate-in fade-in zoom-in">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-10 h-10"><AvatarImage src={w.photo} /><AvatarFallback>{w.username?.[0]}</AvatarFallback></Avatar>
+                          <div>
+                            <p className="text-xs font-black">{w.username}</p>
+                            <div className="flex items-center gap-1">
+                              <Gem className="w-3 h-3 text-blue-400" />
+                              <span className="text-[10px] font-bold text-gray-400">{w.diamondAmount?.toLocaleString() || 0}</span>
+                            </div>
                           </div>
                         </div>
+                        <div className="text-right">
+                          <p className="text-sm font-black text-green-600">{w.amount?.toLocaleString()} KES</p>
+                          <span className={cn("text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-500")}>pending</span>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-black text-green-600">{w.amount?.toLocaleString()} KES</p>
-                        <span className={cn("text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-500")}>pending</span>
+                      <Button onClick={() => handleMarkAsPaid(w)} disabled={!!processingId} className="w-full h-12 rounded-full bg-zinc-900 text-white font-black text-xs uppercase tracking-widest gap-2">{processingId === w.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}Confirm Paid</Button>
+                    </div>
+                  )) : (
+                    <div className="py-10 text-center opacity-30"><p className="text-[10px] font-black uppercase tracking-widest">No pending payouts</p></div>
+                  )}
+                </div>
+
+                {withdrawals.length > 0 && (
+                  <div className="mt-8 p-6 bg-green-50 border border-green-100 rounded-[2rem] space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Wallet className="w-5 h-5 text-green-600" />
+                      <h3 className="text-xs font-black uppercase tracking-widest text-green-700">Payout Summary</h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-black text-green-600/60 uppercase">Requests</p>
+                        <p className="text-xl font-black text-green-700">{withdrawals.length}</p>
+                      </div>
+                      <div className="space-y-1 text-right">
+                        <p className="text-[9px] font-black text-green-600/60 uppercase">Total Payout</p>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <p className="text-xl font-black text-green-700">{pendingWithdrawalTotal.toLocaleString()} KES</p>
+                        </div>
                       </div>
                     </div>
-                    <Button onClick={() => handleMarkAsPaid(w)} disabled={!!processingId} className="w-full h-12 rounded-full bg-zinc-900 text-white font-black text-xs uppercase tracking-widest gap-2">{processingId === w.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}Confirm Paid</Button>
                   </div>
-                )) : (
-                  <div className="py-10 text-center opacity-30"><p className="text-[10px] font-black uppercase tracking-widest">No pending payouts</p></div>
                 )}
               </TabsContent>
             </Tabs>
