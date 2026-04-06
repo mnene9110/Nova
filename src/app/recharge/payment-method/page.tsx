@@ -6,7 +6,7 @@ import { Users, Zap, Loader2, ShieldCheck, MessageCircle, ChevronLeft } from "lu
 import { Button } from "@/components/ui/button"
 import { useFirebase, useUser, useCollection, useMemoFirebase, useDoc } from "@/firebase"
 import { collection, query, where, doc } from "firebase/firestore"
-import { initializePesaPalTransaction } from "@/app/actions/pesapal"
+import { initializePaystackTransaction } from "@/app/actions/paystack"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -38,15 +38,12 @@ function PaymentMethodContent() {
 
   const { data: coinsellers, isLoading: isSellersLoading } = useCollection(coinsellersQuery)
 
-  const handlePesapal = async () => {
+  const handlePaystack = async () => {
     if (!user || !amount || !localPrice) return
-    setIsProcessing('pesapal')
+    setIsProcessing('paystack')
 
-    // PesaPal typically requires KES or USD base.
-    const priceKes = Math.round(localPrice / currencyInfo.rate);
-
-    const email = user.email || `guest_${user.uid.slice(0, 8)}@matchflow.app`
-    const result = await initializePesaPalTransaction(email, priceKes, {
+    const email = user.email || `guest_${user.uid.slice(0, 8)}@nova.app`
+    const result = await initializePaystackTransaction(email, localPrice, {
       userId: user.uid,
       packageAmount: amount
     })
@@ -57,12 +54,10 @@ function PaymentMethodContent() {
       return
     }
 
-    if (result.redirect_url) {
-      window.location.href = result.redirect_url
+    if (result.authorization_url) {
+      window.location.href = result.authorization_url
     }
   }
-
-  const darkMaroon = "bg-[#5A1010]";
 
   return (
     <div className="flex flex-col min-h-svh bg-transparent text-gray-900">
@@ -98,17 +93,17 @@ function PaymentMethodContent() {
           <h3 className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-2">Digital Gateway</h3>
           
           <button 
-            onClick={handlePesapal}
+            onClick={handlePaystack}
             disabled={!!isProcessing}
             className="w-full flex items-center justify-between p-5 bg-white/60 backdrop-blur-md border border-white rounded-[2rem] transition-all active:scale-[0.98] group shadow-sm hover:bg-white disabled:opacity-50"
           >
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/5">
-                {isProcessing === 'pesapal' ? <Loader2 className="w-6 h-6 animate-spin text-blue-500" /> : <ShieldCheck className="w-6 h-6 text-blue-500" />}
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/5">
+                {isProcessing === 'paystack' ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : <ShieldCheck className="w-6 h-6 text-primary" />}
               </div>
               <div className="flex flex-col items-start">
-                <span className="text-[13px] font-bold text-gray-900">PesaPal Gateway</span>
-                <span className="text-[9px] font-black uppercase text-blue-400 tracking-widest mt-1">Live Payments</span>
+                <span className="text-[13px] font-bold text-gray-900">Paystack Gateway</span>
+                <span className="text-[9px] font-black uppercase text-primary tracking-widest mt-1">Instant Top-up</span>
               </div>
             </div>
             <Zap className="w-4 h-4 text-amber-400 fill-current opacity-30 group-hover:opacity-100 transition-opacity" />

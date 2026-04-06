@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils"
 
 // Standard Pricing (Normal Users)
 export const STANDARD_PACKAGES = [
+  { amount: 35, priceKes: 5 },
   { amount: 500, priceKes: 70 },
   { amount: 1000, priceKes: 120 },
   { amount: 2000, priceKes: 240 },
@@ -73,8 +74,6 @@ function RechargeContent() {
     router.push(`/recharge/payment-method?amount=${selectedPackage.amount}&price=${localPrice}&currency=${currencyInfo.code}`);
   }
 
-  const darkRed = "bg-[#7F1D1D]";
-
   return (
     <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden">
       <header className="px-4 py-6 flex items-center justify-between sticky top-0 bg-transparent z-10 shrink-0">
@@ -128,7 +127,7 @@ function RechargeContent() {
       </main>
 
       <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-6 bg-white/80 backdrop-blur-xl border-t border-gray-100 z-50">
-        <Button className={cn("w-full h-16 rounded-full text-white font-black text-lg shadow-2xl transition-all", darkRed)} onClick={handleNext} disabled={!selectedPackage}>
+        <Button className="w-full h-16 rounded-full bg-primary text-white font-black text-lg shadow-2xl transition-all" onClick={handleNext} disabled={!selectedPackage}>
           {selectedPackage ? `Pay ${currencyInfo.symbol} ${Math.round(selectedPackage.priceKes * currencyInfo.rate).toLocaleString()}` : "Select a Package"}
         </Button>
       </footer>
