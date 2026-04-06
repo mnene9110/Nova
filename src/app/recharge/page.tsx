@@ -50,16 +50,31 @@ function RechargeContent() {
 
   const { data: coinsellers, isLoading: isSellersLoading } = useCollection(coinsellersQuery)
 
-  // Fix: Reset loading state when returning to the page (e.g. via browser back button)
+  // Fix: Reset loading state when returning to the page (handling back-forward cache and visibility)
   useEffect(() => {
+    const handleReset = () => setIsProcessing(false)
+    
     const handlePageShow = (event: PageTransitionEvent) => {
-      if (event.persisted) {
+      if (event.persisted || isProcessing) {
         setIsProcessing(false)
       }
     }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Give Paystack callback room to process before resetting UI
+        setTimeout(() => setIsProcessing(false), 1500)
+      }
+    }
+
     window.addEventListener('pageshow', handlePageShow)
-    return () => window.removeEventListener('pageshow', handlePageShow)
-  }, [])
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [isProcessing])
 
   useEffect(() => {
     const status = searchParams?.get('status')
@@ -111,6 +126,10 @@ function RechargeContent() {
     navigator.clipboard.writeText(id)
     toast({ title: "ID Copied", description: "Coinseller ID copied." })
   }
+
+  const payButtonText = selectedPackage 
+    ? `Pay Ksh ${Math.round(selectedPackage.priceKes).toLocaleString()}` 
+    : "Pay Ksh ---"
 
   return (
     <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden">
@@ -169,7 +188,7 @@ function RechargeContent() {
           >
             {isProcessing ? <Loader2 className="w-7 h-7 animate-spin" /> : (
               <>
-                <span>Pay {selectedPackage ? `Ksh ${Math.round(selectedPackage.priceKes).toLocaleString()}` : "Ksh ---"}</span>
+                <span>{payButtonText}</span>
                 <Zap className="w-5 h-5 text-amber-400 fill-current" />
               </>
             )}
