@@ -1,9 +1,9 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Loader2, Building2, Clock, CheckCircle2, LogOut, Wallet, ArrowRight, Gem } from "lucide-react"
+import { ChevronLeft, Loader2, Building2, Clock, CheckCircle2, LogOut, Wallet, ArrowRight, Gem, CalendarDays } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -32,6 +32,12 @@ export default function JoinAgencyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false)
   const [diamondToConvert, setDiamondToConvert] = useState("")
+  const [isSaturday, setIsSaturday] = useState(false)
+
+  useEffect(() => {
+    // 6 is Saturday in JavaScript (0 is Sunday)
+    setIsSaturday(new Date().getDay() === 6);
+  }, []);
 
   const diamondBalance = profile?.diamondBalance || 0;
   const diamondAmount = Number(diamondToConvert);
@@ -106,6 +112,11 @@ export default function JoinAgencyPage() {
   }
 
   const handleWithdrawRequest = async () => {
+    if (new Date().getDay() !== 6) {
+      toast({ variant: "destructive", title: "Access Denied", description: "Withdrawals are only processed on Saturdays." });
+      return;
+    }
+
     if (!diamondAmount || diamondAmount < 1000 || !currentUser || !profile?.memberOfAgencyId || !firestore) {
       toast({ variant: "destructive", title: "Invalid Amount", description: "Minimum conversion is 1,000 diamonds." });
       return;
@@ -190,9 +201,18 @@ export default function JoinAgencyPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            <button onClick={() => setShowWithdrawDialog(true)} className="w-full h-20 bg-gray-50 border border-gray-100 rounded-[2rem] flex items-center px-6 gap-4 active:scale-95 transition-all">
+            <button onClick={() => setShowWithdrawDialog(true)} className="w-full h-24 bg-gray-50 border border-gray-100 rounded-[2rem] flex items-center px-6 gap-4 active:scale-95 transition-all relative overflow-hidden group">
               <div className="w-12 h-12 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-600"><Gem className="w-6 h-6" /></div>
-              <div className="flex-1 text-left"><span className="text-[10px] font-black uppercase text-gray-400 block tracking-widest">Diamond Income</span><span className="text-sm font-black">Convert to Agency Cash</span></div>
+              <div className="flex-1 text-left">
+                <span className="text-[10px] font-black uppercase text-gray-400 block tracking-widest">Diamond Income</span>
+                <span className="text-sm font-black">Convert to Agency Cash</span>
+                <div className="flex items-center gap-1 mt-1">
+                  <CalendarDays className={cn("w-3 h-3", isSaturday ? "text-green-500" : "text-amber-500")} />
+                  <span className={cn("text-[8px] font-black uppercase tracking-tighter", isSaturday ? "text-green-600" : "text-amber-600")}>
+                    {isSaturday ? "Requests Open Today" : "Next Opening: Saturday"}
+                  </span>
+                </div>
+              </div>
               <ArrowRight className="w-5 h-5 text-gray-300" />
             </button>
 
@@ -207,6 +227,13 @@ export default function JoinAgencyPage() {
           <DialogContent className="rounded-[2.5rem] bg-white border-none p-8 max-w-[85%] mx-auto shadow-2xl">
             <DialogHeader><DialogTitle className="text-xl font-black font-headline text-gray-900 text-center uppercase tracking-widest">Withdraw Request</DialogTitle></DialogHeader>
             <div className="py-6 space-y-6">
+              {!isSaturday && (
+                <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl flex items-center gap-3 text-amber-700 mb-2">
+                  <CalendarDays className="w-5 h-5 shrink-0" />
+                  <p className="text-[10px] font-black uppercase leading-tight tracking-widest">Withdrawals are only accepted on Saturdays.</p>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-gray-400 ml-1">Diamonds to Convert</Label>
                 <div className="relative">
@@ -224,8 +251,12 @@ export default function JoinAgencyPage() {
               <p className="text-[9px] font-bold text-center text-gray-400 uppercase">Rate: 1,000 Diamonds = Ksh 70</p>
             </div>
             <DialogFooter className="flex flex-col gap-2">
-              <Button onClick={handleWithdrawRequest} disabled={!diamondToConvert || diamondAmount < 1000 || isSubmitting} className="h-14 rounded-full bg-zinc-900 text-white font-black uppercase text-xs tracking-widest w-full">
-                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit to Agent"}
+              <Button 
+                onClick={handleWithdrawRequest} 
+                disabled={!diamondToConvert || diamondAmount < 1000 || isSubmitting || !isSaturday} 
+                className={cn("h-14 rounded-full text-white font-black uppercase text-xs tracking-widest w-full", isSaturday ? "bg-zinc-900" : "bg-gray-200 cursor-not-allowed")}
+              >
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : isSaturday ? "Submit to Agent" : "Closed (Sat Only)"}
               </Button>
               <Button variant="ghost" onClick={() => setShowWithdrawDialog(false)} className="h-12 rounded-full text-gray-400 font-black uppercase text-[10px]">Cancel</Button>
             </DialogFooter>
