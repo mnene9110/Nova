@@ -13,7 +13,8 @@ import {
   Copy,
   CheckCircle,
   ArrowRight,
-  AlertCircle
+  AlertCircle,
+  Gem
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -124,22 +125,40 @@ export default function AgentCenterPage() {
   }
 
   const handleCreateAgency = async () => {
-    if (!agencyName.trim() || !currentUser || !firestore) return
+    if (!agencyName.trim() || !currentUser || !firestore || !profile) return
     setIsCreating(true)
     try {
       const generatedId = Math.random().toString(36).substring(2, 8).toUpperCase()
       
-      await setDoc(doc(firestore, "agencies", generatedId), {
-        id: generatedId,
-        name: agencyName,
-        agentId: currentUser.uid,
-        memberCount: 1, // Start with owner
-        createdAt: serverTimestamp()
-      })
+      await runTransaction(firestore, async (transaction) => {
+        // Create agency doc
+        const agencyRef = doc(firestore, "agencies", generatedId)
+        transaction.set(agencyRef, {
+          id: generatedId,
+          name: agencyName,
+          agentId: currentUser.uid,
+          memberCount: 1, // Start with owner
+          createdAt: serverTimestamp()
+        })
 
-      await updateDoc(doc(firestore, "userProfiles", currentUser.uid), {
-        agencyId: generatedId,
-        updatedAt: new Date().toISOString()
+        // Add owner as the first member
+        const memberRef = doc(firestore, "agencies", generatedId, "members", currentUser.uid)
+        transaction.set(memberRef, {
+          userId: currentUser.uid,
+          username: profile.username || "Owner",
+          photo: profile.profilePhotoUrls?.[0] || "",
+          numericId: profile.numericId || "",
+          role: "owner",
+          joinedAt: Date.now()
+        })
+
+        // Update user profile
+        transaction.update(doc(firestore, "userProfiles", currentUser.uid), {
+          agencyId: generatedId,
+          agencyJoinStatus: "approved",
+          memberOfAgencyId: generatedId,
+          updatedAt: new Date().toISOString()
+        })
       })
 
       toast({ title: "Agency Created", description: `Your Agency ID is: ${generatedId}` })
@@ -195,7 +214,7 @@ export default function AgentCenterPage() {
     if (!firestore || !profile?.agencyId || !currentUser || processingId) return
     setProcessingId(withdrawal.id)
     try {
-      const feedbackText = "✅ Your withdrawal request has been paid through the agency anchor. Please check your account."
+      const feedbackText = `✅ Your withdrawal request for ${withdrawal.diamondAmount} diamonds (Ksh ${withdrawal.amount}) has been paid through the agency anchor. Please check your account.`
       const chatId = [withdrawal.userId, currentUser.uid].sort().join("_")
       const chatRef = doc(firestore, "chats", chatId)
       const msgRef = doc(collection(chatRef, "messages"))
@@ -218,7 +237,7 @@ export default function AgentCenterPage() {
           [`unreadCount_${withdrawal.userId}`]: increment(1),
           [`userHasSent_${currentUser.uid}`]: true
         }, { merge: true })
-      })
+      });
 
       toast({ title: "Paid", description: "Message sent to member." })
     } catch (e) {
@@ -241,7 +260,7 @@ export default function AgentCenterPage() {
     return <div className="flex h-svh items-center justify-center bg-white text-zinc-400 font-black uppercase text-xs tracking-widest">Access Denied</div>
   }
 
-  const isAtCapacity = members.length >= (MAX_AGENCY_MEMBERS - 1);
+  const isAtCapacity = members.length >= MAX_AGENCY_MEMBERS;
 
   return (
     <div className="flex flex-col h-svh bg-white text-gray-900 font-body overflow-y-auto">
@@ -267,7 +286,7 @@ export default function AgentCenterPage() {
                   <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/5">
                     <Users className="w-3 h-3 text-purple-400" />
                     <span className={cn("text-[9px] font-black uppercase", isAtCapacity ? "text-amber-400" : "text-white/60")}>
-                      {members.length + 1} / {MAX_AGENCY_MEMBERS}
+                      {members.length} / {MAX_AGENCY_MEMBERS}
                     </span>
                   </div>
                 </div>
@@ -312,8 +331,16 @@ export default function AgentCenterPage() {
                   <div className="space-y-3">
                     {members.map(member => (
                       <div key={member.id} className="bg-white border border-gray-100 p-4 rounded-[2.25rem] flex items-center justify-between shadow-sm">
-                        <div className="flex items-center gap-3"><Avatar className="w-12 h-12 border-2 border-white shadow-md"><AvatarImage src={member.photo} /><AvatarFallback>{member.username?.[0]}</AvatarFallback></Avatar><div><p className="text-sm font-black">{member.username}</p><p className="text-[9px] font-bold text-gray-400 uppercase">Member</p></div></div>
-                        <Button size="sm" variant="ghost" onClick={() => router.push(`/chat/${member.id}`)} className="h-10 px-4 rounded-full bg-primary/5 text-primary font-black text-[9px] uppercase tracking-widest">Chat</Button>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-12 h-12 border-2 border-white shadow-md"><AvatarImage src={member.photo} /><AvatarFallback>{member.username?.[0]}</AvatarFallback></Avatar>
+                          <div>
+                            <p className="text-sm font-black">{member.username}</p>
+                            <p className="text-[9px] font-bold text-gray-400 uppercase">{member.role === 'owner' ? 'Head of Agency' : 'Member'}</p>
+                          </div>
+                        </div>
+                        {member.userId !== currentUser.uid && (
+                          <Button size="sm" variant="ghost" onClick={() => router.push(`/chat/${member.id}`)} className="h-10 px-4 rounded-full bg-primary/5 text-primary font-black text-[9px] uppercase tracking-widest">Chat</Button>
+                        )}
                       </div>
                     ))}
                     {hasMoreMembersToLoad && (
@@ -336,7 +363,22 @@ export default function AgentCenterPage() {
               <TabsContent value="withdrawals" className="space-y-4">
                 {withdrawals.map(w => (
                   <div key={w.id} className="bg-white border border-gray-100 p-5 rounded-[2.25rem] space-y-4 shadow-sm">
-                    <div className="flex justify-between items-center"><div className="flex items-center gap-3"><Avatar className="w-10 h-10"><AvatarImage src={w.photo} /><AvatarFallback>{w.username?.[0]}</AvatarFallback></Avatar><div><p className="text-xs font-black">{w.username}</p></div></div><div className="text-right"><p className="text-sm font-black text-green-600">{w.amount} KES</p><span className={cn("text-[8px] font-black uppercase px-2 py-0.5 rounded-full", w.status === 'paid' ? "bg-green-50 text-green-500" : "bg-amber-50 text-amber-500")}>{w.status}</span></div></div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-10 h-10"><AvatarImage src={w.photo} /><AvatarFallback>{w.username?.[0]}</AvatarFallback></Avatar>
+                        <div>
+                          <p className="text-xs font-black">{w.username}</p>
+                          <div className="flex items-center gap-1">
+                            <Gem className="w-3 h-3 text-blue-400" />
+                            <span className="text-[10px] font-bold text-gray-400">{w.diamondAmount?.toLocaleString() || 0}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-black text-green-600">{w.amount?.toLocaleString()} KES</p>
+                        <span className={cn("text-[8px] font-black uppercase px-2 py-0.5 rounded-full", w.status === 'paid' ? "bg-green-50 text-green-500" : "bg-amber-50 text-amber-500")}>{w.status}</span>
+                      </div>
+                    </div>
                     {w.status !== 'paid' && <Button onClick={() => handleMarkAsPaid(w)} disabled={!!processingId} className="w-full h-12 rounded-full bg-zinc-900 text-white font-black text-xs uppercase tracking-widest gap-2">{processingId === w.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}Confirm Paid</Button>}
                   </div>
                 ))}

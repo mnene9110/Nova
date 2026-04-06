@@ -3,13 +3,13 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Loader2, Building2, Clock, CheckCircle2, LogOut, Wallet, ArrowRight } from "lucide-react"
+import { ChevronLeft, Loader2, Building2, Clock, CheckCircle2, LogOut, Wallet, ArrowRight, Gem } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useDoc, useMemoFirebase, useFirebase } from "@/firebase"
-import { doc, updateDoc, getDoc, setDoc, collection, addDoc, serverTimestamp, deleteDoc, getDocs, query, limit } from "firebase/firestore"
+import { doc, updateDoc, getDoc, setDoc, collection, addDoc, serverTimestamp, deleteDoc, getDocs, query, limit, increment, runTransaction } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -31,7 +31,11 @@ export default function JoinAgencyPage() {
   const [agencyId, setAgencyId] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false)
-  const [withdrawAmount, setWithdrawAmount] = useState("")
+  const [diamondToConvert, setDiamondToConvert] = useState("")
+
+  const diamondBalance = profile?.diamondBalance || 0;
+  const diamondAmount = Number(diamondToConvert);
+  const kesValue = Math.floor((diamondAmount / 1000) * 70);
 
   const handleSubmit = async () => {
     if (!agencyId.trim() || !currentUser || !firestore) {
@@ -51,9 +55,8 @@ export default function JoinAgencyPage() {
         return
       }
 
-      // Check capacity (Owner + Members)
       const membersSnap = await getDocs(query(collection(firestore, "agencies", aid, "members"), limit(101)));
-      if (membersSnap.size >= 99) { // 99 members + 1 owner = 100
+      if (membersSnap.size >= 100) {
         toast({ variant: "destructive", title: "Agency Full", description: "This agency has reached its maximum capacity of 100 members." });
         setIsSubmitting(false);
         return;
@@ -103,26 +106,62 @@ export default function JoinAgencyPage() {
   }
 
   const handleWithdrawRequest = async () => {
-    if (!withdrawAmount || !currentUser || !profile?.memberOfAgencyId || !firestore) return
+    if (!diamondAmount || diamondAmount < 1000 || !currentUser || !profile?.memberOfAgencyId || !firestore) {
+      toast({ variant: "destructive", title: "Invalid Amount", description: "Minimum conversion is 1,000 diamonds." });
+      return;
+    }
+
+    if (diamondBalance < diamondAmount) {
+      toast({ variant: "destructive", title: "Insufficient Balance" });
+      return;
+    }
+
     setIsSubmitting(true)
     try {
       const aid = profile.memberOfAgencyId
-      const withdrawalsRef = collection(firestore, "agencies", aid, "withdrawals")
       
-      await addDoc(withdrawalsRef, {
-        userId: currentUser.uid,
-        username: profile.username,
-        photo: profile.profilePhotoUrls?.[0] || "",
-        amount: Number(withdrawAmount),
-        status: 'pending',
-        timestamp: serverTimestamp()
-      })
+      await runTransaction(firestore, async (transaction) => {
+        const profileSnap = await transaction.get(userRef!);
+        const currentBalance = profileSnap.data()?.diamondBalance || 0;
+        
+        if (currentBalance < diamondAmount) throw new Error("INSUFFICIENT_DIAMONDS");
+
+        // Create withdrawal request doc
+        const withdrawalsRef = doc(collection(firestore, "agencies", aid, "withdrawals"))
+        transaction.set(withdrawalsRef, {
+          id: withdrawalsRef.id,
+          userId: currentUser.uid,
+          username: profile.username,
+          photo: profile.profilePhotoUrls?.[0] || "",
+          diamondAmount: diamondAmount,
+          amount: kesValue, // KES
+          status: 'pending',
+          timestamp: serverTimestamp()
+        })
+
+        // Deduct diamonds from user
+        transaction.update(userRef!, {
+          diamondBalance: increment(-diamondAmount),
+          updatedAt: new Date().toISOString()
+        })
+
+        // Log transaction
+        const txRef = doc(collection(userRef!, "transactions"));
+        transaction.set(txRef, {
+          id: txRef.id,
+          type: "agency_conversion",
+          amount: -kesValue, // Not actual coins, just for log
+          diamondAmount: -diamondAmount,
+          transactionDate: new Date().toISOString(),
+          description: `Requested cash conversion for ${diamondAmount} diamonds (Ksh ${kesValue})`
+        });
+      });
 
       toast({ title: "Request Sent", description: "The agent will notify you when paid." })
       setShowWithdrawDialog(false)
-      setWithdrawAmount("")
-    } catch (e) {
-      toast({ variant: "destructive", title: "Failed to submit" })
+      setDiamondToConvert("")
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Failed to submit", description: e.message === "INSUFFICIENT_DIAMONDS" ? "Not enough diamonds." : "Internal error." })
     } finally {
       setIsSubmitting(false)
     }
@@ -152,8 +191,8 @@ export default function JoinAgencyPage() {
 
           <div className="grid grid-cols-1 gap-4">
             <button onClick={() => setShowWithdrawDialog(true)} className="w-full h-20 bg-gray-50 border border-gray-100 rounded-[2rem] flex items-center px-6 gap-4 active:scale-95 transition-all">
-              <div className="w-12 h-12 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-600"><Wallet className="w-6 h-6" /></div>
-              <div className="flex-1 text-left"><span className="text-[10px] font-black uppercase text-gray-400 block tracking-widest">Withdrawal</span><span className="text-sm font-black">Request Agency Payout</span></div>
+              <div className="w-12 h-12 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-600"><Gem className="w-6 h-6" /></div>
+              <div className="flex-1 text-left"><span className="text-[10px] font-black uppercase text-gray-400 block tracking-widest">Diamond Income</span><span className="text-sm font-black">Convert to Agency Cash</span></div>
               <ArrowRight className="w-5 h-5 text-gray-300" />
             </button>
 
@@ -167,12 +206,27 @@ export default function JoinAgencyPage() {
         <Dialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
           <DialogContent className="rounded-[2.5rem] bg-white border-none p-8 max-w-[85%] mx-auto shadow-2xl">
             <DialogHeader><DialogTitle className="text-xl font-black font-headline text-gray-900 text-center uppercase tracking-widest">Withdraw Request</DialogTitle></DialogHeader>
-            <div className="py-6 space-y-4">
-              <Label className="text-[10px] font-black uppercase text-gray-400 ml-1">Amount (KES)</Label>
-              <Input type="number" placeholder="Enter amount" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} className="h-14 rounded-2xl bg-gray-50 border-none font-black text-lg px-6" />
+            <div className="py-6 space-y-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-gray-400 ml-1">Diamonds to Convert</Label>
+                <div className="relative">
+                  <Gem className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400" />
+                  <Input type="number" placeholder="Min. 1,000" value={diamondToConvert} onChange={(e) => setDiamondToConvert(e.target.value)} className="h-14 rounded-2xl bg-gray-50 border-none font-black text-lg px-10" />
+                </div>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tight text-right">Available: {diamondBalance.toLocaleString()}</p>
+              </div>
+
+              <div className="bg-green-50 p-4 rounded-2xl border border-green-100 flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase text-green-600">Expected Payout</span>
+                <span className="text-sm font-black text-green-700">{kesValue.toLocaleString()} KES</span>
+              </div>
+
+              <p className="text-[9px] font-bold text-center text-gray-400 uppercase">Rate: 1,000 Diamonds = Ksh 70</p>
             </div>
             <DialogFooter className="flex flex-col gap-2">
-              <Button onClick={handleWithdrawRequest} disabled={!withdrawAmount || isSubmitting} className="h-14 rounded-full bg-zinc-900 text-white font-black uppercase text-xs tracking-widest w-full">Submit to Agent</Button>
+              <Button onClick={handleWithdrawRequest} disabled={!diamondToConvert || diamondAmount < 1000 || isSubmitting} className="h-14 rounded-full bg-zinc-900 text-white font-black uppercase text-xs tracking-widest w-full">
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit to Agent"}
+              </Button>
               <Button variant="ghost" onClick={() => setShowWithdrawDialog(false)} className="h-12 rounded-full text-gray-400 font-black uppercase text-[10px]">Cancel</Button>
             </DialogFooter>
           </DialogContent>
