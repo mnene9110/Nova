@@ -6,7 +6,8 @@ import { Mail, Lock, ChevronLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
-import { useAuth, useUser, initiateEmailSignIn, initiateEmailSignUp } from "@/firebase"
+import { useAuth, useUser, initiateEmailSignIn, initiateEmailSignUp, useFirebase } from "@/firebase"
+import { doc, getDoc } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
@@ -17,18 +18,21 @@ export default function LoginPage() {
   const router = useRouter()
   const auth = useAuth()
   const { user } = useUser()
+  const { firestore } = useFirebase()
   const { toast } = useToast()
 
   useEffect(() => {
-    if (user && !user.isAnonymous) {
-      const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
-      if (isNewUser) {
-        router.push("/onboarding/full")
-      } else {
-        router.push("/discover")
-      }
+    if (user && !user.isAnonymous && firestore) {
+      // Check if profile exists before deciding where to send the user
+      getDoc(doc(firestore, "userProfiles", user.uid)).then(snap => {
+        if (snap.exists()) {
+          router.push("/discover")
+        } else {
+          router.push("/onboarding/full")
+        }
+      })
     }
-  }, [user, router])
+  }, [user, router, firestore])
 
   const handleSignIn = () => {
     if (!email || !password) {
