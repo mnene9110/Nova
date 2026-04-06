@@ -1,24 +1,23 @@
 
 {
-  "name": "NOVA",
-  "short_name": "NOVA",
-  "description": "Connect with Heart",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#BAE6FD",
-  "theme_color": "#BAE6FD",
+  "name": "nova",
+  "short_name": "nova",
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
-  ]
+  ],
+  "theme_color": "#BAE6FD",
+  "background_color": "#BAE6FD",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "orientation": "portrait"
 }
