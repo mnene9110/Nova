@@ -1,4 +1,3 @@
-
 'use client';
 import {
   Auth,
@@ -42,7 +41,7 @@ export async function initiateAnonymousSignIn(authInstance: Auth): Promise<UserC
 
   // 3. Create a new "Persistent Guest"
   const randomId = Math.random().toString(36).substring(2, 10);
-  const email = `guest_${randomId}@matchflow.app`;
+  const email = `guest_${randomId}@nova.app`;
   const password = `pass_${randomId}_${Date.now()}`;
   
   try {
