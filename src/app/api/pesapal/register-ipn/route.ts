@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 
 /**
- * @fileOverview API route to manually register an IPN URL with PesaPal V3.
- * Maps to /api/pesapal/register-ipn
+ * @fileOverview REGISTER IPN handler for PesaPal V3.
+ * Path: /api/pesapal/register-ipn
+ * Logic: Fetches token and registers the nova-kx1k.vercel.app listener.
  */
 
 const PESAPAL_URL = 'https://pay.pesapal.com/v3';
@@ -11,6 +12,10 @@ const CONSUMER_SECRET = process.env.PESAPAL_CONSUMER_SECRET;
 
 export async function GET() {
   try {
+    if (!CONSUMER_KEY || !CONSUMER_SECRET) {
+      return NextResponse.json({ error: "Environment variables missing" }, { status: 500 });
+    }
+
     // 1. Get Auth Token
     const tokenResponse = await fetch(`${PESAPAL_URL}/api/Auth/RequestToken`, {
       method: 'POST',
@@ -48,6 +53,8 @@ export async function GET() {
     });
 
     const registerData = await registerResponse.json();
+    console.log("REGISTER IPN RESPONSE:", registerData);
+    
     return NextResponse.json(registerData);
   } catch (error: any) {
     console.error("IPN Registration Error:", error);
