@@ -2,7 +2,7 @@
 
 /**
  * @fileOverview Server actions for PesaPal V3 integration.
- * Branded for Nova.
+ * Branded for nova.
  */
 
 const PESAPAL_URL = 'https://pay.pesapal.com/v3';
@@ -35,7 +35,7 @@ async function getAuthToken() {
 }
 
 async function registerIPN(token: string) {
-  const ipnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/pesapal/ipn`;
+  const ipnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/pesapal-ipn`;
   
   const response = await fetch(`${PESAPAL_URL}/api/URLSetup/RegisterIPN`, {
     method: 'POST',
@@ -46,7 +46,7 @@ async function registerIPN(token: string) {
     },
     body: JSON.stringify({
       url: ipnUrl,
-      ipn_notification_type: 'GET',
+      ipn_notification_type: 'POST',
     }),
     cache: 'no-store',
   });
@@ -67,12 +67,12 @@ export async function initializePesaPalTransaction(email: string, amount: number
       id: `NV${shortId}`,
       currency: 'KES',
       amount: Number(amount),
-      description: `Nova Coin Recharge (${metadata.packageAmount} coins)`,
+      description: `nova Coin Recharge (${metadata.packageAmount} coins)`,
       callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/recharge/callback/pesapal`,
       notification_id: ipnId,
       billing_address: {
         email_address: email,
-        first_name: "Nova",
+        first_name: "nova",
         last_name: "Customer",
         line_1: "Nairobi",
         city: "Nairobi",

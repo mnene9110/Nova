@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
@@ -10,7 +9,7 @@ import { useFirebase, useDoc, useUser, useMemoFirebase, useCollection } from "@/
 import { doc, collection, query, where } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
-import { initializePaystackTransaction } from "@/app/actions/paystack"
+import { initializePesaPalTransaction } from "@/app/actions/pesapal"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Sheet,
@@ -90,7 +89,7 @@ function RechargeContent() {
     }
   }, [searchParams, toast])
 
-  const handlePaystack = async () => {
+  const handlePesaPal = async () => {
     if (!user || !selectedPackage || isProcessing) return
     setIsProcessing(true)
 
@@ -98,7 +97,7 @@ function RechargeContent() {
     const email = user.email || `guest_${user.uid.slice(0, 8)}@nova.app`
     
     try {
-      const result = await initializePaystackTransaction(email, localPrice, {
+      const result = await initializePesaPalTransaction(email, localPrice, {
         userId: user.uid,
         packageAmount: selectedPackage.amount
       })
@@ -109,8 +108,8 @@ function RechargeContent() {
         return
       }
 
-      if (result.authorization_url) {
-        window.location.href = result.authorization_url
+      if (result.redirect_url) {
+        window.location.href = result.redirect_url
       }
     } catch (e) {
       setIsProcessing(false)
@@ -185,7 +184,7 @@ function RechargeContent() {
         <div className="mt-10 space-y-4">
           <h3 className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-2">Digital Top-up</h3>
           <Button 
-            onClick={handlePaystack} 
+            onClick={handlePesaPal} 
             disabled={isProcessing || !selectedPackage}
             className={cn(
               "w-full h-20 rounded-full text-white font-black text-xl shadow-2xl transition-all active:scale-95 gap-3",
