@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -13,6 +14,11 @@ export function Navbar() {
   const { firestore } = useFirebase()
   const { user: currentUser } = useUser()
   const [totalUnread, setTotalUnread] = useState(0)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (!firestore || !currentUser) return
@@ -50,12 +56,12 @@ export function Navbar() {
   ]
   
   const shouldHide = 
-    hiddenRoutes.some(route => pathname.startsWith(route)) || 
-    pathname.startsWith("/chat/") || 
-    (pathname.startsWith("/profile/") && pathname !== "/profile") ||
+    hiddenRoutes.some(route => pathname?.startsWith(route)) || 
+    pathname?.startsWith("/chat/") || 
+    (pathname?.startsWith("/profile/") && pathname !== "/profile") ||
     pathname === "/"
 
-  if (shouldHide) return null
+  if (!mounted || shouldHide) return null
 
   const navItems = [
     { icon: Home, label: "Home", href: "/discover" },

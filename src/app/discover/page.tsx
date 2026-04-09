@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -132,13 +133,13 @@ export default function DiscoverPage() {
           
           <button 
             onClick={() => router.push('/task-center')}
-            className="group relative flex flex-col items-center justify-center h-28 bg-[#FEC288] rounded-[2.25rem] shadow-xl shadow-[#FEC288]/20 active:scale-95 transition-all overflow-hidden"
+            className="group relative flex flex-col items-center justify-center h-28 bg-[#EB4C4C] rounded-[2.25rem] shadow-xl shadow-[#EB4C4C]/20 active:scale-95 transition-all overflow-hidden"
           >
             <div className="relative z-10 flex flex-col items-center gap-2">
               <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner border border-white/10">
-                <ClipboardList className="w-5 h-5 text-[#FD8A6B]" />
+                <ClipboardList className="w-5 h-5 text-white" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#7C2D12]">Task Center</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white">Task Center</span>
             </div>
           </button>
         </div>
@@ -206,7 +207,7 @@ export default function DiscoverPage() {
                     {user.name}
                   </h3>
                   {user.isVerified && (
-                    <CheckCircle className="w-3.5 h-3.5 text-primary fill-primary/10" />
+                    <CheckCircle className="w-3.5 h-3.5 text-[#FD8A6B] fill-[#FD8A6B]/10" />
                   )}
                 </div>
 
