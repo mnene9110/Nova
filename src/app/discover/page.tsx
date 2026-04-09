@@ -133,14 +133,17 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Simplified Header */}
+      {/* Modern Split Header */}
       <div className="sticky top-0 z-30 px-5 py-4 shrink-0">
-        <div className="flex items-center justify-between bg-white/20 backdrop-blur-3xl border border-white/20 rounded-full h-16 px-6 shadow-[0_8px_32px_rgba(0,0,0,0.05)]">
-          <h2 className="text-sky-900 font-black uppercase tracking-[0.2em] text-[11px]">Recommended For You</h2>
+        <div className="flex items-center justify-between">
+          <div className="h-12 px-6 bg-white/40 backdrop-blur-2xl border border-white/40 rounded-full flex items-center shadow-[0_8px_32px_rgba(0,0,0,0.05)]">
+            <h2 className="text-sky-900 font-black uppercase tracking-[0.2em] text-[10px]">Recommended For You</h2>
+          </div>
+          
           <button 
             onClick={handleRefresh} 
             disabled={isInitialLoading}
-            className="w-10 h-10 rounded-full bg-white/90 border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-sm text-primary disabled:opacity-50"
+            className="w-12 h-12 rounded-full bg-white/40 backdrop-blur-2xl border border-white/40 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-[0_8px_32px_rgba(0,0,0,0.05)] text-primary disabled:opacity-50"
           >
             {isInitialLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
