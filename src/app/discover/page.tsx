@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { RotateCcw, Globe, Loader2, CheckCircle, Sparkles, ClipboardList } from "lucide-react"
+import { RotateCcw, Globe, Loader2, CheckCircle, VenetianMask, ClipboardList } from "lucide-react"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { collection, query, where, limit, getDocs, doc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
@@ -113,7 +113,7 @@ export default function DiscoverPage() {
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none" />
             <div className="relative z-10 flex flex-col items-center gap-2">
               <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner">
-                <Sparkles className="w-5 h-5 text-white" />
+                <VenetianMask className="w-5 h-5 text-white" />
               </div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white">Mystery Note</span>
             </div>
