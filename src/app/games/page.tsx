@@ -17,11 +17,11 @@ import { cn } from "@/lib/utils"
 const GAME_BETS = [20, 50, 100, 200, 500]
 
 const SEGMENT_COLORS = [
-  '#BAE6FD', '#7DD3FC', '#38BDF8', '#0EA5E9', 
-  '#0284C7', '#0369A1', '#075985', '#0C4A6E',
-  '#BAE6FD', '#7DD3FC', '#38BDF8', '#0EA5E9', 
-  '#0284C7', '#0369A1', '#075985', '#0C4A6E',
-  '#BAE6FD', '#7DD3FC'
+  '#FD8A6B', '#FEC288', '#FF9F7F', '#FFB347', 
+  '#FD8A6B', '#FEC288', '#FF9F7F', '#FFB347',
+  '#FD8A6B', '#FEC288', '#FF9F7F', '#FFB347',
+  '#FD8A6B', '#FEC288', '#FF9F7F', '#FFB347',
+  '#FD8A6B', '#FEC288'
 ]
 
 const WHEEL_CONFIGS = {
@@ -159,13 +159,11 @@ export default function GamesCenterPage() {
     }
   }
 
-  const primaryBlue = "bg-primary";
-
   return (
     <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden relative">
       <header className="px-4 py-6 flex items-center sticky top-0 bg-transparent z-50 shrink-0">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-gray-900 h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
-        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-sky-900 drop-shadow-md">Games Center</h1>
+        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-[#7C2D12] drop-shadow-md">Games Center</h1>
       </header>
 
       <main className="flex-1 overflow-y-auto px-6 pt-2 pb-40 space-y-10 scroll-smooth">
@@ -185,14 +183,14 @@ export default function GamesCenterPage() {
           <div className="relative w-full aspect-square max-w-[320px] mx-auto">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-12 bg-zinc-900 rounded-b-full z-20 shadow-xl border-4 border-white flex items-center justify-center"><div className="w-2 h-6 bg-primary rounded-full" /></div>
             <div onTransitionEnd={handleAnimationEnd} style={{ transform: `rotate(${rotation}deg)`, transitionTimingFunction: 'cubic-bezier(0.15, 0, 0.15, 1)' }} className="w-full h-full transition-transform duration-[6000ms] shadow-2xl rounded-full overflow-hidden"><canvas ref={canvasRef} width={400} height={400} className="w-full h-full" /></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center border-4 border-sky-500/30 z-10 shadow-xl"><Trophy className={cn("w-6 h-6 text-primary", isSpinning && "scale-110 animate-pulse")} /></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center border-4 border-primary/30 z-10 shadow-xl"><Trophy className={cn("w-6 h-6 text-primary", isSpinning && "scale-110 animate-pulse")} /></div>
           </div>
 
           <div className="grid grid-cols-5 gap-2">
-            {GAME_BETS.map((bet) => (<button key={bet} onClick={() => !isSpinning && setSelectedBet(bet)} className={cn("h-12 rounded-2xl flex items-center justify-center transition-all border-2 font-black text-[10px]", selectedBet === bet ? "bg-primary border-sky-400 text-white" : "bg-white border-gray-100 text-gray-400")}>{bet}</button>))}
+            {GAME_BETS.map((bet) => (<button key={bet} onClick={() => !isSpinning && setSelectedBet(bet)} className={cn("h-12 rounded-2xl flex items-center justify-center transition-all border-2 font-black text-[10px]", selectedBet === bet ? "bg-primary border-primary/40 text-white" : "bg-white border-gray-100 text-gray-400")}>{bet}</button>))}
           </div>
 
-          <Button onClick={handleLuckySpin} disabled={!selectedBet || isSpinning || userCoins < (selectedBet || 0)} className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all", selectedBet && userCoins >= selectedBet ? primaryBlue : "bg-gray-200 text-gray-400")}>
+          <Button onClick={handleLuckySpin} disabled={!selectedBet || isSpinning || userCoins < (selectedBet || 0)} className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all", selectedBet && userCoins >= selectedBet ? "bg-primary" : "bg-gray-200 text-gray-400")}>
             {isSpinning ? "SPINNING..." : "PLACE BET"}
           </Button>
         </section>
@@ -200,7 +198,7 @@ export default function GamesCenterPage() {
 
       {gameResult && (
         <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-8 animate-in fade-in duration-500 text-center space-y-6">
-          {gameResult.winner ? (<><div className="w-32 h-32 bg-primary/20 rounded-full flex items-center justify-center mx-auto border-4 border-primary animate-bounce"><Trophy className="w-16 h-16 text-primary" /></div><div className="space-y-2"><h2 className="text-5xl font-black font-headline text-primary uppercase">WON!</h2><p className="text-white font-bold text-xl">{gameResult.pot} COINS</p></div></>) : (<><div className="w-32 h-32 bg-sky-500/10 rounded-full flex items-center justify-center mx-auto border-4 border-sky-500/20"><Dice5 className="w-16 h-16 text-sky-500/40" /></div><h2 className="text-4xl font-black font-headline text-white/40 uppercase">LOST</h2></>)}
+          {gameResult.winner ? (<><div className="w-32 h-32 bg-primary/20 rounded-full flex items-center justify-center mx-auto border-4 border-primary animate-bounce"><Trophy className="w-16 h-16 text-primary" /></div><div className="space-y-2"><h2 className="text-5xl font-black font-headline text-primary uppercase">WON!</h2><p className="text-white font-bold text-xl">{gameResult.pot} COINS</p></div></>) : (<><div className="w-32 h-32 bg-primary/10 rounded-full flex items-center justify-center mx-auto border-4 border-primary/20"><Dice5 className="w-16 h-16 text-primary/40" /></div><h2 className="text-4xl font-black font-headline text-white/40 uppercase">LOST</h2></>)}
           <Button onClick={() => setGameResult(null)} className="mt-10 rounded-full bg-white text-zinc-900 px-12 h-14 font-black uppercase text-xs tracking-widest">CLOSE</Button>
         </div>
       )}

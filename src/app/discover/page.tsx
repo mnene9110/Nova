@@ -93,7 +93,6 @@ export default function DiscoverPage() {
   }
 
   const mappedUsers = users.map(u => {
-    // Age calculation
     let age = null;
     if (u.dateOfBirth) {
       const birthDate = new Date(u.dateOfBirth);
@@ -117,7 +116,6 @@ export default function DiscoverPage() {
 
   return (
     <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32 relative scroll-smooth">
-      {/* Dynamic Header Actions */}
       <div className="px-5 pt-4 pb-2 shrink-0">
         <div className="grid grid-cols-2 gap-4">
           <button 
@@ -146,11 +144,10 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Modern Split Header */}
       <div className="sticky top-0 z-30 px-5 py-4 shrink-0">
         <div className="flex items-center justify-between">
           <div className="h-14 px-8 bg-white/40 backdrop-blur-2xl border border-white/40 rounded-full flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
-            <h2 className="text-sky-900 font-black uppercase tracking-[0.25em] text-[11px]">Recommended For You</h2>
+            <h2 className="text-[#7C2D12] font-black uppercase tracking-[0.25em] text-[11px]">Recommended For You</h2>
           </div>
           
           <button 
@@ -167,7 +164,6 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Discovery Grid */}
       <main className="px-5 grid grid-cols-2 gap-4 pb-8 flex-1 mt-2">
         {mappedUsers.map((user) => (
           <div 
@@ -175,7 +171,6 @@ export default function DiscoverPage() {
             className="group relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden bg-white/10 shadow-md transition-all hover:shadow-xl active:scale-[0.98]" 
             onClick={() => router.push(`/profile/${user.id}`)}
           >
-            {/* Image Layer */}
             <div className="absolute inset-0 z-0">
               <Image 
                 src={user.image} 
@@ -187,7 +182,6 @@ export default function DiscoverPage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             </div>
 
-            {/* Online Badge */}
             {user.isOnline && (
               <div className="absolute top-4 left-4 flex items-center gap-1.5 px-2.5 py-1 bg-black/30 backdrop-blur-md rounded-full border border-white/10 z-10">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.6)]" />
@@ -195,7 +189,6 @@ export default function DiscoverPage() {
               </div>
             )}
 
-            {/* Quick Action - Blurred Glass Action */}
             <button 
               onClick={(e) => { 
                 e.stopPropagation(); 
@@ -206,7 +199,6 @@ export default function DiscoverPage() {
               <span className="text-[9px] font-black text-white uppercase tracking-widest">Chat</span>
             </button>
 
-            {/* User Info Overlay */}
             <div className="absolute inset-x-0 bottom-0 p-5 z-10 pointer-events-none">
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-1.5">
@@ -214,18 +206,15 @@ export default function DiscoverPage() {
                     {user.name}
                   </h3>
                   {user.isVerified && (
-                    <CheckCircle className="w-3.5 h-3.5 text-blue-400 fill-blue-400/10" />
+                    <CheckCircle className="w-3.5 h-3.5 text-primary fill-primary/10" />
                   )}
                 </div>
 
-                {/* Age and Gender Badges - Compact Glass Style */}
                 <div className="flex items-center gap-1.5 mt-1">
-                  {/* Glass Age Badge */}
                   <div className="px-2 h-5 rounded-md bg-white/10 backdrop-blur-md shadow-sm border border-white/20 flex items-center justify-center">
                     <span className="text-[9px] font-black text-white tracking-tight leading-none">{user.age}</span>
                   </div>
                   
-                  {/* Glass Gender Badge */}
                   <div className="px-2 h-5 rounded-full bg-white/10 backdrop-blur-md shadow-sm border border-white/10 flex items-center justify-center">
                     <span className="text-[7px] font-black text-white uppercase tracking-wider leading-none">{user.gender}</span>
                   </div>
@@ -235,7 +224,6 @@ export default function DiscoverPage() {
           </div>
         ))}
 
-        {/* Loading States */}
         {isInitialLoading && Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="aspect-[3/4.2] rounded-[2.5rem] bg-white/10 animate-pulse border border-white/5" />
         ))}

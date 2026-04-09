@@ -87,21 +87,21 @@ export default function FullOnboardingPage() {
     router.push("/discover")
   }, [user, name, dob, gender, location, lookingFor, firestore, router, toast])
 
-  const primaryBlueText = "text-sky-900";
-  const primaryBlueBg = "bg-primary";
+  const primaryAccentText = "text-[#7C2D12]";
+  const primaryAccentBg = "bg-primary";
 
   return (
     <div className="h-svh bg-transparent overflow-y-auto">
       <div className="flex flex-col p-6 min-h-full">
         <div className="mt-8 space-y-8 pb-32 max-w-sm mx-auto w-full">
           <header className="space-y-2">
-            <h1 className={cn("text-4xl font-black font-headline drop-shadow-sm", primaryBlueText)}>Complete Profile</h1>
-            <p className="text-sky-700 font-bold uppercase text-[10px] tracking-[0.2em]">Tell us a bit more about yourself</p>
+            <h1 className={cn("text-4xl font-black font-headline drop-shadow-sm", primaryAccentText)}>Complete Profile</h1>
+            <p className="text-primary/70 font-bold uppercase text-[10px] tracking-[0.2em]">Tell us a bit more about yourself</p>
           </header>
 
           <div className="space-y-6">
             <div className="space-y-3">
-              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", primaryBlueText)}>Full Name</Label>
+              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", primaryAccentText)}>Full Name</Label>
               <Input 
                 placeholder="What should we call you?" 
                 value={name}
@@ -111,7 +111,7 @@ export default function FullOnboardingPage() {
             </div>
 
             <div className="space-y-3">
-              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", primaryBlueText)}>Date of Birth</Label>
+              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", primaryAccentText)}>Date of Birth</Label>
               <Input 
                 type="date"
                 value={dob}
@@ -121,7 +121,7 @@ export default function FullOnboardingPage() {
             </div>
 
             <div className="space-y-4">
-              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", primaryBlueText)}>I am a</Label>
+              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", primaryAccentText)}>I am a</Label>
               <RadioGroup value={gender} onValueChange={setGender} className="flex gap-4">
                 <div 
                   onClick={() => setGender("male")}
@@ -147,7 +147,7 @@ export default function FullOnboardingPage() {
             </div>
 
             <div className="space-y-3">
-              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", primaryBlueText)}>Looking for</Label>
+              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", primaryAccentText)}>Looking for</Label>
               <RadioGroup value={lookingFor} onValueChange={setLookingFor} className="grid grid-cols-1 gap-2">
                 {['long-term', 'casual', 'friendship'].map((goal) => (
                   <div 
@@ -168,7 +168,7 @@ export default function FullOnboardingPage() {
             </div>
 
             <div className="space-y-3">
-              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", primaryBlueText)}>Location (Kenya Only)</Label>
+              <Label className={cn("text-[10px] font-black uppercase ml-1 tracking-widest", primaryAccentText)}>Location (Kenya Only)</Label>
               <div className="h-16 rounded-[2rem] bg-white flex items-center px-6 gap-3 shadow-sm">
                 {isDetecting ? (
                   <Loader2 className="w-4 h-4 animate-spin text-primary" />
@@ -181,7 +181,7 @@ export default function FullOnboardingPage() {
           </div>
 
           <Button 
-            className={cn("w-full h-18 rounded-full text-white text-xl font-black shadow-2xl active:scale-95 transition-all mt-6", primaryBlueBg)}
+            className={cn("w-full h-18 rounded-full text-white text-xl font-black shadow-2xl active:scale-95 transition-all mt-6", primaryAccentBg)}
             disabled={!name || !dob || !gender || !lookingFor || isDetecting}
             onClick={handleSave}
           >

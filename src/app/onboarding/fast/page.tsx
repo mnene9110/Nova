@@ -69,20 +69,20 @@ export default function FastOnboardingPage() {
     }
   }
 
-  const primaryBlueText = "text-sky-900";
-  const primaryBlueBg = "bg-primary";
+  const primaryAccentText = "text-[#7C2D12]";
+  const primaryAccentBg = "bg-primary";
 
   return (
     <div className="flex flex-col min-h-svh bg-transparent p-8 overflow-y-auto">
       <div className="mt-12 space-y-10 flex-1 flex flex-col max-w-sm mx-auto w-full pb-20">
         <header className="space-y-3">
-          <h1 className={cn("text-4xl font-black font-headline leading-tight drop-shadow-sm", primaryBlueText)}>Fast Setup</h1>
-          <p className="text-sky-700 font-bold uppercase text-[10px] tracking-widest">Quickly set your basic info</p>
+          <h1 className={cn("text-4xl font-black font-headline leading-tight drop-shadow-sm", primaryAccentText)}>Fast Setup</h1>
+          <p className="text-primary/70 font-bold uppercase text-[10px] tracking-widest">Quickly set your basic info</p>
         </header>
 
         <div className="space-y-8 flex-1">
           <div className="space-y-4">
-            <Label className={cn("text-[10px] font-black uppercase tracking-[0.2em] ml-1", primaryBlueText)}>I am a</Label>
+            <Label className={cn("text-[10px] font-black uppercase tracking-[0.2em] ml-1", primaryAccentText)}>I am a</Label>
             <RadioGroup value={gender} onValueChange={setGender} className="flex gap-4">
               <div 
                 onClick={() => setGender("male")}
@@ -108,8 +108,8 @@ export default function FastOnboardingPage() {
           </div>
 
           <div className="space-y-4">
-            <Label className={cn("text-[10px] font-black uppercase tracking-[0.2em] ml-1", primaryBlueText)}>Your Location</Label>
-            <div className="h-16 rounded-[2.25rem] bg-white border border-sky-100 flex items-center px-8 gap-3 shadow-sm">
+            <Label className={cn("text-[10px] font-black uppercase tracking-[0.2em] ml-1", primaryAccentText)}>Your Location</Label>
+            <div className="h-16 rounded-[2.25rem] bg-white border border-primary/10 flex items-center px-8 gap-3 shadow-sm">
               {isDetecting ? (
                 <Loader2 className="w-4 h-4 animate-spin text-primary" />
               ) : (
@@ -122,7 +122,7 @@ export default function FastOnboardingPage() {
         </div>
 
         <Button 
-          className={cn("w-full h-18 rounded-full text-white text-xl font-black mb-10 shadow-2xl active:scale-95 transition-all", primaryBlueBg)} 
+          className={cn("w-full h-18 rounded-full text-white text-xl font-black mb-10 shadow-2xl active:scale-95 transition-all", primaryAccentBg)} 
           disabled={!gender || isDetecting || isSubmitting} 
           onClick={handleConfirm}
         >

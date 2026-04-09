@@ -81,8 +81,8 @@ export default function TaskCenterPage() {
     }
   }
 
-  const primaryBlueText = "text-sky-900";
-  const primaryBlueBg = "bg-primary";
+  const primaryAccentText = "text-[#7C2D12]";
+  const primaryAccentBg = "bg-primary";
 
   if (!mounted || isLoading) {
     return (
@@ -100,7 +100,7 @@ export default function TaskCenterPage() {
       <header className="px-6 pt-12 pb-6 flex items-center justify-between shrink-0 relative">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 hover:bg-white/40"><ChevronLeft className="w-6 h-6" /></Button>
         <div className="text-center">
-          <h1 className={cn("text-xl font-black font-headline tracking-widest uppercase", primaryBlueText)}>Task Center</h1>
+          <h1 className={cn("text-xl font-black font-headline tracking-widest uppercase", primaryAccentText)}>Task Center</h1>
           <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mt-1">Daily Flow Rewards</p>
         </div>
         <Button variant="ghost" size="icon" onClick={() => window.location.reload()} className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 hover:bg-white/40"><RotateCcw className="w-5 h-5" /></Button>
@@ -110,7 +110,7 @@ export default function TaskCenterPage() {
         <section className="bg-white/40 backdrop-blur-xl rounded-[3rem] p-8 border border-white/40 relative overflow-hidden shadow-2xl">
           <div className="flex justify-between items-start mb-8">
             <div className="space-y-2">
-              <h2 className={cn("text-3xl font-black font-headline leading-tight", primaryBlueText)}>Daily Attendance</h2>
+              <h2 className={cn("text-3xl font-black font-headline leading-tight", primaryAccentText)}>Daily Attendance</h2>
               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Maintain your streak for massive bonuses</p>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
@@ -156,7 +156,7 @@ export default function TaskCenterPage() {
             })}
           </div>
 
-          <Button onClick={handleClaim} disabled={!canClaim || isClaiming} className={cn("w-full h-18 rounded-full text-white text-xl font-black uppercase tracking-widest mt-10 shadow-2xl transition-all active:scale-95", canClaim ? primaryBlueBg : "bg-gray-200 text-gray-400")}>
+          <Button onClick={handleClaim} disabled={!canClaim || isClaiming} className={cn("w-full h-18 rounded-full text-white text-xl font-black uppercase tracking-widest mt-10 shadow-2xl transition-all active:scale-95", canClaim ? primaryAccentBg : "bg-gray-200 text-gray-400")}>
             {isClaiming ? <Loader2 className="w-6 h-6 animate-spin" /> : canClaim ? "Claim Reward" : "Already Claimed"}
           </Button>
         </section>
