@@ -1,7 +1,11 @@
-
 {
-  "name": "nova",
-  "short_name": "nova",
+  "name": "NOVA",
+  "short_name": "NOVA",
+  "description": "NOVA - Connect with Heart",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFC193",
+  "theme_color": "#FFC193",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -13,11 +17,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "theme_color": "#BAE6FD",
-  "background_color": "#BAE6FD",
-  "display": "standalone",
-  "scope": "/",
-  "start_url": "/",
-  "orientation": "portrait"
+  ]
 }
