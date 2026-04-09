@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Mail, Lock, ChevronLeft, Loader2, ShieldCheck, ShieldAlert, Shield } from "lucide-react"
+import { Mail, Lock, ChevronLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
@@ -133,10 +133,6 @@ export default function LoginPage() {
           <Button className="w-full h-16 rounded-full bg-primary hover:bg-primary/90 text-white text-xl font-bold shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center" onClick={handleSignIn} disabled={isPending}>{isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : "Sign In"}</Button>
           <Button variant="ghost" className="w-full h-16 rounded-full bg-gray-50 hover:bg-gray-100 text-gray-900 text-xl font-bold transition-all active:scale-95 flex items-center justify-center" onClick={handleSignUp} disabled={isPending}>{isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : "Create Account"}</Button>
         </div>
-
-        <footer className="pt-4">
-          <p className="text-[13px] text-gray-400 text-center leading-relaxed max-w-[280px]">By signing up, you agree to our <span onClick={() => router.push('/settings/terms')} className="underline cursor-pointer">Terms of Service</span> and <span onClick={() => router.push('/settings/privacy')} className="underline decoration-gray-200 cursor-pointer">Privacy Policy</span>.</p>
-        </footer>
       </main>
     </div>
   )
