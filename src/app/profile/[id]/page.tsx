@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
@@ -214,6 +213,7 @@ export default function ProfileDetailPage() {
               <p className="text-[13px] font-medium text-gray-500 capitalize leading-none font-body">{userProfile?.gender || "Not specified"} • {age ? `${age} years old` : 'Age hidden'}</p>
               <div className="flex items-center gap-4 mt-2">
                 <button onClick={copyId} className="flex items-center gap-2 px-3 py-1 bg-green-50 rounded-full text-[9px] font-black text-green-600 uppercase tracking-widest active:scale-95 transition-all">ID: {userProfile?.numericId || '---'}<Copy className="w-3 h-3 opacity-50" /></button>
+                {/* Location remains prominent in Detail View */}
                 <div className="flex items-center gap-1.5 text-[9px] font-black text-gray-400 uppercase tracking-widest"><Globe className="w-3 h-3" />{userProfile?.location || "Kenya"}</div>
               </div>
             </div>

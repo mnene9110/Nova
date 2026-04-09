@@ -220,21 +220,21 @@ export default function DiscoverPage() {
                 </div>
 
                 {/* Age and Gender Badges */}
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-[10px] font-black text-white/90 drop-shadow-sm">{user.age} yrs</span>
+                <div className="flex items-center gap-2 mt-1">
+                  {/* Purple Age Badge */}
+                  <div className="px-2 py-0.5 rounded-md bg-purple-600 shadow-lg border border-purple-400/30">
+                    <span className="text-[9px] font-black text-white tracking-tight">{user.age}</span>
+                  </div>
+                  
+                  {/* Vibrant Gender Badge */}
                   <div className={cn(
-                    "px-2 py-0.5 rounded-full backdrop-blur-md border border-white/10 shadow-sm",
-                    user.gender.toLowerCase() === 'female' ? "bg-pink-500/40" : "bg-blue-500/40"
+                    "px-2.5 py-0.5 rounded-full shadow-lg border",
+                    user.gender.toLowerCase() === 'female' 
+                      ? "bg-pink-500 border-pink-400" 
+                      : "bg-blue-500 border-blue-400"
                   )}>
                     <span className="text-[7px] font-black text-white uppercase tracking-wider">{user.gender}</span>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 opacity-90 mt-1">
-                  <Globe className="w-3 h-3 text-white/60" />
-                  <span className="text-[9px] font-bold text-white/80 uppercase tracking-[0.1em]">
-                    {user.location}
-                  </span>
                 </div>
               </div>
             </div>
