@@ -40,7 +40,7 @@
   
   html, body {
     @apply m-0 p-0 overflow-x-hidden min-h-svh;
-    background-color: #BAE6FD;
+    background-color: #FFC193;
     overscroll-behavior-y: none; 
     overscroll-behavior-x: none;
     touch-action: manipulation;
@@ -51,7 +51,7 @@
 
   body {
     @apply text-foreground antialiased;
-    background: linear-gradient(180deg, #BAE6FD 0%, #BAE6FD 15%, rgba(255, 255, 255, 1) 60%, rgba(255, 255, 255, 1) 100%);
+    background: linear-gradient(180deg, #FFC193 0%, #FFC193 15%, rgba(255, 255, 255, 1) 60%, rgba(255, 255, 255, 1) 100%);
     background-attachment: fixed;
     overflow-y: auto; 
   }

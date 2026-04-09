@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect } from "react"
@@ -41,6 +40,6 @@ export default function Home() {
   }, [user, isUserLoading, firestore, router])
 
   return (
-    <div className="flex h-svh w-full bg-[#BAE6FD]" />
+    <div className="flex h-svh w-full bg-[#FFC193]" />
   )
 }

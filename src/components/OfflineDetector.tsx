@@ -24,7 +24,7 @@ export function OfflineDetector({ children }: { children: React.ReactNode }) {
 
   if (isOffline) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-[#BAE6FD] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
+      <div className="fixed inset-0 z-[9999] bg-[#FFC193] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
         <div className="w-24 h-24 bg-white/40 backdrop-blur-xl rounded-[2.5rem] flex items-center justify-center mb-8 border border-white/30 animate-float">
           <WifiOff className="w-10 h-10 text-primary" />
         </div>

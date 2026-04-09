@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -63,7 +62,7 @@ export default function WelcomePage() {
 
   if (isUserLoading || (user && !isLoggingIn)) {
     return (
-      <div className="flex h-svh w-full bg-[#BAE6FD]" />
+      <div className="flex h-svh w-full bg-[#FFC193]" />
     )
   }
 
