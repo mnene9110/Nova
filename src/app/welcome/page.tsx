@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -132,9 +133,9 @@ export default function WelcomePage() {
           </Button>
         </div>
 
-        <footer className="mt-16 pb-10 max-w-[300px] mx-auto opacity-60">
-          <p className="text-[10px] text-white font-bold text-center leading-relaxed uppercase tracking-widest">
-            By entering NOVA, you agree to our <br />
+        <footer className="mt-16 pb-10 max-w-[300px] mx-auto">
+          <p className="text-[11px] text-white/80 font-bold text-center leading-relaxed uppercase tracking-widest">
+            By signing up, you agree to our <br />
             <span onClick={() => router.push('/settings/terms')} className="underline cursor-pointer hover:text-white transition-colors">Terms</span>
             <span className="mx-2">•</span>
             <span onClick={() => router.push('/settings/privacy')} className="underline cursor-pointer hover:text-white transition-colors">Privacy</span>

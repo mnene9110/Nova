@@ -90,7 +90,7 @@ export default function LoginPage() {
 
       <main className="flex-1 flex flex-col items-center justify-center px-8 w-full max-w-sm mx-auto space-y-10">
         <div className="text-center space-y-2">
-          <h1 className="text-5xl font-logo text-primary">nova</h1>
+          <h1 className="text-5xl font-logo text-primary">NOVA</h1>
           <p className="text-gray-400 text-lg font-medium">Sign in to find your perfect match</p>
         </div>
 
@@ -135,7 +135,7 @@ export default function LoginPage() {
         </div>
 
         <footer className="pt-4">
-          <p className="text-[13px] text-gray-400 text-center leading-relaxed max-w-[280px]">By signing in, you agree to our <span className="underline cursor-pointer">Terms of Service</span> and <span className="underline decoration-gray-200 cursor-pointer">Privacy Policy</span>.</p>
+          <p className="text-[13px] text-gray-400 text-center leading-relaxed max-w-[280px]">By signing up, you agree to our <span onClick={() => router.push('/settings/terms')} className="underline cursor-pointer">Terms of Service</span> and <span onClick={() => router.push('/settings/privacy')} className="underline decoration-gray-200 cursor-pointer">Privacy Policy</span>.</p>
         </footer>
       </main>
     </div>
