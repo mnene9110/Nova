@@ -121,7 +121,7 @@ export default function DiscoverPage() {
         <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
-            className="group relative flex flex-col items-center justify-center h-28 bg-[#FD8A6B] rounded-[2.25rem] shadow-xl shadow-[#FD8A6B]/20 active:scale-95 transition-all overflow-hidden"
+            className="group relative flex flex-col items-center justify-center h-28 bg-[#EB4C4C] rounded-[2.25rem] shadow-xl shadow-[#EB4C4C]/20 active:scale-95 transition-all overflow-hidden"
           >
             <div className="relative z-10 flex flex-col items-center gap-2">
               <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner border border-white/10">
@@ -133,7 +133,7 @@ export default function DiscoverPage() {
           
           <button 
             onClick={() => router.push('/task-center')}
-            className="group relative flex flex-col items-center justify-center h-28 bg-[#EB4C4C] rounded-[2.25rem] shadow-xl shadow-[#EB4C4C]/20 active:scale-95 transition-all overflow-hidden"
+            className="group relative flex flex-col items-center justify-center h-28 bg-[#FD8A6B] rounded-[2.25rem] shadow-xl shadow-[#FD8A6B]/20 active:scale-95 transition-all overflow-hidden"
           >
             <div className="relative z-10 flex flex-col items-center gap-2">
               <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner border border-white/10">
