@@ -92,14 +92,28 @@ export default function DiscoverPage() {
     await fetchUsers(true);
   }
 
-  const mappedUsers = users.map(u => ({
-    id: u.id,
-    name: u.username || "Match",
-    location: u.location || "Kenya",
-    isVerified: !!u.isVerified,
-    isOnline: !!u.isOnline,
-    image: (u.profilePhotoUrls && u.profilePhotoUrls[0]) || `https://picsum.photos/seed/${u.id}/400/600`
-  }))
+  const mappedUsers = users.map(u => {
+    // Age calculation
+    let age = null;
+    if (u.dateOfBirth) {
+      const birthDate = new Date(u.dateOfBirth);
+      const today = new Date();
+      age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+    }
+
+    return {
+      id: u.id,
+      name: u.username || "Match",
+      location: u.location || "Kenya",
+      isVerified: !!u.isVerified,
+      isOnline: !!u.isOnline,
+      gender: u.gender || "male",
+      age: age || 18,
+      image: (u.profilePhotoUrls && u.profilePhotoUrls[0]) || `https://picsum.photos/seed/${u.id}/400/600`
+    }
+  })
 
   return (
     <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32 relative scroll-smooth">
@@ -204,7 +218,19 @@ export default function DiscoverPage() {
                     <CheckCircle className="w-3.5 h-3.5 text-blue-400 fill-blue-400/10" />
                   )}
                 </div>
-                <div className="flex items-center gap-1.5 opacity-90">
+
+                {/* Age and Gender Badges */}
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[10px] font-black text-white/90 drop-shadow-sm">{user.age} yrs</span>
+                  <div className={cn(
+                    "px-2 py-0.5 rounded-full backdrop-blur-md border border-white/10 shadow-sm",
+                    user.gender.toLowerCase() === 'female' ? "bg-pink-500/40" : "bg-blue-500/40"
+                  )}>
+                    <span className="text-[7px] font-black text-white uppercase tracking-wider">{user.gender}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 opacity-90 mt-1">
                   <Globe className="w-3 h-3 text-white/60" />
                   <span className="text-[9px] font-bold text-white/80 uppercase tracking-[0.1em]">
                     {user.location}
