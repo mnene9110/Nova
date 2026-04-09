@@ -49,7 +49,7 @@ export default function ReviewReportsPage() {
       const chatId = [report.reporterId, supportProfile.id].sort().join("_")
       const chatRef = doc(firestore, "chats", chatId)
       const msgRef = doc(collection(chatRef, "messages"))
-      const feedbackText = "✅ Your complaint has been reviewed by our safety team. Thank you for helping keep Nova safe."
+      const feedbackText = "✅ Your complaint has been reviewed by our safety team. Thank you for helping keep Matchflow safe."
       
       await updateDoc(doc(firestore, "reports", report.id), { status: 'reviewed', reviewedAt: serverTimestamp() })
       

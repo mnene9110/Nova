@@ -1,4 +1,3 @@
-
 "use client"
 
 import { ChevronLeft, ChevronRight, ShieldCheck, CreditCard, MessageSquare, Ban, Info, BellOff, Zap, ShieldAlert } from "lucide-react"
@@ -45,7 +44,7 @@ export default function SettingsPage() {
     }
   }
 
-  const isGuest = user?.email?.includes('@nova.app') || user?.isAnonymous
+  const isGuest = user?.email?.includes('@matchflow.app') || user?.isAnonymous
   const isAdmin = userProfile?.isAdmin === true
 
   const settingsItems = [
@@ -54,7 +53,7 @@ export default function SettingsPage() {
     { label: "Charge settings", icon: CreditCard, onClick: () => router.push("/settings/charges") },
     { label: "Chat settings", icon: MessageSquare },
     { label: "Blocked List", icon: Ban, onClick: () => router.push("/settings/blocked") },
-    { label: "About nova", icon: Info, onClick: () => router.push("/settings/about") },
+    { label: "About Matchflow", icon: Info, onClick: () => router.push("/settings/about") },
   ]
 
   return (
@@ -100,7 +99,7 @@ export default function SettingsPage() {
       </main>
 
       <footer className="pb-32 flex flex-col items-center gap-4">
-        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20"><span className="text-primary font-logo text-xl">n</span></div>
+        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20"><span className="text-primary font-logo text-xl">m</span></div>
         <div className="text-center space-y-2">
           <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">VERSION 3.1.0</p>
           <div className="flex items-center gap-4 text-[9px] font-black text-gray-400 uppercase tracking-tighter">

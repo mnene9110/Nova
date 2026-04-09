@@ -30,7 +30,7 @@ export function OfflineDetector({ children }: { children: React.ReactNode }) {
         </div>
         <h1 className="text-3xl font-black font-headline text-sky-900 mb-3 uppercase tracking-tighter">Connection Lost</h1>
         <p className="text-sky-800/70 text-sm font-medium leading-relaxed max-w-[240px] mb-10">
-          Please check your internet connection to continue using Nova.
+          Please check your internet connection to continue using Matchflow.
         </p>
         <Button 
           onClick={() => window.location.reload()} 

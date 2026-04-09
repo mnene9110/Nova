@@ -1,7 +1,7 @@
-
 {
-  "name": "NOVA",
-  "short_name": "NOVA",
+  "name": "Matchflow",
+  "short_name": "Matchflow",
+  "description": "Connect with heart on Matchflow.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FFC193",

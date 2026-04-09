@@ -2,7 +2,7 @@
 
 /**
  * @fileOverview Server actions for PesaPal V3 integration.
- * Branded for nova.
+ * Branded for Matchflow.
  */
 
 const PESAPAL_URL = 'https://pay.pesapal.com/v3';
@@ -64,15 +64,15 @@ export async function initializePesaPalTransaction(email: string, amount: number
 
     const shortId = Date.now().toString().slice(-10);
     const orderData = {
-      id: `NV${shortId}`,
+      id: `MF${shortId}`,
       currency: 'KES',
       amount: Number(amount),
-      description: `nova Coin Recharge (${metadata.packageAmount} coins)`,
+      description: `Matchflow Coin Recharge (${metadata.packageAmount} coins)`,
       callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/recharge/callback/pesapal`,
       notification_id: ipnId,
       billing_address: {
         email_address: email,
-        first_name: "nova",
+        first_name: "Matchflow",
         last_name: "Customer",
         line_1: "Nairobi",
         city: "Nairobi",

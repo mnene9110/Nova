@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -90,7 +89,7 @@ export default function LoginPage() {
 
       <main className="flex-1 flex flex-col items-center justify-center px-8 w-full max-w-sm mx-auto space-y-10">
         <div className="text-center space-y-2">
-          <h1 className="text-5xl font-logo text-primary">NOVA</h1>
+          <h1 className="text-5xl font-logo text-primary">Matchflow</h1>
           <p className="text-gray-400 text-lg font-medium">Sign in to find your perfect match</p>
         </div>
 

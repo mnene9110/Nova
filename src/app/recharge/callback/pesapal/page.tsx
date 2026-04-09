@@ -52,7 +52,7 @@ function PesaPalCallbackContent({ searchParams }: { searchParams: Promise<any> }
               amount: coinsToGain,
               orderTrackingId: orderTrackingId,
               transactionDate: new Date().toISOString(),
-              description: `Nova Coin Recharge (${coinsToGain} coins) via PesaPal`
+              description: `Matchflow Coin Recharge (${coinsToGain} coins) via PesaPal`
             });
           });
 

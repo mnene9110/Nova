@@ -50,7 +50,7 @@ export default function FullOnboardingPage() {
       toast({
         variant: "destructive",
         title: "Access Denied",
-        description: "You must be 18 or older to use nova.",
+        description: "You must be 18 or older to use Matchflow.",
       })
       return
     }

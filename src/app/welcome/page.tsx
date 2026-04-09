@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -95,7 +94,7 @@ export default function WelcomePage() {
               <div className="w-20 h-20 bg-white/10 rounded-[2rem] flex items-center justify-center shadow-inner border border-white/10 mb-1">
                 <Heart className="w-10 h-10 text-[#EB4C4C] fill-[#EB4C4C] drop-shadow-[0_0_15px_rgba(235,76,76,0.4)]" />
               </div>
-              <h2 className="text-[#EB4C4C] font-logo text-4xl tracking-tight drop-shadow-md">NOVA</h2>
+              <h2 className="text-[#EB4C4C] font-logo text-3xl tracking-tight drop-shadow-md">Matchflow</h2>
             </div>
           </div>
           
@@ -105,7 +104,7 @@ export default function WelcomePage() {
         </div>
 
         <div className="space-y-3 mb-16">
-          <h1 className="text-6xl font-logo text-[#EB4C4C] drop-shadow-2xl">NOVA</h1>
+          <h1 className="text-5xl font-logo text-[#EB4C4C] drop-shadow-2xl">Matchflow</h1>
           <div className="inline-flex items-center gap-3 px-6 py-2 bg-black/10 backdrop-blur-md rounded-full border border-white/10">
             <div className="w-1.5 h-1.5 rounded-full bg-[#EB4C4C] animate-pulse" />
             <p className="text-white/90 text-[12px] font-black uppercase tracking-[0.3em]">Connect with Heart</p>
