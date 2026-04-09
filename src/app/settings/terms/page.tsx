@@ -1,9 +1,12 @@
 "use client"
 
-import { useRouter } from "navigation"
+import { useRouter } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+/**
+ * @fileOverview Terms of Service page for Matchflow.
+ */
 export default function TermsPage() {
   const router = useRouter()
 
