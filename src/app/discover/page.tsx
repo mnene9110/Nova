@@ -202,9 +202,9 @@ export default function DiscoverPage() {
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute top-4 right-4 px-4 h-8 bg-white/20 backdrop-blur-xl border border-white/20 shadow-lg rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
+              className="absolute top-4 right-4 px-4 h-8 bg-sky-400 shadow-lg rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
             >
-              <span className="text-[9px] font-black text-white uppercase tracking-widest">Chat</span>
+              <span className="text-[9px] font-black text-sky-950 uppercase tracking-widest">Chat</span>
             </button>
 
             {/* User Info Overlay */}
