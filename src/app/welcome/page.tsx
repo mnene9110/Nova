@@ -130,16 +130,18 @@ export default function WelcomePage() {
             {isLoggingIn ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-7 h-7 fill-[#EB4C4C] text-[#EB4C4C]" />}
             Fast Entry
           </Button>
+
+          <div className="pt-4 px-4">
+            <p className="text-[11px] text-[#EB4C4C] font-bold text-center leading-relaxed uppercase tracking-widest">
+              By signing up, you agree to our <br />
+              <span onClick={() => router.push('/settings/terms')} className="underline cursor-pointer hover:text-white transition-colors">Terms</span>
+              <span className="mx-2">•</span>
+              <span onClick={() => router.push('/settings/privacy')} className="underline cursor-pointer hover:text-white transition-colors">Privacy</span>
+            </p>
+          </div>
         </div>
 
-        <footer className="mt-16 pb-10 max-w-[300px] mx-auto">
-          <p className="text-[11px] text-white/80 font-bold text-center leading-relaxed uppercase tracking-widest">
-            By signing up, you agree to our <br />
-            <span onClick={() => router.push('/settings/terms')} className="underline cursor-pointer hover:text-white transition-colors">Terms</span>
-            <span className="mx-2">•</span>
-            <span onClick={() => router.push('/settings/privacy')} className="underline cursor-pointer hover:text-white transition-colors">Privacy</span>
-          </p>
-        </footer>
+        <div className="h-20" />
       </main>
     </div>
   )
