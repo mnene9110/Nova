@@ -111,23 +111,23 @@ export default function WelcomePage() {
           </div>
         </div>
 
-        <div className="w-full space-y-4 max-w-xs animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <div className="w-full space-y-4 max-w-sm animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <Button 
-            className="w-full h-18 rounded-full bg-primary text-white hover:bg-primary/90 text-lg font-black gap-4 shadow-[0_15px_40px_rgba(235,76,76,0.3)] transition-all active:scale-95 flex items-center justify-center border-t border-white/20" 
+            className="w-full h-20 rounded-[2rem] bg-primary text-white hover:bg-primary/90 text-xl font-black gap-4 shadow-[0_15px_40px_rgba(235,76,76,0.3)] transition-all active:scale-95 flex items-center justify-center border-t border-white/20" 
             onClick={handleEmailClick}
             disabled={isNavigatingEmail || isLoggingIn}
           >
-            {isNavigatingEmail ? <Loader2 className="w-6 h-6 animate-spin" /> : <Mail className="w-6 h-6" />}
+            {isNavigatingEmail ? <Loader2 className="w-6 h-6 animate-spin" /> : <Mail className="w-7 h-7" />}
             Continue with Email
           </Button>
           
           <Button 
             variant="ghost" 
-            className="w-full h-18 rounded-full bg-white/10 text-white border border-white/20 hover:bg-white/20 text-lg font-black gap-4 transition-all active:scale-95 backdrop-blur-md shadow-sm flex items-center justify-center" 
+            className="w-full h-20 rounded-[2rem] bg-white/10 text-white border border-white/20 hover:bg-white/20 text-xl font-black gap-4 transition-all active:scale-95 backdrop-blur-md shadow-sm flex items-center justify-center" 
             onClick={handleFastLogin} 
             disabled={isLoggingIn || isNavigatingEmail}
           >
-            {isLoggingIn ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6 fill-primary text-primary" />}
+            {isLoggingIn ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-7 h-7 fill-primary text-primary" />}
             Fast Entry
           </Button>
         </div>
