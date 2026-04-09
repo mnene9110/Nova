@@ -202,9 +202,9 @@ export default function DiscoverPage() {
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute top-4 right-4 px-4 h-8 bg-sky-400 shadow-lg rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
+              className="absolute top-4 right-4 px-4 h-8 bg-sky-100 shadow-md rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
             >
-              <span className="text-[9px] font-black text-sky-950 uppercase tracking-widest">Chat</span>
+              <span className="text-[9px] font-black text-sky-900 uppercase tracking-widest">Chat</span>
             </button>
 
             {/* User Info Overlay */}
@@ -220,18 +220,18 @@ export default function DiscoverPage() {
                 </div>
 
                 {/* Age and Gender Badges */}
-                <div className="flex items-center gap-2 mt-1">
-                  {/* Purple Age Badge */}
-                  <div className="px-2 py-0.5 rounded-md bg-purple-600 shadow-lg border border-purple-400/30">
+                <div className="flex items-center gap-1.5 mt-1">
+                  {/* Softer Purple Age Badge */}
+                  <div className="px-1.5 py-0.5 rounded-md bg-purple-500/70 shadow-sm border border-purple-400/20">
                     <span className="text-[9px] font-black text-white tracking-tight">{user.age}</span>
                   </div>
                   
-                  {/* Vibrant Gender Badge */}
+                  {/* Pale Gender Badge */}
                   <div className={cn(
-                    "px-2.5 py-0.5 rounded-full shadow-lg border",
+                    "px-2 py-0.5 rounded-full shadow-sm border border-white/10",
                     user.gender.toLowerCase() === 'female' 
-                      ? "bg-pink-500 border-pink-400" 
-                      : "bg-blue-500 border-blue-400"
+                      ? "bg-pink-400/70" 
+                      : "bg-blue-400/70"
                   )}>
                     <span className="text-[7px] font-black text-white uppercase tracking-wider">{user.gender}</span>
                   </div>
