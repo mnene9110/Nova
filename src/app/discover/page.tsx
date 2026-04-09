@@ -122,11 +122,10 @@ export default function DiscoverPage() {
         <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
-            className="group relative flex flex-col items-center justify-center h-28 bg-gradient-to-br from-[#0EA5E9] to-[#0369A1] rounded-[2.25rem] shadow-xl shadow-sky-500/10 active:scale-95 transition-all overflow-hidden"
+            className="group relative flex flex-col items-center justify-center h-28 bg-[#FD8A6B] rounded-[2.25rem] shadow-xl shadow-[#FD8A6B]/20 active:scale-95 transition-all overflow-hidden"
           >
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none" />
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner">
+              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner border border-white/10">
                 <VenetianMask className="w-5 h-5 text-white" />
               </div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white">Mystery Note</span>
@@ -135,13 +134,13 @@ export default function DiscoverPage() {
           
           <button 
             onClick={() => router.push('/task-center')}
-            className="group relative flex flex-col items-center justify-center h-28 bg-white/80 backdrop-blur-xl border border-white rounded-[2.25rem] shadow-lg shadow-black/5 active:scale-95 transition-all overflow-hidden"
+            className="group relative flex flex-col items-center justify-center h-28 bg-[#FEC288] rounded-[2.25rem] shadow-xl shadow-[#FEC288]/20 active:scale-95 transition-all overflow-hidden"
           >
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="w-10 h-10 rounded-2xl bg-sky-50 flex items-center justify-center shadow-inner">
-                <ClipboardList className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner border border-white/10">
+                <ClipboardList className="w-5 h-5 text-[#FD8A6B]" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-sky-950/60">Task Center</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#7C2D12]">Task Center</span>
             </div>
           </button>
         </div>
