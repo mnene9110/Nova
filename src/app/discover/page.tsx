@@ -150,19 +150,19 @@ export default function DiscoverPage() {
       {/* Modern Split Header */}
       <div className="sticky top-0 z-30 px-5 py-4 shrink-0">
         <div className="flex items-center justify-between">
-          <div className="h-12 px-6 bg-white/40 backdrop-blur-2xl border border-white/40 rounded-full flex items-center shadow-[0_8px_32px_rgba(0,0,0,0.05)]">
-            <h2 className="text-sky-900 font-black uppercase tracking-[0.2em] text-[10px]">Recommended For You</h2>
+          <div className="h-14 px-8 bg-white/40 backdrop-blur-2xl border border-white/40 rounded-full flex items-center shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+            <h2 className="text-sky-900 font-black uppercase tracking-[0.25em] text-[11px]">Recommended For You</h2>
           </div>
           
           <button 
             onClick={handleRefresh} 
             disabled={isInitialLoading}
-            className="w-12 h-12 rounded-full bg-white/40 backdrop-blur-2xl border border-white/40 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-[0_8px_32px_rgba(0,0,0,0.05)] text-primary disabled:opacity-50"
+            className="w-14 h-14 rounded-full bg-white/40 backdrop-blur-2xl border border-white/40 flex items-center justify-center active:rotate-180 transition-all duration-700 shadow-[0_12px_40px_rgba(0,0,0,0.08)] text-primary disabled:opacity-50"
           >
             {isInitialLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-5 h-5" />
             )}
           </button>
         </div>
@@ -196,13 +196,13 @@ export default function DiscoverPage() {
               </div>
             )}
 
-            {/* Quick Action - Reduced height & Blur */}
+            {/* Quick Action - Blurred Glass Action */}
             <button 
               onClick={(e) => { 
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute top-4 right-4 px-4 h-7 bg-white/20 backdrop-blur-md border border-white/30 shadow-lg rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
+              className="absolute top-4 right-4 px-4 h-8 bg-white/10 backdrop-blur-xl border border-white/20 shadow-xl rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
             >
               <span className="text-[9px] font-black text-white uppercase tracking-widest">Chat</span>
             </button>
@@ -219,7 +219,7 @@ export default function DiscoverPage() {
                   )}
                 </div>
 
-                {/* Age and Gender Badges - Glass Style with Reduced Height */}
+                {/* Age and Gender Badges - Compact Glass Style */}
                 <div className="flex items-center gap-1.5 mt-1">
                   {/* Glass Age Badge */}
                   <div className="px-2 h-5 rounded-md bg-white/10 backdrop-blur-md shadow-sm border border-white/20 flex items-center justify-center">
