@@ -196,15 +196,15 @@ export default function DiscoverPage() {
               </div>
             )}
 
-            {/* Quick Action */}
+            {/* Quick Action - Reduced height & Blur */}
             <button 
               onClick={(e) => { 
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute top-4 right-4 px-4 h-8 bg-sky-100 shadow-md rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
+              className="absolute top-4 right-4 px-4 h-7 bg-white/20 backdrop-blur-md border border-white/30 shadow-lg rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
             >
-              <span className="text-[9px] font-black text-sky-900 uppercase tracking-widest">Chat</span>
+              <span className="text-[9px] font-black text-white uppercase tracking-widest">Chat</span>
             </button>
 
             {/* User Info Overlay */}
@@ -219,21 +219,16 @@ export default function DiscoverPage() {
                   )}
                 </div>
 
-                {/* Age and Gender Badges */}
+                {/* Age and Gender Badges - Glass Style with Reduced Height */}
                 <div className="flex items-center gap-1.5 mt-1">
-                  {/* Softer Purple Age Badge */}
-                  <div className="px-1.5 py-0.5 rounded-md bg-purple-500/70 shadow-sm border border-purple-400/20">
-                    <span className="text-[9px] font-black text-white tracking-tight">{user.age}</span>
+                  {/* Glass Age Badge */}
+                  <div className="px-2 h-5 rounded-md bg-white/10 backdrop-blur-md shadow-sm border border-white/20 flex items-center justify-center">
+                    <span className="text-[9px] font-black text-white tracking-tight leading-none">{user.age}</span>
                   </div>
                   
-                  {/* Pale Gender Badge */}
-                  <div className={cn(
-                    "px-2 py-0.5 rounded-full shadow-sm border border-white/10",
-                    user.gender.toLowerCase() === 'female' 
-                      ? "bg-pink-400/70" 
-                      : "bg-blue-400/70"
-                  )}>
-                    <span className="text-[7px] font-black text-white uppercase tracking-wider">{user.gender}</span>
+                  {/* Glass Gender Badge */}
+                  <div className="px-2 h-5 rounded-full bg-white/10 backdrop-blur-md shadow-sm border border-white/10 flex items-center justify-center">
+                    <span className="text-[7px] font-black text-white uppercase tracking-wider leading-none">{user.gender}</span>
                   </div>
                 </div>
               </div>
