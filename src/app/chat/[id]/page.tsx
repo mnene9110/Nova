@@ -45,8 +45,6 @@ export const GIFTS = [
 // --- FILTER CONSTANTS ---
 const ABUSIVE_WORDS = ['fuck', 'shit', 'bitch', 'asshole', 'idiot', 'stupid', 'bastard', 'slut', 'whore', 'pussy', 'dick'];
 const RESTRICTED_FEMALE_PHRASES = ["i'm paid", "pay", "nalipwa", "earning", "i'm earning", "nipali", "lipa"];
-const NUMBER_WORDS_REGEX = /\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion)\b/gi;
-const DIGITS_REGEX = /\d+/g;
 const LINKS_REGEX = /(https?:\/\/|www\.)[^\s]+/gi;
 
 function ChatDetailContent() {
@@ -126,37 +124,43 @@ function ChatDetailContent() {
 
   // --- CONTENT FILTER LOGIC ---
   const validateAndFilterText = (text: string): { processedText: string; isViolating: boolean; warning?: string } => {
+    // 1. Determine if either user is privileged (Admin, Support, Coinseller, Agent)
+    const isSenderPrivileged = !!(currentUserProfile?.isAdmin || currentUserProfile?.isSupport || currentUserProfile?.isCoinseller || currentUserProfile?.isAgent);
+    const isReceiverPrivileged = !!(otherUser?.isAdmin || otherUser?.isSupport || otherUser?.isCoinseller || otherUser?.isAgent);
+
+    // If either user is privileged, bypass all restrictions
+    if (isSenderPrivileged || isReceiverPrivileged) {
+      return { processedText: text, isViolating: false };
+    }
+
     let lowerText = text.toLowerCase();
     const isFemale = currentUserProfile?.gender?.toLowerCase() === 'female';
 
-    // 1. Check for links
+    // 2. Check for links
     if (LINKS_REGEX.test(text)) {
       return { processedText: text, isViolating: true, warning: "Sending links is not allowed." };
     }
 
-    // 2. Check for abusive words
+    // 3. Check for abusive words
     const hasAbuse = ABUSIVE_WORDS.some(word => lowerText.includes(word));
     if (hasAbuse) {
       return { processedText: text, isViolating: true, warning: "Your message contains offensive language." };
     }
 
-    // 3. Check for restricted female phrases (nalipwa, earning, etc.)
+    // 4. Check for restricted female phrases (nalipwa, earning, etc.)
     if (isFemale) {
       const hasRestrictedPhrase = RESTRICTED_FEMALE_PHRASES.some(phrase => lowerText.includes(phrase));
       if (hasRestrictedPhrase) {
         return { 
           processedText: text, 
           isViolating: true, 
-          warning: "Warning: You are violating app policy. Sending payment-related content or recruitment language may lead to account suspension." 
+          warning: "You are violating app policy which may lead to your account suspension." 
         };
       }
     }
 
-    // 4. Mask numbers (digits and words)
-    let processed = text.replace(DIGITS_REGEX, '**');
-    processed = processed.replace(NUMBER_WORDS_REGEX, '**');
-
-    return { processedText: processed, isViolating: false };
+    // Number restrictions removed as requested.
+    return { processedText: text, isViolating: false };
   }
 
   const handleInitiateCall = async (type: 'video' | 'audio') => {
