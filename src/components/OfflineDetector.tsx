@@ -24,17 +24,17 @@ export function OfflineDetector({ children }: { children: React.ReactNode }) {
 
   if (isOffline) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-[#FFC193] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
-        <div className="w-24 h-24 bg-white/40 backdrop-blur-xl rounded-[2.5rem] flex items-center justify-center mb-8 border border-white/30 animate-float">
-          <WifiOff className="w-10 h-10 text-primary" />
+      <div className="fixed inset-0 z-[9999] bg-[#A82323] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
+        <div className="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-[2.5rem] flex items-center justify-center mb-8 border border-white/10 animate-float">
+          <WifiOff className="w-10 h-10 text-white" />
         </div>
-        <h1 className="text-3xl font-black font-headline text-sky-900 mb-3 uppercase tracking-tighter">Connection Lost</h1>
-        <p className="text-sky-800/70 text-sm font-medium leading-relaxed max-w-[240px] mb-10">
+        <h1 className="text-3xl font-black font-headline text-white mb-3 uppercase tracking-tighter">Connection Lost</h1>
+        <p className="text-white/70 text-sm font-medium leading-relaxed max-w-[240px] mb-10">
           Please check your internet connection to continue using Matchflow.
         </p>
         <Button 
           onClick={() => window.location.reload()} 
-          className="h-16 w-full max-w-xs rounded-full bg-primary text-white hover:bg-primary/90 font-black text-lg gap-3 shadow-2xl active:scale-95 transition-all"
+          className="h-16 w-full max-w-xs rounded-full bg-white text-[#A82323] hover:bg-white/90 font-black text-lg gap-3 shadow-2xl active:scale-95 transition-all"
         >
           <RotateCcw className="w-5 h-5" />
           Reload App

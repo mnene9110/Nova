@@ -40,6 +40,6 @@ export default function Home() {
   }, [user, isUserLoading, firestore, router])
 
   return (
-    <div className="flex h-svh w-full bg-[#FFC193]" />
+    <div className="flex h-svh w-full bg-[#A82323]" />
   )
 }

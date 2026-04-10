@@ -147,14 +147,14 @@ export default function DiscoverPage() {
       </div>
 
       {/* Recommended Header - Sticky with solid theme background */}
-      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-[#FFC193]">
+      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-[#A82323]">
         <div className="flex items-center justify-between">
-          <h2 className="text-[14px] font-black text-gray-800 tracking-tight ml-1">Recommended for you</h2>
+          <h2 className="text-[14px] font-black text-white tracking-tight ml-1">Recommended for you</h2>
           
           <button 
             onClick={handleRefresh} 
             disabled={isInitialLoading}
-            className="w-9 h-9 rounded-full glass-card border-white/80 flex items-center justify-center active:rotate-180 transition-all duration-700 native-shadow text-gray-400 disabled:opacity-50"
+            className="w-9 h-9 rounded-full glass-card border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 native-shadow text-white disabled:opacity-50"
           >
             {isInitialLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
