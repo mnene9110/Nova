@@ -71,7 +71,8 @@ export function Navbar() {
 
   return (
     <div className="fixed bottom-6 left-10 right-10 z-50 max-w-sm mx-auto">
-      <nav className="h-16 w-full bg-white/40 backdrop-blur-2xl border border-white/30 rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.08)] flex items-center justify-around px-2">
+      <nav className="h-16 w-full bg-white/60 backdrop-blur-2xl border border-white/40 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-around px-2 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent pointer-events-none" />
         {navItems.map((item) => {
           const isActive = pathname === item.href
           return (
@@ -79,7 +80,7 @@ export function Navbar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center transition-all duration-300 flex-1",
+                "flex flex-col items-center justify-center transition-all duration-300 flex-1 relative z-10",
                 isActive ? "text-[#111FA2]" : "text-gray-400"
               )}
             >
