@@ -117,7 +117,7 @@ export default function DiscoverPage() {
   return (
     <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32 relative scroll-smooth">
       {/* Top Background Container */}
-      <div className="bg-[#FF5A5A] px-4 pt-10 pb-4 shrink-0">
+      <div className="bg-[#111FA2] px-4 pt-10 pb-4 shrink-0">
         <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
@@ -146,7 +146,7 @@ export default function DiscoverPage() {
       </div>
 
       {/* Recommended Header - Sticky with solid theme background */}
-      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-[#FF5A5A]">
+      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-[#111FA2]">
         <div className="flex items-center justify-between">
           <h2 className="text-[14px] font-black text-white tracking-tight ml-1">Recommended for you</h2>
           
@@ -209,15 +209,12 @@ export default function DiscoverPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  {/* Age Badge */}
-                  <div className={cn(
-                    "px-2 h-5 rounded-md flex items-center justify-center shadow-sm",
-                    user.gender === 'female' ? "bg-[#E87F24]" : "bg-[#03AED2]"
-                  )}>
-                    <span className="text-[9px] font-black text-black leading-none">{user.age}</span>
+                  {/* Age Badge - Now consistently Blue */}
+                  <div className="px-2 h-5 rounded-md flex items-center justify-center shadow-sm bg-blue-600">
+                    <span className="text-[9px] font-black text-white leading-none">{user.age}</span>
                   </div>
-                  {/* Location Badge */}
-                  <div className="px-2 h-5 rounded-md bg-[#CE2626] flex items-center justify-center shadow-sm">
+                  {/* Location Badge - Now consistently Green */}
+                  <div className="px-2 h-5 rounded-md bg-green-600 flex items-center justify-center shadow-sm">
                     <span className="text-[9px] font-black text-white uppercase tracking-tighter leading-none">{user.location.split(',')[0]}</span>
                   </div>
                 </div>

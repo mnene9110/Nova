@@ -73,10 +73,10 @@ export default function ProfilePage() {
   if (isLoading) return <div className="flex h-svh items-center justify-center bg-transparent"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
 
   return (
-    <div className="flex flex-col h-svh w-full bg-gradient-to-b from-[#FF5A5A] via-white/50 to-white text-gray-900 overflow-y-auto scroll-smooth">
+    <div className="flex flex-col h-svh w-full bg-gradient-to-b from-[#111FA2] via-white/50 to-white text-gray-900 overflow-y-auto scroll-smooth">
       <header className="flex flex-col items-center pt-16 pb-8 px-6 shrink-0 relative">
         <div className="relative mb-6 group">
-          <div className="absolute -inset-2 bg-gradient-to-tr from-primary to-amber-400 rounded-[3rem] blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+          <div className="absolute -inset-2 bg-gradient-to-tr from-primary to-blue-400 rounded-[3rem] blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
           <Avatar className="w-36 h-36 relative bg-white native-shadow">
             {userImage && <AvatarImage src={userImage} className="object-cover" />}
             <AvatarFallback className="bg-primary/5 text-primary font-black text-4xl">{userProfile?.username?.[0]}</AvatarFallback>
@@ -153,7 +153,7 @@ export default function ProfilePage() {
             onClick={() => router.push('/games')} 
             className="w-full h-20 glass-card rounded-[2.25rem] flex items-center px-6 gap-5 native-shadow group active:scale-[0.98] transition-all"
           >
-            <div className="w-12 h-12 rounded-[1.25rem] bg-gradient-to-tr from-primary to-[#EB4C4C] flex items-center justify-center shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
+            <div className="w-12 h-12 rounded-[1.25rem] bg-gradient-to-tr from-primary to-blue-600 flex items-center justify-center shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
               <Gamepad2 className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1 text-left">

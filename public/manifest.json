@@ -1,11 +1,11 @@
 {
   "name": "Matchflow",
   "short_name": "Matchflow",
-  "description": "Connect with Heart",
+  "description": "Premium High-End Social Networking",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FF5A5A",
-  "theme_color": "#FF5A5A",
+  "background_color": "#111FA2",
+  "theme_color": "#111FA2",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -16,8 +16,7 @@
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
