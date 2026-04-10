@@ -78,15 +78,15 @@ export function Navbar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center gap-1 transition-all duration-300 flex-1",
+                "flex flex-col items-center justify-center transition-all duration-300 flex-1",
                 isActive ? "text-[#111FA2]" : "text-gray-400"
               )}
             >
               <div className={cn(
-                "p-2.5 rounded-2xl transition-all relative",
+                "p-2 rounded-2xl transition-all relative",
                 isActive ? "bg-[#111FA2]/10 scale-110" : "bg-transparent grayscale opacity-60"
               )}>
-                <div className="relative w-6 h-6">
+                <div className="relative w-9 h-9">
                   <Image 
                     src={item.icon} 
                     alt={item.label} 
@@ -100,12 +100,6 @@ export function Navbar() {
                   </span>
                 )}
               </div>
-              <span className={cn(
-                "text-[8px] font-black uppercase tracking-[0.2em] mt-0.5",
-                isActive ? "text-[#111FA2] opacity-100" : "text-gray-400 opacity-60"
-              )}>
-                {item.label}
-              </span>
             </Link>
           )
         })}
