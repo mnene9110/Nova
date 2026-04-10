@@ -121,27 +121,25 @@ export default function DiscoverPage() {
         <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
-            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] glass-card rounded-[2rem] native-shadow active:scale-100 transition-all overflow-hidden border-white/60"
+            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] bg-[#DB1A1A] rounded-[2rem] native-shadow transition-all overflow-hidden border border-white/20 active:opacity-90"
           >
-            <div className="absolute inset-0 bg-[#DB1A1A]/5 opacity-20" />
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-[#DB1A1A]/10 flex items-center justify-center border border-[#DB1A1A]/10">
-                <Heart className="w-5 h-5 text-[#DB1A1A] fill-[#DB1A1A]/20" />
+              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center border border-white/20">
+                <Heart className="w-5 h-5 text-white fill-white/20" />
               </div>
-              <span className="text-[12px] font-black text-gray-800 tracking-tight">Mystery Note</span>
+              <span className="text-[12px] font-black text-white tracking-tight uppercase">Mystery Note</span>
             </div>
           </button>
           
           <button 
             onClick={() => router.push('/task-center')}
-            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] glass-card rounded-[2rem] native-shadow active:scale-100 transition-all overflow-hidden border-white/60"
+            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] bg-[#CE2626] rounded-[2rem] native-shadow transition-all overflow-hidden border border-white/20 active:opacity-90"
           >
-            <div className="absolute inset-0 bg-[#CE2626]/5 opacity-20" />
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-[#CE2626]/10 flex items-center justify-center border border-[#CE2626]/10">
-                <ClipboardList className="w-5 h-5 text-[#CE2626]" />
+              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center border border-white/20">
+                <ClipboardList className="w-5 h-5 text-white" />
               </div>
-              <span className="text-[12px] font-black text-gray-800 tracking-tight">Task Center</span>
+              <span className="text-[12px] font-black text-white tracking-tight uppercase">Task Center</span>
             </div>
           </button>
         </div>
@@ -155,7 +153,7 @@ export default function DiscoverPage() {
           <button 
             onClick={handleRefresh} 
             disabled={isInitialLoading}
-            className="w-9 h-9 rounded-full glass-card border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 native-shadow text-white disabled:opacity-50"
+            className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 native-shadow text-white disabled:opacity-50"
           >
             {isInitialLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -171,7 +169,7 @@ export default function DiscoverPage() {
         {mappedUsers.map((user) => (
           <div 
             key={user.id} 
-            className="group relative aspect-[3/3.8] rounded-[1.75rem] overflow-hidden bg-white/40 native-shadow transition-all border border-white/20 cursor-pointer" 
+            className="group relative aspect-[3/3.8] rounded-[1.75rem] overflow-hidden bg-white native-shadow transition-all border border-gray-100 cursor-pointer" 
             onClick={() => router.push(`/profile/${user.id}`)}
           >
             <div className="absolute inset-0 z-0">
@@ -179,7 +177,7 @@ export default function DiscoverPage() {
                 src={user.image} 
                 alt={user.name} 
                 fill 
-                className="object-cover transition-transform duration-[1500ms]" 
+                className="object-cover" 
                 data-ai-hint="dating profile photo" 
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
@@ -211,14 +209,14 @@ export default function DiscoverPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  {/* Age Badge - Gender Based Colors */}
+                  {/* Age Badge - Specific colors requested */}
                   <div className={cn(
                     "px-2 h-5 rounded-md flex items-center justify-center shadow-sm",
                     user.gender === 'female' ? "bg-[#E87F24]" : "bg-[#03AED2]"
                   )}>
                     <span className="text-[9px] font-black text-black leading-none">{user.age}</span>
                   </div>
-                  {/* Location/Distance Badge - Specific Red */}
+                  {/* Location Badge - Specific color CE2626 requested */}
                   <div className="px-2 h-5 rounded-md bg-[#CE2626] flex items-center justify-center shadow-sm">
                     <span className="text-[9px] font-black text-white uppercase tracking-tighter leading-none">{user.location.split(',')[0]}</span>
                   </div>
@@ -229,7 +227,7 @@ export default function DiscoverPage() {
         ))}
 
         {isInitialLoading && Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="aspect-[3/3.8] rounded-[1.75rem] bg-white/20 animate-pulse border border-white/10" />
+          <div key={i} className="aspect-[3/3.8] rounded-[1.75rem] bg-gray-100 animate-pulse border border-gray-50" />
         ))}
       </main>
     </div>
