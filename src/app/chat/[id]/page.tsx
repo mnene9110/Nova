@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef, useMemo, Suspense } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
-import { ChevronLeft, Video, Send, Phone, Loader2, Gift, CheckCircle, UserX, ArrowUp, Zap, ShieldAlert } from "lucide-react"
+import { ChevronLeft, Video, Send, Phone, Loader2, Gift, CheckCircle, UserX, ArrowUp, Zap, ShieldAlert, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -42,6 +42,13 @@ export const GIFTS = [
   { id: 'ufo', name: 'UFO 🛸', emoji: '🛸', price: 1990 },
 ]
 
+// --- FILTER CONSTANTS ---
+const ABUSIVE_WORDS = ['fuck', 'shit', 'bitch', 'asshole', 'idiot', 'stupid', 'bastard', 'slut', 'whore', 'pussy', 'dick'];
+const RESTRICTED_FEMALE_PHRASES = ["i'm paid", "pay", "nalipwa", "earning", "i'm earning", "nipali", "lipa"];
+const NUMBER_WORDS_REGEX = /\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion)\b/gi;
+const DIGITS_REGEX = /\d+/g;
+const LINKS_REGEX = /(https?:\/\/|www\.)[^\s]+/gi;
+
 function ChatDetailContent() {
   const params = useParams()
   const searchParams = useSearchParams()
@@ -59,7 +66,6 @@ function ChatDetailContent() {
   const [isSending, setIsSending] = useState(false)
   const [messages, setMessages] = useState<any[]>([])
   
-  // PAGINATION
   const [msgLimit, setMsgLimit] = useState(30)
   const [hasMore, setHasMore] = useState(true)
 
@@ -118,10 +124,44 @@ function ChatDetailContent() {
 
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
+  // --- CONTENT FILTER LOGIC ---
+  const validateAndFilterText = (text: string): { processedText: string; isViolating: boolean; warning?: string } => {
+    let lowerText = text.toLowerCase();
+    const isFemale = currentUserProfile?.gender?.toLowerCase() === 'female';
+
+    // 1. Check for links
+    if (LINKS_REGEX.test(text)) {
+      return { processedText: text, isViolating: true, warning: "Sending links is not allowed." };
+    }
+
+    // 2. Check for abusive words
+    const hasAbuse = ABUSIVE_WORDS.some(word => lowerText.includes(word));
+    if (hasAbuse) {
+      return { processedText: text, isViolating: true, warning: "Your message contains offensive language." };
+    }
+
+    // 3. Check for restricted female phrases (nalipwa, earning, etc.)
+    if (isFemale) {
+      const hasRestrictedPhrase = RESTRICTED_FEMALE_PHRASES.some(phrase => lowerText.includes(phrase));
+      if (hasRestrictedPhrase) {
+        return { 
+          processedText: text, 
+          isViolating: true, 
+          warning: "Warning: You are violating app policy. Sending payment-related content or recruitment language may lead to account suspension." 
+        };
+      }
+    }
+
+    // 4. Mask numbers (digits and words)
+    let processed = text.replace(DIGITS_REGEX, '**');
+    processed = processed.replace(NUMBER_WORDS_REGEX, '**');
+
+    return { processedText: processed, isViolating: false };
+  }
+
   const handleInitiateCall = async (type: 'video' | 'audio') => {
     if (!firestore || !chatId || !currentUser || !currentUserProfile || !otherUser || isBlocked) return
 
-    // 1. Permission check first
     try {
       const constraints = type === 'video' ? { video: true, audio: true } : { audio: true };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -177,9 +217,17 @@ function ChatDetailContent() {
   }
 
   const handleSendMessage = async (textOverride?: string) => {
-    const textToUse = textOverride || inputText;
-    if (!textToUse.trim() || !currentUser || !chatId || !firestore || !otherUserId || !otherUser || isSending || !currentUserProfile || isBlocked) return
+    const rawText = textOverride || inputText;
+    if (!rawText.trim() || !currentUser || !chatId || !firestore || !otherUserId || !otherUser || isSending || !currentUserProfile || isBlocked) return
     
+    // APPLY FILTERS
+    const { processedText, isViolating, warning } = validateAndFilterText(rawText);
+    
+    if (isViolating) {
+      toast({ variant: "destructive", title: "Message Blocked", description: warning });
+      return;
+    }
+
     const isMemberOfMyAgency = currentUserProfile.agencyId && otherUser.memberOfAgencyId === currentUserProfile.agencyId;
     const isMyAgent = currentUserProfile.memberOfAgencyId && otherUser.agencyId === currentUserProfile.memberOfAgencyId;
     
@@ -216,7 +264,7 @@ function ChatDetailContent() {
 
         const msgRef = doc(collection(firestore, "chats", chatId, "messages"));
         transaction.set(msgRef, {
-          messageText: textToUse,
+          messageText: processedText,
           senderId: currentUser.uid,
           sentAt: serverTimestamp(),
           status: 'sent'
@@ -224,7 +272,7 @@ function ChatDetailContent() {
 
         const chatMetaRef = doc(firestore, "chats", chatId);
         transaction.set(chatMetaRef, {
-          lastMessage: textToUse,
+          lastMessage: processedText,
           timestamp: serverTimestamp(),
           participants: [currentUser.uid, otherUserId],
           [`unreadCount_${otherUserId}`]: increment(1),
@@ -416,6 +464,12 @@ function ChatDetailContent() {
       </ScrollArea>
 
       <footer className={cn("px-5 py-5 pb-8 space-y-4 bg-white border-t border-gray-100 relative", isBlocked && "opacity-20 pointer-events-none")}>
+        {currentUserProfile?.gender?.toLowerCase() === 'female' && (
+          <div className="flex items-center gap-2 px-2 py-1 bg-amber-50 rounded-lg border border-amber-100 mb-2">
+            <AlertTriangle className="w-3 h-3 text-amber-600" />
+            <span className="text-[9px] font-bold text-amber-700 uppercase tracking-tighter">Maintain professional ethics to avoid suspension</span>
+          </div>
+        )}
         <div className="relative group">
           <Input value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="Message..." className="rounded-full h-12 bg-gray-50 border-none px-6 text-[13px] placeholder:text-gray-500" onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} disabled={isBlocked} />
           <Button size="icon" className={cn("absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full w-9 h-9", inputText.trim() && !isSending ? "bg-primary text-white" : "bg-gray-200 text-gray-400")} onClick={() => handleSendMessage()} disabled={!inputText.trim() || isSending || isBlocked}>
@@ -425,23 +479,17 @@ function ChatDetailContent() {
         {!otherUser.isSupport && (
           <div className="grid grid-cols-3 gap-2">
             <button onClick={() => handleInitiateCall('audio')} disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm disabled:opacity-50">
-              <div className="relative w-6 h-6 mb-0.5">
-                <Image src="/voice.png" alt="Voice" fill className="object-contain" />
-              </div>
+              <Phone className="w-5 h-5 text-gray-400" />
               <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Voice</span>
             </button>
             <button onClick={() => handleInitiateCall('video')} disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm disabled:opacity-50">
-              <div className="relative w-6 h-6 mb-0.5">
-                <Image src="/video.png" alt="Video" fill className="object-contain" />
-              </div>
+              <Video className="w-5 h-5 text-gray-400" />
               <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Video</span>
             </button>
             <Sheet open={isGiftSheetOpen} onOpenChange={setIsGiftSheetOpen}>
               <SheetTrigger asChild>
                 <button disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm disabled:opacity-50">
-                  <div className="relative w-6 h-6 mb-0.5">
-                    <Image src="/gift.png" alt="Gift" fill className="object-contain" />
-                  </div>
+                  <Gift className="w-5 h-5 text-gray-400" />
                   <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Gift</span>
                 </button>
               </SheetTrigger>
