@@ -40,7 +40,7 @@
   
   html, body {
     @apply m-0 p-0 overflow-x-hidden min-h-svh;
-    background-color: #FFC193;
+    background-color: #f8faff;
     overscroll-behavior-y: none; 
     overscroll-behavior-x: none;
     touch-action: manipulation;
@@ -51,7 +51,7 @@
 
   body {
     @apply text-foreground antialiased;
-    background: linear-gradient(180deg, #FFC193 0%, #FFC193 15%, rgba(255, 255, 255, 1) 60%, rgba(255, 255, 255, 1) 100%);
+    background: linear-gradient(180deg, #f8faff 0%, #f0f4ff 100%);
     background-attachment: fixed;
     overflow-y: auto; 
   }
@@ -105,16 +105,16 @@
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
 }
 
 .native-shadow {
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08);
 }
 
 .glow-border {
-  box-shadow: 0 0 15px rgba(253, 138, 107, 0.3);
+  box-shadow: 0 0 15px rgba(253, 138, 107, 0.2);
 }
