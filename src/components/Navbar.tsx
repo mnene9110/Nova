@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, MessageCircle, User } from "lucide-react"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { useFirebase, useUser } from "@/firebase"
 import { collection, query, where, onSnapshot } from "firebase/firestore"
@@ -63,9 +63,9 @@ export function Navbar() {
   if (!mounted || shouldHide) return null
 
   const navItems = [
-    { icon: Home, label: "Home", href: "/discover" },
-    { icon: MessageCircle, label: "Chats", href: "/chat", badge: totalUnread },
-    { icon: User, label: "You", href: "/profile" },
+    { label: "Home", href: "/discover", icon: "/home.png" },
+    { label: "Chats", href: "/chat", icon: "/chat.png", badge: totalUnread },
+    { label: "You", href: "/profile", icon: "/me.png" },
   ]
 
   return (
@@ -73,7 +73,6 @@ export function Navbar() {
       <nav className="h-20 w-full bg-white/60 backdrop-blur-2xl border border-white/40 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.1)] flex items-center justify-around px-4">
         {navItems.map((item) => {
           const isActive = pathname === item.href
-          const Icon = item.icon
           return (
             <Link
               key={item.href}
@@ -85,9 +84,16 @@ export function Navbar() {
             >
               <div className={cn(
                 "p-2.5 rounded-2xl transition-all relative",
-                isActive ? "bg-[#111FA2]/10 text-[#111FA2] scale-110" : "bg-transparent"
+                isActive ? "bg-[#111FA2]/10 scale-110" : "bg-transparent grayscale opacity-60"
               )}>
-                <Icon className={cn("w-5 h-5", isActive ? "stroke-[3px]" : "stroke-[2px]")} />
+                <div className="relative w-6 h-6">
+                  <Image 
+                    src={item.icon} 
+                    alt={item.label} 
+                    fill 
+                    className="object-contain"
+                  />
+                </div>
                 {item.badge !== undefined && item.badge > 0 && (
                   <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-[#111FA2] flex items-center justify-center text-[8px] font-black text-white border-2 border-white shadow-lg">
                     {item.badge > 99 ? '99+' : item.badge}

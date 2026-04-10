@@ -183,15 +183,17 @@ export default function DiscoverPage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
             </div>
 
-            {/* Chat Pill FAB - Top Right */}
+            {/* Chat Icon FAB - Top Right */}
             <button 
               onClick={(e) => { 
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute top-3 right-3 h-7 px-3 bg-white/30 backdrop-blur-xl border border-white/30 shadow-lg rounded-full flex items-center justify-center z-10 transition-all active:scale-95"
+              className="absolute top-3 right-3 w-9 h-9 bg-white/30 backdrop-blur-xl border border-white/30 shadow-lg rounded-full flex items-center justify-center z-10 transition-all active:scale-95"
             >
-              <span className="text-[9px] font-black text-white uppercase tracking-wider">Chat</span>
+              <div className="relative w-5 h-5">
+                <Image src="/chatt.png" alt="Chat" fill className="object-contain" />
+              </div>
             </button>
 
             {/* Info Overlay */}
