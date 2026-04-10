@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { RotateCcw, Loader2, CheckCircle, Heart, ClipboardList, MessageCircle } from "lucide-react"
+import { RotateCcw, Loader2, CheckCircle, Heart, ClipboardList } from "lucide-react"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { collection, query, where, limit, getDocs, doc } from "firebase/firestore"
-import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 
 let cachedUsers: any[] = []
@@ -117,45 +116,45 @@ export default function DiscoverPage() {
   return (
     <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32 relative scroll-smooth">
       {/* Top Glass Buttons */}
-      <div className="px-6 pt-10 pb-4 shrink-0">
-        <div className="grid grid-cols-2 gap-5">
+      <div className="px-4 pt-10 pb-4 shrink-0">
+        <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
-            className="group relative flex flex-col items-center justify-center aspect-[1.2/1] glass-card rounded-[2.5rem] native-shadow active:scale-95 transition-all overflow-hidden border-white/60"
+            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] glass-card rounded-[2.5rem] native-shadow active:scale-100 transition-all overflow-hidden border-white/60"
           >
             <div className="absolute inset-0 bg-[#EB4C4C]/5 opacity-20" />
-            <div className="relative z-10 flex flex-col items-center gap-3">
-              <div className="w-14 h-14 rounded-full bg-[#EB4C4C]/10 flex items-center justify-center border border-[#EB4C4C]/10">
-                <Heart className="w-6 h-6 text-[#EB4C4C] fill-[#EB4C4C]/20" />
+            <div className="relative z-10 flex flex-col items-center gap-2">
+              <div className="w-12 h-12 rounded-full bg-[#EB4C4C]/10 flex items-center justify-center border border-[#EB4C4C]/10">
+                <Heart className="w-5 h-5 text-[#EB4C4C] fill-[#EB4C4C]/20" />
               </div>
-              <span className="text-[13px] font-black text-gray-800 tracking-tight">Mystery Note</span>
+              <span className="text-[12px] font-black text-gray-800 tracking-tight">Mystery Note</span>
             </div>
           </button>
           
           <button 
             onClick={() => router.push('/task-center')}
-            className="group relative flex flex-col items-center justify-center aspect-[1.2/1] glass-card rounded-[2.5rem] native-shadow active:scale-95 transition-all overflow-hidden border-white/60"
+            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] glass-card rounded-[2.5rem] native-shadow active:scale-100 transition-all overflow-hidden border-white/60"
           >
             <div className="absolute inset-0 bg-[#FD8A6B]/5 opacity-20" />
-            <div className="relative z-10 flex flex-col items-center gap-3">
-              <div className="w-14 h-14 rounded-full bg-[#FD8A6B]/10 flex items-center justify-center border border-[#FD8A6B]/10">
-                <ClipboardList className="w-6 h-6 text-[#FD8A6B]" />
+            <div className="relative z-10 flex flex-col items-center gap-2">
+              <div className="w-12 h-12 rounded-full bg-[#FD8A6B]/10 flex items-center justify-center border border-[#FD8A6B]/10">
+                <ClipboardList className="w-5 h-5 text-[#FD8A6B]" />
               </div>
-              <span className="text-[13px] font-black text-gray-800 tracking-tight">Task Center</span>
+              <span className="text-[12px] font-black text-gray-800 tracking-tight">Task Center</span>
             </div>
           </button>
         </div>
       </div>
 
       {/* Recommended Header */}
-      <div className="sticky top-0 z-30 px-6 py-6 shrink-0">
+      <div className="sticky top-0 z-30 px-4 py-4 shrink-0">
         <div className="flex items-center justify-between">
-          <h2 className="text-[15px] font-black text-gray-800 tracking-tight">Recommended for you</h2>
+          <h2 className="text-[14px] font-black text-gray-800 tracking-tight ml-1">Recommended for you</h2>
           
           <button 
             onClick={handleRefresh} 
             disabled={isInitialLoading}
-            className="w-10 h-10 rounded-full glass-card border-white/80 flex items-center justify-center active:rotate-180 transition-all duration-700 native-shadow text-gray-400 disabled:opacity-50"
+            className="w-9 h-9 rounded-full glass-card border-white/80 flex items-center justify-center active:rotate-180 transition-all duration-700 native-shadow text-gray-400 disabled:opacity-50"
           >
             {isInitialLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -166,12 +165,12 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Main Feed Grid */}
-      <main className="px-6 grid grid-cols-2 gap-5 pb-8 flex-1 mt-2">
+      {/* Main Feed Grid - Tighter spacing like reference */}
+      <main className="px-4 grid grid-cols-2 gap-3 pb-8 flex-1 mt-1">
         {mappedUsers.map((user) => (
           <div 
             key={user.id} 
-            className="group relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden bg-white/40 native-shadow transition-all border border-white/20" 
+            className="group relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden bg-white/40 native-shadow transition-all border border-white/20 cursor-pointer" 
             onClick={() => router.push(`/profile/${user.id}`)}
           >
             <div className="absolute inset-0 z-0">
@@ -182,37 +181,42 @@ export default function DiscoverPage() {
                 className="object-cover transition-transform group-hover:scale-105 duration-[1500ms]" 
                 data-ai-hint="dating profile photo" 
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
             </div>
 
-            {/* Chat FAB */}
+            {/* Chat Pill FAB - Top Right */}
             <button 
               onClick={(e) => { 
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute top-4 right-4 h-8 px-4 bg-white/20 backdrop-blur-xl border border-white/20 shadow-lg rounded-full flex items-center justify-center z-10 transition-all"
+              className="absolute top-3 right-3 h-7 px-3 bg-white/30 backdrop-blur-xl border border-white/30 shadow-lg rounded-full flex items-center justify-center z-10 transition-all active:scale-95"
             >
-              <span className="text-[10px] font-black text-white uppercase tracking-wider">Chat</span>
+              <span className="text-[9px] font-black text-white uppercase tracking-wider">Chat</span>
             </button>
 
-            <div className="absolute inset-x-0 bottom-0 p-5 z-10 pointer-events-none">
-              <div className="flex flex-col gap-1.5">
+            {/* Info Overlay - Reference style */}
+            <div className="absolute inset-x-0 bottom-0 p-4 z-10 pointer-events-none">
+              <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-1.5">
-                  <h3 className="text-white font-black text-[15px] tracking-tight truncate">
+                  <h3 className="text-white font-black text-[15px] tracking-tight truncate drop-shadow-md">
                     {user.name}
                   </h3>
                   {user.isVerified && (
-                    <CheckCircle className="w-3.5 h-3.5 text-blue-400 fill-blue-400/10" />
+                    <div className="w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center shadow-sm">
+                      <CheckCircle className="w-3 h-3 text-black fill-current" />
+                    </div>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 mt-0.5">
-                  <div className="px-3 h-5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center">
-                    <span className="text-[10px] font-black text-white tracking-tight">{user.age}</span>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  {/* Age Badge - Cyan from Reference */}
+                  <div className="px-2 h-5 rounded-md bg-[#00E5FF] flex items-center justify-center shadow-sm">
+                    <span className="text-[9px] font-black text-black leading-none">{user.age}</span>
                   </div>
-                  <div className="px-3 h-5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center">
-                    <span className="text-[9px] font-black text-white uppercase tracking-wider leading-none">Female</span>
+                  {/* Location/Distance Badge - Lime from Reference */}
+                  <div className="px-2 h-5 rounded-md bg-[#C6FF00] flex items-center justify-center shadow-sm">
+                    <span className="text-[9px] font-black text-black uppercase tracking-tighter leading-none">{user.location.split(',')[0]}</span>
                   </div>
                 </div>
               </div>
