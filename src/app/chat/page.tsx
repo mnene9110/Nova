@@ -84,10 +84,9 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
               {name ? name[0] : ''}
             </AvatarFallback>
           </Avatar>
-          <div className={cn(
-            "absolute bottom-0.5 right-0.5 w-3.5 h-3.5 border-2 border-white rounded-full",
-            isOnline ? "bg-green-500" : "bg-gray-300"
-          )} />
+          {isOnline && (
+            <div className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
