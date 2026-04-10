@@ -211,15 +211,15 @@ export default function DiscoverPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  {/* Age Badge - Gender Based */}
+                  {/* Age Badge - Gender Based Colors */}
                   <div className={cn(
                     "px-2 h-5 rounded-md flex items-center justify-center shadow-sm",
-                    user.gender === 'female' ? "bg-[#FF85A1]" : "bg-[#4FACFE]"
+                    user.gender === 'female' ? "bg-[#E87F24]" : "bg-[#03AED2]"
                   )}>
                     <span className="text-[9px] font-black text-black leading-none">{user.age}</span>
                   </div>
-                  {/* Location/Distance Badge - Theme Brand Color */}
-                  <div className="px-2 h-5 rounded-md bg-[#FF5A5A] flex items-center justify-center shadow-sm">
+                  {/* Location/Distance Badge - Specific Red */}
+                  <div className="px-2 h-5 rounded-md bg-[#CE2626] flex items-center justify-center shadow-sm">
                     <span className="text-[9px] font-black text-white uppercase tracking-tighter leading-none">{user.location.split(',')[0]}</span>
                   </div>
                 </div>
