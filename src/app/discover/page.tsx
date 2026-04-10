@@ -183,15 +183,15 @@ export default function DiscoverPage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
             </div>
 
-            {/* Chat Icon - Top Right - Positioned higher with negative top offset */}
+            {/* Chat Icon - Top Right - Tightened hit area to only operate on visual icon click */}
             <button 
               onClick={(e) => { 
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute -top-4 -right-2 w-24 h-24 bg-transparent flex items-center justify-center z-10 transition-all active:scale-95"
+              className="absolute -top-2 -right-1 w-16 h-16 bg-transparent flex items-center justify-center z-10 transition-all active:scale-95"
             >
-              <div className="relative w-20 h-20">
+              <div className="relative w-14 h-14">
                 <Image src="/chatt.png" alt="Chat" fill className="object-contain" />
               </div>
             </button>
