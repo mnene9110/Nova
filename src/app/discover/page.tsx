@@ -171,7 +171,7 @@ export default function DiscoverPage() {
         {mappedUsers.map((user) => (
           <div 
             key={user.id} 
-            className="group relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden bg-white/40 native-shadow transition-all active:scale-[0.98] border border-white/20" 
+            className="group relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden bg-white/40 native-shadow transition-all border border-white/20" 
             onClick={() => router.push(`/profile/${user.id}`)}
           >
             <div className="absolute inset-0 z-0">
@@ -191,7 +191,7 @@ export default function DiscoverPage() {
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute top-4 right-4 h-8 px-4 bg-white/20 backdrop-blur-xl border border-white/20 shadow-lg rounded-full flex items-center justify-center z-10 active:scale-90 transition-all"
+              className="absolute top-4 right-4 h-8 px-4 bg-white/20 backdrop-blur-xl border border-white/20 shadow-lg rounded-full flex items-center justify-center z-10 transition-all"
             >
               <span className="text-[10px] font-black text-white uppercase tracking-wider">Chat</span>
             </button>

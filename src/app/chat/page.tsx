@@ -75,7 +75,7 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
     >
       <div 
         onClick={handleItemClick}
-        className="flex items-center gap-4 py-4 px-4 bg-white/40 backdrop-blur-md rounded-[2rem] border border-white/40 mb-3 transition-all active:scale-[0.98] cursor-pointer native-shadow"
+        className="flex items-center gap-4 py-4 px-4 bg-white/40 backdrop-blur-md rounded-[2rem] border border-white/40 mb-3 transition-all cursor-pointer native-shadow"
       >
         <div className="relative shrink-0">
           <Avatar className="w-14 h-14 border border-white shadow-sm bg-gray-50">
