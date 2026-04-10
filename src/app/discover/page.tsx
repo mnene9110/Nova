@@ -123,10 +123,10 @@ export default function DiscoverPage() {
             onClick={() => router.push('/mystery-note')}
             className="group relative flex flex-col items-center justify-center aspect-[1.3/1] glass-card rounded-[2rem] native-shadow active:scale-100 transition-all overflow-hidden border-white/60"
           >
-            <div className="absolute inset-0 bg-[#FF5A5A]/5 opacity-20" />
+            <div className="absolute inset-0 bg-[#DB1A1A]/5 opacity-20" />
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-[#FF5A5A]/10 flex items-center justify-center border border-[#FF5A5A]/10">
-                <Heart className="w-5 h-5 text-[#FF5A5A] fill-[#FF5A5A]/20" />
+              <div className="w-12 h-12 rounded-full bg-[#DB1A1A]/10 flex items-center justify-center border border-[#DB1A1A]/10">
+                <Heart className="w-5 h-5 text-[#DB1A1A] fill-[#DB1A1A]/20" />
               </div>
               <span className="text-[12px] font-black text-gray-800 tracking-tight">Mystery Note</span>
             </div>
@@ -136,10 +136,10 @@ export default function DiscoverPage() {
             onClick={() => router.push('/task-center')}
             className="group relative flex flex-col items-center justify-center aspect-[1.3/1] glass-card rounded-[2rem] native-shadow active:scale-100 transition-all overflow-hidden border-white/60"
           >
-            <div className="absolute inset-0 bg-[#FD8A6B]/5 opacity-20" />
+            <div className="absolute inset-0 bg-[#CE2626]/5 opacity-20" />
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-[#FD8A6B]/10 flex items-center justify-center border border-[#FD8A6B]/10">
-                <ClipboardList className="w-5 h-5 text-[#FD8A6B]" />
+              <div className="w-12 h-12 rounded-full bg-[#CE2626]/10 flex items-center justify-center border border-[#CE2626]/10">
+                <ClipboardList className="w-5 h-5 text-[#CE2626]" />
               </div>
               <span className="text-[12px] font-black text-gray-800 tracking-tight">Task Center</span>
             </div>
