@@ -70,10 +70,10 @@ export default function ProfilePage() {
   const userImage = (userProfile?.profilePhotoUrls && userProfile?.profilePhotoUrls[0]) || ""
   const isVerified = !!userProfile?.isVerified
 
-  if (isLoading) return <div className="flex h-svh items-center justify-center bg-transparent"><Loader2 className="w-8 h-8 animate-spin text-white" /></div>
+  if (isLoading) return <div className="flex h-svh items-center justify-center bg-transparent"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
 
   return (
-    <div className="flex flex-col h-svh w-full bg-transparent text-gray-900 overflow-y-auto scroll-smooth">
+    <div className="flex flex-col h-svh w-full bg-gradient-to-b from-[#A82323] via-white/50 to-white text-gray-900 overflow-y-auto scroll-smooth">
       <header className="flex flex-col items-center pt-16 pb-8 px-6 shrink-0 relative">
         <div className="relative mb-6 group">
           <div className="absolute -inset-2 bg-gradient-to-tr from-primary to-amber-400 rounded-[3rem] blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
@@ -96,12 +96,12 @@ export default function ProfilePage() {
 
         <div className="flex flex-col items-center gap-2 mb-4">
           <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-black tracking-tight text-center font-headline">{userProfile?.username || "Nova User"}</h1>
+            <h1 className="text-3xl font-black tracking-tight text-center font-headline text-white drop-shadow-md">{userProfile?.username || "Nova User"}</h1>
             {userProfile?.isPartyAdmin && <Crown className="w-5 h-5 text-amber-500" />}
           </div>
           <button 
             onClick={copyId} 
-            className="flex items-center gap-2 px-5 py-2 glass-card rounded-full active:scale-95 transition-all native-shadow"
+            className="flex items-center gap-2 px-5 py-2 glass-card rounded-full active:scale-95 transition-all native-shadow border-white/30"
           >
             <span className="text-[10px] font-black text-primary uppercase tracking-[0.25em]">ID: {userProfile?.numericId || '---'}</span>
             <Copy className="w-3 h-3 text-primary/40" />

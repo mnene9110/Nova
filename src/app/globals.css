@@ -40,7 +40,7 @@
   
   html, body {
     @apply m-0 p-0 overflow-x-hidden min-h-svh;
-    background-color: #A82323;
+    background-color: #ffffff;
     overscroll-behavior-y: none; 
     overscroll-behavior-x: none;
     touch-action: manipulation;
@@ -51,8 +51,7 @@
 
   body {
     @apply text-foreground antialiased;
-    /* Removed the gradient to allow solid top-to-bottom split control in components */
-    background-color: #A82323;
+    background-color: #ffffff;
     overflow-y: auto; 
   }
 

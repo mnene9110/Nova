@@ -173,10 +173,10 @@ export default function ChatListPage() {
   }
 
   return (
-    <div className="flex flex-col h-svh pb-20 bg-transparent overflow-hidden">
+    <div className="flex flex-col h-svh pb-20 bg-gradient-to-b from-[#A82323] via-white/50 to-white overflow-hidden">
       <header className="px-6 pt-12 pb-6 shrink-0 flex items-center justify-between">
         <h1 className="text-3xl font-logo text-white drop-shadow-md">Messages</h1>
-        <div className="w-10 h-10 rounded-full glass-card flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full glass-card flex items-center justify-center border-white/20">
           <MessageSquare className="w-5 h-5 text-primary" />
         </div>
       </header>
@@ -192,19 +192,19 @@ export default function ChatListPage() {
               />
             ))}
             <div className="py-8 flex justify-center opacity-30">
-               <p className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Encrypted Conversations</p>
+               <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Encrypted Conversations</p>
             </div>
           </div>
         ) : hasFetched ? (
-          <div className="flex flex-col items-center justify-center py-32 text-white/40 gap-4">
-            <div className="w-20 h-20 glass-card rounded-[2.5rem] flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center py-32 text-gray-300 gap-4">
+            <div className="w-20 h-20 glass-card rounded-[2.5rem] flex items-center justify-center border-gray-100">
               <MessageSquare className="w-10 h-10" />
             </div>
             <p className="text-xs font-black uppercase tracking-widest">No Active Chats</p>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-32 gap-3 opacity-20">
-            <Loader2 className="w-8 h-8 animate-spin text-white" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         )}
       </main>
