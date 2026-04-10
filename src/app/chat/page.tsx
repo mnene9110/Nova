@@ -71,11 +71,11 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onContextMenu={(e) => e.preventDefault()}
-      className="relative select-none px-4"
+      className="relative select-none px-2"
     >
       <div 
         onClick={handleItemClick}
-        className="flex items-center gap-4 py-4 px-4 bg-white/40 backdrop-blur-md rounded-[2rem] border border-white/40 mb-3 transition-all cursor-pointer native-shadow"
+        className="flex items-center gap-4 py-3 px-3 bg-white/40 backdrop-blur-md rounded-[2.25rem] border border-white/40 mb-2 transition-all cursor-pointer native-shadow"
       >
         <div className="relative shrink-0">
           <Avatar className="w-14 h-14 border border-white shadow-sm bg-gray-50">
@@ -93,7 +93,7 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
           <div className="flex justify-between items-baseline mb-0.5">
             <div className="flex items-center gap-1.5 truncate">
               <h3 className={cn(
-                "font-black text-[15px] truncate font-headline",
+                "font-black text-[15px] truncate font-headline tracking-tight",
                 name === "User logged out" ? "text-gray-400 font-medium italic" : "text-gray-900"
               )}>
                 {name}
@@ -101,13 +101,13 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
               {isVerified && <CheckCircle className="w-3.5 h-3.5 text-blue-500 fill-blue-500/10 shrink-0" />}
             </div>
             {session.timestamp && (
-              <span className="text-[10px] font-bold text-gray-400">
+              <span className="text-[10px] font-bold text-gray-400 tracking-tighter">
                 {session.timestamp.toDate?.() ? session.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now"}
               </span>
             )}
           </div>
           <div className="flex items-center gap-2">
-            <p className={cn("text-[12px] truncate font-medium flex-1", unreadCount > 0 ? "text-gray-900 font-black" : "text-gray-500")}>
+            <p className={cn("text-[12px] truncate font-medium flex-1 tracking-tight", unreadCount > 0 ? "text-gray-900 font-black" : "text-gray-500")}>
               {session.lastMessage || "Start a conversation"}
             </p>
             {unreadCount > 0 && (
@@ -180,7 +180,7 @@ export default function ChatListPage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto scroll-smooth pt-4">
+      <main className="flex-1 overflow-y-auto scroll-smooth pt-2">
         {sessions.length > 0 ? (
           <div className="flex flex-col gap-1 pb-32">
             {sessions.map((session) => (

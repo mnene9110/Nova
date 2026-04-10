@@ -63,7 +63,7 @@ export function Navbar() {
   if (!mounted || shouldHide) return null
 
   const navItems = [
-    { icon: Home, label: "Feed", href: "/discover" },
+    { icon: Home, label: "Home", href: "/discover" },
     { icon: MessageCircle, label: "Chats", href: "/chat", badge: totalUnread },
     { icon: User, label: "You", href: "/profile" },
   ]
