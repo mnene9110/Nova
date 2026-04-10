@@ -120,7 +120,7 @@ export default function DiscoverPage() {
         <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
-            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] glass-card rounded-[2.5rem] native-shadow active:scale-100 transition-all overflow-hidden border-white/60"
+            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] glass-card rounded-[2rem] native-shadow active:scale-100 transition-all overflow-hidden border-white/60"
           >
             <div className="absolute inset-0 bg-[#EB4C4C]/5 opacity-20" />
             <div className="relative z-10 flex flex-col items-center gap-2">
@@ -133,7 +133,7 @@ export default function DiscoverPage() {
           
           <button 
             onClick={() => router.push('/task-center')}
-            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] glass-card rounded-[2.5rem] native-shadow active:scale-100 transition-all overflow-hidden border-white/60"
+            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] glass-card rounded-[2rem] native-shadow active:scale-100 transition-all overflow-hidden border-white/60"
           >
             <div className="absolute inset-0 bg-[#FD8A6B]/5 opacity-20" />
             <div className="relative z-10 flex flex-col items-center gap-2">
@@ -146,8 +146,8 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Recommended Header */}
-      <div className="sticky top-0 z-30 px-4 py-4 shrink-0">
+      {/* Recommended Header - Sticky with solid theme background */}
+      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-[#FFC193]">
         <div className="flex items-center justify-between">
           <h2 className="text-[14px] font-black text-gray-800 tracking-tight ml-1">Recommended for you</h2>
           
@@ -165,12 +165,12 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Main Feed Grid - Even tighter spacing and lower height */}
+      {/* Main Feed Grid */}
       <main className="px-4 grid grid-cols-2 gap-2 pb-8 flex-1 mt-1">
         {mappedUsers.map((user) => (
           <div 
             key={user.id} 
-            className="group relative aspect-[3/3.8] rounded-[2.5rem] overflow-hidden bg-white/40 native-shadow transition-all border border-white/20 cursor-pointer" 
+            className="group relative aspect-[3/3.8] rounded-[1.75rem] overflow-hidden bg-white/40 native-shadow transition-all border border-white/20 cursor-pointer" 
             onClick={() => router.push(`/profile/${user.id}`)}
           >
             <div className="absolute inset-0 z-0">
@@ -225,7 +225,7 @@ export default function DiscoverPage() {
         ))}
 
         {isInitialLoading && Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="aspect-[3/3.8] rounded-[2.5rem] bg-white/20 animate-pulse border border-white/10" />
+          <div key={i} className="aspect-[3/3.8] rounded-[1.75rem] bg-white/20 animate-pulse border border-white/10" />
         ))}
       </main>
     </div>
