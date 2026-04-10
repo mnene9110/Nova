@@ -172,10 +172,10 @@ export default function ChatListPage() {
 
   return (
     <div className="flex flex-col h-svh pb-20 bg-white overflow-hidden">
-      <header className="px-6 pt-12 pb-8 shrink-0 flex items-center justify-between bg-[#111FA2]">
-        <h1 className="text-3xl font-logo text-white drop-shadow-md">Chats</h1>
-        <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
-          <MessageSquare className="w-5 h-5 text-white" />
+      <header className="px-6 pt-10 pb-4 shrink-0 flex items-center justify-between bg-[#111FA2]">
+        <h1 className="text-2xl font-logo text-white drop-shadow-md">Chats</h1>
+        <div className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+          <MessageSquare className="w-4 h-4 text-white" />
         </div>
       </header>
 
