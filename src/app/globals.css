@@ -51,8 +51,8 @@
 
   body {
     @apply text-foreground antialiased;
-    background: linear-gradient(180deg, #A82323 0%, #FFFFFF 100%);
-    background-attachment: fixed;
+    /* Removed the gradient to allow solid top-to-bottom split control in components */
+    background-color: #A82323;
     overflow-y: auto; 
   }
 

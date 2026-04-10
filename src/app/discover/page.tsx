@@ -115,8 +115,8 @@ export default function DiscoverPage() {
 
   return (
     <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32 relative scroll-smooth">
-      {/* Top Glass Buttons */}
-      <div className="px-4 pt-10 pb-4 shrink-0">
+      {/* Top Background Container */}
+      <div className="bg-[#A82323] px-4 pt-10 pb-4 shrink-0">
         <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
@@ -165,8 +165,8 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Main Feed Grid */}
-      <main className="px-4 grid grid-cols-2 gap-2 pb-8 flex-1 mt-1">
+      {/* Main Feed Grid - Solid White Background */}
+      <main className="px-4 grid grid-cols-2 gap-2 pb-8 flex-1 bg-white mt-0 pt-4">
         {mappedUsers.map((user) => (
           <div 
             key={user.id} 
