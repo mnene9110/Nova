@@ -73,7 +73,7 @@ export default function ProfilePage() {
   if (isLoading) return <div className="flex h-svh items-center justify-center bg-transparent"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
 
   return (
-    <div className="flex flex-col h-svh w-full bg-gradient-to-b from-[#A82323] via-white/50 to-white text-gray-900 overflow-y-auto scroll-smooth">
+    <div className="flex flex-col h-svh w-full bg-gradient-to-b from-[#FF5A5A] via-white/50 to-white text-gray-900 overflow-y-auto scroll-smooth">
       <header className="flex flex-col items-center pt-16 pb-8 px-6 shrink-0 relative">
         <div className="relative mb-6 group">
           <div className="absolute -inset-2 bg-gradient-to-tr from-primary to-amber-400 rounded-[3rem] blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>

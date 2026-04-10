@@ -80,23 +80,23 @@ export function Navbar() {
               href={item.href}
               className={cn(
                 "flex flex-col items-center gap-1 transition-all duration-300 flex-1",
-                isActive ? "text-[#C00707]" : "text-gray-400"
+                isActive ? "text-[#FF5A5A]" : "text-gray-400"
               )}
             >
               <div className={cn(
                 "p-2.5 rounded-2xl transition-all relative",
-                isActive ? "bg-[#C00707]/10 text-[#C00707] scale-110" : "bg-transparent"
+                isActive ? "bg-[#FF5A5A]/10 text-[#FF5A5A] scale-110" : "bg-transparent"
               )}>
                 <Icon className={cn("w-5 h-5", isActive ? "stroke-[3px]" : "stroke-[2px]")} />
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-[#EB4C4C] flex items-center justify-center text-[8px] font-black text-white border-2 border-white shadow-lg">
+                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-[#FF5A5A] flex items-center justify-center text-[8px] font-black text-white border-2 border-white shadow-lg">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
               </div>
               <span className={cn(
                 "text-[8px] font-black uppercase tracking-[0.2em] mt-0.5",
-                isActive ? "text-[#C00707] opacity-100" : "text-gray-400 opacity-60"
+                isActive ? "text-[#FF5A5A] opacity-100" : "text-gray-400 opacity-60"
               )}>
                 {item.label}
               </span>

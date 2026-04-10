@@ -116,16 +116,16 @@ export default function DiscoverPage() {
   return (
     <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32 relative scroll-smooth">
       {/* Top Background Container */}
-      <div className="bg-[#A82323] px-4 pt-10 pb-4 shrink-0">
+      <div className="bg-[#FF5A5A] px-4 pt-10 pb-4 shrink-0">
         <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
             className="group relative flex flex-col items-center justify-center aspect-[1.3/1] glass-card rounded-[2rem] native-shadow active:scale-100 transition-all overflow-hidden border-white/60"
           >
-            <div className="absolute inset-0 bg-[#EB4C4C]/5 opacity-20" />
+            <div className="absolute inset-0 bg-[#FF5A5A]/5 opacity-20" />
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-[#EB4C4C]/10 flex items-center justify-center border border-[#EB4C4C]/10">
-                <Heart className="w-5 h-5 text-[#EB4C4C] fill-[#EB4C4C]/20" />
+              <div className="w-12 h-12 rounded-full bg-[#FF5A5A]/10 flex items-center justify-center border border-[#FF5A5A]/10">
+                <Heart className="w-5 h-5 text-[#FF5A5A] fill-[#FF5A5A]/20" />
               </div>
               <span className="text-[12px] font-black text-gray-800 tracking-tight">Mystery Note</span>
             </div>
@@ -147,7 +147,7 @@ export default function DiscoverPage() {
       </div>
 
       {/* Recommended Header - Sticky with solid theme background */}
-      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-[#A82323]">
+      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-[#FF5A5A]">
         <div className="flex items-center justify-between">
           <h2 className="text-[14px] font-black text-white tracking-tight ml-1">Recommended for you</h2>
           

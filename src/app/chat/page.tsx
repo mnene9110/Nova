@@ -173,7 +173,7 @@ export default function ChatListPage() {
   }
 
   return (
-    <div className="flex flex-col h-svh pb-20 bg-gradient-to-b from-[#A82323] via-white/50 to-white overflow-hidden">
+    <div className="flex flex-col h-svh pb-20 bg-gradient-to-b from-[#FF5A5A] via-white/50 to-white overflow-hidden">
       <header className="px-6 pt-12 pb-6 shrink-0 flex items-center justify-between">
         <h1 className="text-3xl font-logo text-white drop-shadow-md">Chats</h1>
         <div className="w-10 h-10 rounded-full glass-card flex items-center justify-center border-white/20">

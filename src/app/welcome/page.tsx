@@ -92,9 +92,9 @@ export default function WelcomePage() {
             
             <div className="relative z-10 flex flex-col items-center gap-2">
               <div className="w-20 h-20 bg-white/10 rounded-[2rem] flex items-center justify-center shadow-inner border border-white/10 mb-1">
-                <Heart className="w-10 h-10 text-[#EB4C4C] fill-[#EB4C4C] drop-shadow-[0_0_15px_rgba(235,76,76,0.4)]" />
+                <Heart className="w-10 h-10 text-[#FF5A5A] fill-[#FF5A5A] drop-shadow-[0_0_15px_rgba(255,90,90,0.4)]" />
               </div>
-              <h2 className="text-[#EB4C4C] font-logo text-3xl tracking-tight drop-shadow-md">Matchflow</h2>
+              <h2 className="text-[#FF5A5A] font-logo text-3xl tracking-tight drop-shadow-md">Matchflow</h2>
             </div>
           </div>
           
@@ -104,16 +104,16 @@ export default function WelcomePage() {
         </div>
 
         <div className="space-y-3 mb-16">
-          <h1 className="text-5xl font-logo text-[#EB4C4C] drop-shadow-2xl">Matchflow</h1>
+          <h1 className="text-5xl font-logo text-[#FF5A5A] drop-shadow-2xl">Matchflow</h1>
           <div className="inline-flex items-center gap-3 px-6 py-2 bg-black/10 backdrop-blur-md rounded-full border border-white/10">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#EB4C4C] animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#FF5A5A] animate-pulse" />
             <p className="text-white/90 text-[12px] font-black uppercase tracking-[0.3em]">Connect with Heart</p>
           </div>
         </div>
 
         <div className="w-full space-y-4 max-w-sm animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <Button 
-            className="w-full h-20 rounded-[2rem] bg-[#EB4C4C] text-white hover:bg-[#EB4C4C]/90 text-xl font-black gap-4 shadow-[0_15px_40px_rgba(235,76,76,0.3)] transition-all active:scale-95 flex items-center justify-center border-t border-white/20" 
+            className="w-full h-20 rounded-[2rem] bg-[#FF5A5A] text-white hover:bg-[#FF5A5A]/90 text-xl font-black gap-4 shadow-[0_15px_40px_rgba(255,90,90,0.3)] transition-all active:scale-95 flex items-center justify-center border-t border-white/20" 
             onClick={handleEmailClick}
             disabled={isNavigatingEmail || isLoggingIn}
           >
@@ -127,12 +127,12 @@ export default function WelcomePage() {
             onClick={handleFastLogin} 
             disabled={isLoggingIn || isNavigatingEmail}
           >
-            {isLoggingIn ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-7 h-7 fill-[#EB4C4C] text-[#EB4C4C]" />}
+            {isLoggingIn ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-7 h-7 fill-[#FF5A5A] text-[#FF5A5A]" />}
             Fast Entry
           </Button>
 
           <div className="pt-4 px-4">
-            <p className="text-[11px] text-[#EB4C4C] font-bold text-center leading-relaxed uppercase tracking-widest">
+            <p className="text-[11px] text-[#FF5A5A] font-bold text-center leading-relaxed uppercase tracking-widest">
               By signing up, you agree to our <br />
               <span onClick={() => router.push('/settings/terms')} className="underline cursor-pointer hover:text-white transition-colors">Terms</span>
               <span className="mx-2">•</span>
