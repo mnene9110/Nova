@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -80,7 +81,8 @@ export default function WelcomePage() {
         >
           <source src="/welcome-bg.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#111FA2]" />
+        {/* Removed bottom color overlay by changing 'to-[#111FA2]' to 'to-transparent' */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent" />
       </div>
 
       {/* Content Overlay */}
