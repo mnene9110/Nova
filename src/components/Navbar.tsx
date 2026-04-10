@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -64,14 +63,14 @@ export function Navbar() {
   if (!mounted || shouldHide) return null
 
   const navItems = [
-    { icon: Home, label: "Home", href: "/discover" },
+    { icon: Home, label: "Feed", href: "/discover" },
     { icon: MessageCircle, label: "Chats", href: "/chat", badge: totalUnread },
-    { icon: User, label: "Profile", href: "/profile" },
+    { icon: User, label: "You", href: "/profile" },
   ]
 
   return (
-    <div className="fixed bottom-6 left-6 right-6 z-50 max-w-md mx-auto">
-      <nav className="h-20 w-full bg-white/90 backdrop-blur-2xl border border-white/40 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex items-center justify-around px-4">
+    <div className="fixed bottom-8 left-8 right-8 z-50 max-w-md mx-auto">
+      <nav className="h-20 w-full bg-white/60 backdrop-blur-2xl border border-white/40 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.1)] flex items-center justify-around px-4">
         {navItems.map((item) => {
           const isActive = pathname === item.href
           const Icon = item.icon
@@ -81,23 +80,23 @@ export function Navbar() {
               href={item.href}
               className={cn(
                 "flex flex-col items-center gap-1 transition-all duration-300 flex-1",
-                isActive ? "text-[#C00707]" : "text-gray-400 hover:text-gray-600"
+                isActive ? "text-[#C00707]" : "text-gray-400"
               )}
             >
               <div className={cn(
-                "p-2 rounded-2xl transition-all relative",
+                "p-2.5 rounded-2xl transition-all relative",
                 isActive ? "bg-[#C00707]/10 text-[#C00707] scale-110" : "bg-transparent"
               )}>
                 <Icon className={cn("w-5 h-5", isActive ? "stroke-[3px]" : "stroke-[2px]")} />
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-[#C00707] flex items-center justify-center text-[8px] font-black text-white border-2 border-white shadow-sm">
+                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-[#EB4C4C] flex items-center justify-center text-[8px] font-black text-white border-2 border-white shadow-lg">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
               </div>
               <span className={cn(
-                "text-[9px] font-black uppercase tracking-[0.1em] mt-0.5",
-                isActive ? "text-[#C00707]" : "text-gray-400"
+                "text-[8px] font-black uppercase tracking-[0.2em] mt-0.5",
+                isActive ? "text-[#C00707] opacity-100" : "text-gray-400 opacity-60"
               )}>
                 {item.label}
               </span>

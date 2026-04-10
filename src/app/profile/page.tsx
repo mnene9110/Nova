@@ -48,7 +48,7 @@ export default function ProfilePage() {
   const copyId = () => {
     if (userProfile?.numericId) {
       navigator.clipboard.writeText(userProfile.numericId.toString());
-      toast({ title: "Copied!", description: "User ID copied." });
+      toast({ title: "ID Copied", description: "User ID copied." });
     }
   }
 
@@ -70,233 +70,167 @@ export default function ProfilePage() {
   const userImage = (userProfile?.profilePhotoUrls && userProfile?.profilePhotoUrls[0]) || ""
   const isVerified = !!userProfile?.isVerified
 
-  if (isLoading) return <div className="flex h-svh items-center justify-center bg-transparent"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+  if (isLoading) return <div className="flex h-svh items-center justify-center bg-transparent"><Loader2 className="w-8 h-8 animate-spin text-white" /></div>
 
   return (
     <div className="flex flex-col h-svh w-full bg-transparent text-gray-900 overflow-y-auto scroll-smooth">
-      {/* Premium Header */}
-      <header className="flex flex-col items-center pt-12 pb-8 px-6 shrink-0 relative">
+      <header className="flex flex-col items-center pt-16 pb-8 px-6 shrink-0 relative">
         <div className="relative mb-6 group">
-          <div className="absolute -inset-1 bg-gradient-to-tr from-sky-500 to-teal-500 rounded-full blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-          <Avatar className="w-32 h-32 relative bg-white">
+          <div className="absolute -inset-2 bg-gradient-to-tr from-primary to-amber-400 rounded-[3rem] blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+          <Avatar className="w-36 h-36 relative bg-white border-4 border-white native-shadow">
             {userImage && <AvatarImage src={userImage} className="object-cover" />}
-            <AvatarFallback className="bg-sky-50 text-primary font-black text-3xl">{userProfile?.username?.[0]}</AvatarFallback>
+            <AvatarFallback className="bg-primary/5 text-primary font-black text-4xl">{userProfile?.username?.[0]}</AvatarFallback>
           </Avatar>
           <button 
             onClick={() => router.push('/profile/edit')} 
-            className="absolute bottom-1 right-1 w-10 h-10 rounded-full bg-zinc-900 border-2 border-white flex items-center justify-center shadow-xl active:scale-90 transition-all hover:bg-black"
+            className="absolute bottom-1 right-1 w-11 h-11 rounded-2xl bg-zinc-900 border-4 border-white flex items-center justify-center shadow-xl active:scale-90 transition-all"
           >
             <Pencil className="w-4 h-4 text-white" />
           </button>
           {isVerified && (
-            <div className="absolute -top-1 -right-1 bg-white rounded-full p-1.5 shadow-lg">
-              <CheckCircle className="w-6 h-6 text-blue-500 fill-blue-500/10" />
+            <div className="absolute -top-2 -right-2 bg-white rounded-full p-2 native-shadow">
+              <CheckCircle className="w-6 h-6 text-blue-500" />
             </div>
           )}
         </div>
 
-        <div className="flex flex-col items-center gap-1 mb-4">
+        <div className="flex flex-col items-center gap-2 mb-4">
           <div className="flex items-center gap-2">
             <h1 className="text-3xl font-black tracking-tight text-center font-headline">{userProfile?.username || "Nova User"}</h1>
             {userProfile?.isPartyAdmin && <Crown className="w-5 h-5 text-amber-500" />}
           </div>
           <button 
             onClick={copyId} 
-            className="flex items-center gap-2 px-4 py-1.5 bg-white/40 backdrop-blur-md border border-white/30 rounded-full active:scale-95 transition-all"
+            className="flex items-center gap-2 px-5 py-2 glass-card rounded-full active:scale-95 transition-all native-shadow"
           >
-            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">ID: {userProfile?.numericId || '---'}</span>
+            <span className="text-[10px] font-black text-primary uppercase tracking-[0.25em]">ID: {userProfile?.numericId || '---'}</span>
             <Copy className="w-3 h-3 text-primary/40" />
           </button>
         </div>
       </header>
 
-      <main className="flex-1 px-6 space-y-8 pb-44">
-        {/* Wallet Section */}
+      <main className="flex-1 px-6 space-y-10 pb-44">
+        {/* Modern Wallet Section */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="relative group overflow-hidden bg-white/60 backdrop-blur-2xl border border-white rounded-[2.5rem] p-6 flex flex-col items-center gap-3 shadow-xl transition-all hover:bg-white/80">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-sky-500/10 flex items-center justify-center">
-                <Coins className="w-3.5 h-3.5 text-primary" />
-              </div>
-              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Coin Wallet</span>
+          <div className="glass-card rounded-[2.5rem] p-6 flex flex-col items-center gap-3 native-shadow border-white/60">
+            <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Coins className="w-5 h-5 text-primary" />
             </div>
-            <span className="text-3xl font-black text-gray-900 font-headline tracking-tighter">{(userProfile?.coinBalance || 0).toLocaleString()}</span>
+            <div className="text-center">
+              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Balance</span>
+              <span className="text-2xl font-black text-gray-900 font-headline">{(userProfile?.coinBalance || 0).toLocaleString()}</span>
+            </div>
             <Button 
               onClick={() => router.push('/recharge')} 
-              className="w-full h-10 rounded-2xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-sky-500/20 active:scale-95 transition-all"
+              className="w-full h-9 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black uppercase text-[9px] tracking-widest native-shadow"
             >
-              <span className="text-[10px] font-black uppercase tracking-widest">Recharge</span>
+              Recharge
             </Button>
           </div>
 
-          <div className="relative group overflow-hidden bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-6 flex flex-col items-center gap-3 shadow-xl transition-all hover:bg-zinc-950">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center">
-                <Gem className="w-3.5 h-3.5 text-blue-400" />
-              </div>
-              <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Income Center</span>
+          <div className="bg-zinc-900 rounded-[2.5rem] p-6 flex flex-col items-center gap-3 native-shadow border border-zinc-800">
+            <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+              <Gem className="w-5 h-5 text-blue-400" />
             </div>
-            <span className="text-3xl font-black text-white font-headline tracking-tighter">{(userProfile?.diamondBalance || 0).toLocaleString()}</span>
+            <div className="text-center">
+              <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-1">Earnings</span>
+              <span className="text-2xl font-black text-white font-headline">{(userProfile?.diamondBalance || 0).toLocaleString()}</span>
+            </div>
             <Button 
               onClick={() => router.push('/profile/income')} 
-              className="w-full h-10 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/10 active:scale-95 transition-all"
+              className="w-full h-9 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/10 font-black uppercase text-[9px] tracking-widest"
             >
-              <span className="text-[10px] font-black uppercase tracking-widest">Income</span>
+              Income
             </Button>
           </div>
         </div>
 
-        {/* Features List */}
-        <div className="space-y-3">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 ml-4 mb-2">Activities & Growth</h3>
+        {/* Feature Sections */}
+        <div className="space-y-4">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 ml-4">Entertainment</h3>
           
           <button 
             onClick={() => router.push('/games')} 
-            className="w-full h-20 rounded-[2.25rem] bg-white border border-white shadow-sm flex items-center px-6 gap-5 active:scale-[0.98] transition-all group"
+            className="w-full h-20 glass-card rounded-[2.25rem] flex items-center px-6 gap-5 native-shadow group active:scale-[0.98] transition-all"
           >
-            <div className="w-12 h-12 rounded-2xl bg-sky-500 flex items-center justify-center shadow-lg shadow-sky-500/20 group-hover:scale-110 transition-transform">
+            <div className="w-12 h-12 rounded-[1.25rem] bg-gradient-to-tr from-primary to-[#EB4C4C] flex items-center justify-center shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
               <Gamepad2 className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1 text-left">
               <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[11px] block">Games Center</span>
-              <span className="text-gray-400 text-[10px] font-medium uppercase tracking-tighter">Lucky Spin & Daily Bets</span>
+              <span className="text-gray-400 text-[10px] font-medium uppercase tracking-tighter">Play & Win Coins</span>
             </div>
-            <ChevronRight className="w-5 h-5 text-gray-200 group-hover:text-primary transition-colors" />
+            <ChevronRight className="w-5 h-5 text-gray-300" />
           </button>
 
           {userProfile?.isAgent && (
             <button 
               onClick={() => router.push('/profile/agent-center')} 
-              className="w-full h-20 rounded-[2.25rem] bg-zinc-900 border border-zinc-800 shadow-xl flex items-center px-6 gap-5 active:scale-[0.98] transition-all group"
+              className="w-full h-20 bg-zinc-950 rounded-[2.25rem] flex items-center px-6 gap-5 active:scale-[0.98] transition-all native-shadow"
             >
-              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/5">
+              <div className="w-12 h-12 rounded-[1.25rem] bg-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
                 <Building2 className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 text-left">
                 <span className="text-white font-black uppercase tracking-[0.1em] text-[11px] block">Agent Center</span>
-                <span className="text-zinc-500 text-[10px] font-medium uppercase tracking-tighter">Manage your official agency</span>
+                <span className="text-zinc-500 text-[10px] font-medium uppercase tracking-tighter">Manage Official Agency</span>
               </div>
-              <ChevronRight className="w-5 h-5 text-zinc-700 group-hover:text-white transition-colors" />
+              <ChevronRight className="w-5 h-5 text-zinc-700" />
             </button>
           )}
 
           {userProfile?.gender?.toLowerCase() === 'female' && !userProfile?.isAgent && (
             <button 
               onClick={() => router.push('/profile/agency')} 
-              className="w-full h-20 rounded-[2.25rem] bg-white border border-white shadow-sm flex items-center px-6 gap-5 active:scale-[0.98] transition-all group"
+              className="w-full h-20 glass-card rounded-[2.25rem] flex items-center px-6 gap-5 native-shadow group active:scale-[0.98] transition-all"
             >
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-[1.25rem] bg-amber-500/10 flex items-center justify-center">
                 <Building2 className="w-6 h-6 text-amber-600" />
               </div>
               <div className="flex-1 text-left">
                 <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[11px] block">Agency Anchor</span>
-                <span className="text-gray-400 text-[10px] font-medium uppercase tracking-tighter">Join a team & earn rewards</span>
+                <span className="text-gray-400 text-[10px] font-medium uppercase tracking-tighter">Work & Earn Rewards</span>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-200" />
+              <ChevronRight className="w-5 h-5 text-gray-300" />
             </button>
-          )}
-
-          {userProfile?.isSupport && (
-            <button 
-              onClick={() => router.push('/support/reports')} 
-              className="w-full h-20 rounded-[2.25rem] bg-sky-600 border border-sky-400 shadow-xl flex items-center px-6 gap-5 active:scale-[0.98] transition-all group"
-            >
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center relative">
-                <ClipboardList className="w-6 h-6 text-white" />
-                {pendingReportsCount > 0 && <div className="absolute -top-1 -right-1 w-3 h-3 bg-zinc-900 rounded-full border-2 border-sky-500" />}
-              </div>
-              <div className="flex-1 text-left">
-                <span className="text-white font-black uppercase tracking-[0.1em] text-[11px] block">Review Reports</span>
-                <span className="text-sky-100 text-[10px] font-medium uppercase tracking-tighter">Handle user complaints</span>
-              </div>
-              <ChevronRight className="w-5 h-5 text-white/40" />
-            </button>
-          )}
-
-          {userProfile?.isCoinseller && (
-            <button 
-              onClick={() => router.push('/coinseller/award')} 
-              className="w-full h-20 rounded-[2.25rem] bg-white border border-white shadow-sm flex items-center px-6 gap-5 active:scale-[0.98] transition-all group"
-            >
-              <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
-                <Award className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1 text-left">
-                <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[11px] block">Award Coins</span>
-                <span className="text-gray-400 text-[10px] font-medium uppercase tracking-tighter">Transfer coins to users</span>
-              </div>
-              <ChevronRight className="w-5 h-5 text-gray-200" />
-            </button>
-          )}
-
-          {userProfile?.isAdmin && (
-            <>
-              <button 
-                onClick={() => router.push('/admin/award')} 
-                className="w-full h-20 rounded-[2.25rem] bg-white border border-white shadow-sm flex items-center px-6 gap-5 active:scale-[0.98] transition-all group"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-sky-500 flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1 text-left">
-                  <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[11px] block">Admin Coin Grant</span>
-                  <span className="text-gray-400 text-[10px] font-medium uppercase tracking-tighter">Unlimited Granting Console</span>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-200" />
-              </button>
-              <button 
-                onClick={() => router.push('/admin/roles')} 
-                className="w-full h-20 rounded-[2.25rem] bg-zinc-900 border border-zinc-800 shadow-xl flex items-center px-6 gap-5 active:scale-[0.98] transition-all group"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-sky-500/20 flex items-center justify-center border border-sky-500/10">
-                  <ShieldAlert className="w-6 h-6 text-primary" />
-                </div>
-                <div className="flex-1 text-left">
-                  <span className="text-white font-black uppercase tracking-[0.1em] text-[11px] block">Security Panel</span>
-                  <span className="text-zinc-500 text-[10px] font-medium uppercase tracking-tighter">Manage Roles & Permissions</span>
-                </div>
-                <ChevronRight className="w-5 h-5 text-zinc-700" />
-              </button>
-            </>
           )}
         </div>
 
-        {/* Utility Section */}
-        <div className="space-y-3">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 ml-4 mb-2">Preferences & Help</h3>
+        <div className="space-y-4">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 ml-4">Support & Tools</h3>
           
           <button 
             onClick={() => router.push('/profile/verify')} 
-            className="w-full h-16 rounded-[1.75rem] bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-between px-6 shadow-sm group active:scale-[0.98] transition-all"
+            className="w-full h-16 glass-card rounded-[1.75rem] flex items-center justify-between px-6 native-shadow transition-all active:scale-[0.98]"
           >
             <div className="flex items-center gap-4">
-              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm", isVerified ? "text-blue-500" : "text-gray-400")}>
+              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", isVerified ? "bg-blue-50 text-blue-500" : "bg-gray-50 text-gray-400")}>
                 <ShieldCheck className="w-5 h-5" />
               </div>
-              <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px]">{isVerified ? "Verified Identity" : "Verify Your Profile"}</span>
+              <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px]">{isVerified ? "Verified User" : "Identity Verification"}</span>
             </div>
             {isVerified ? <CheckCircle className="w-5 h-5 text-blue-500" /> : <ChevronRight className="w-5 h-5 text-gray-300" />}
           </button>
 
           <button 
             onClick={handleContactSupport} 
-            className="w-full h-16 rounded-[1.75rem] bg-white/40 backdrop-blur-md border border-white/30 flex items-center px-6 gap-4 shadow-sm group active:scale-[0.98] transition-all"
+            className="w-full h-16 glass-card rounded-[1.75rem] flex items-center px-6 gap-4 native-shadow transition-all active:scale-[0.98]"
           >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm text-primary">
+            <div className="w-10 h-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center">
               <Headset className="w-5 h-5" />
             </div>
-            <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px] flex-1 text-left">Customer Care</span>
+            <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px] flex-1 text-left">Customer Service</span>
             <ChevronRight className="w-5 h-5 text-gray-300" />
           </button>
 
           <button 
             onClick={() => router.push('/settings')} 
-            className="w-full h-16 rounded-[1.75rem] bg-white/40 backdrop-blur-md border border-white/30 flex items-center px-6 gap-4 shadow-sm group active:scale-[0.98] transition-all"
+            className="w-full h-16 glass-card rounded-[1.75rem] flex items-center px-6 gap-4 native-shadow transition-all active:scale-[0.98]"
           >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm text-gray-500">
+            <div className="w-10 h-10 rounded-xl bg-zinc-100 text-gray-500 flex items-center justify-center">
               <SettingsIcon className="w-5 h-5" />
             </div>
-            <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px] flex-1 text-left">App Settings</span>
+            <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px] flex-1 text-left">Account Settings</span>
             <ChevronRight className="w-5 h-5 text-gray-300" />
           </button>
         </div>
