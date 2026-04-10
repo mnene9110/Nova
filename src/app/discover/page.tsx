@@ -121,11 +121,11 @@ export default function DiscoverPage() {
         <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
-            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] bg-[#DB1A1A] rounded-[2rem] native-shadow transition-all overflow-hidden border border-white/20 active:opacity-90"
+            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] bg-white/10 backdrop-blur-md rounded-[2rem] native-shadow transition-all overflow-hidden border border-white/20 active:opacity-90"
           >
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center border border-white/20">
-                <Heart className="w-5 h-5 text-white fill-white/20" />
+              <div className="w-14 h-14 relative flex items-center justify-center">
+                <Image src="/mystery.png" alt="Mystery" width={56} height={56} className="object-contain" />
               </div>
               <span className="text-[12px] font-black text-white tracking-tight uppercase">Mystery Note</span>
             </div>
@@ -133,11 +133,11 @@ export default function DiscoverPage() {
           
           <button 
             onClick={() => router.push('/task-center')}
-            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] bg-[#CE2626] rounded-[2rem] native-shadow transition-all overflow-hidden border border-white/20 active:opacity-90"
+            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] bg-white/10 backdrop-blur-md rounded-[2rem] native-shadow transition-all overflow-hidden border border-white/20 active:opacity-90"
           >
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center border border-white/20">
-                <ClipboardList className="w-5 h-5 text-white" />
+              <div className="w-14 h-14 relative flex items-center justify-center">
+                <Image src="/task.png" alt="Task" width={56} height={56} className="object-contain" />
               </div>
               <span className="text-[12px] font-black text-white tracking-tight uppercase">Task Center</span>
             </div>
@@ -169,7 +169,7 @@ export default function DiscoverPage() {
         {mappedUsers.map((user) => (
           <div 
             key={user.id} 
-            className="group relative aspect-[3/3.8] rounded-[1.75rem] overflow-hidden bg-white native-shadow transition-all border border-gray-100 cursor-pointer" 
+            className="group relative aspect-[3/3.8] rounded-[1.75rem] overflow-hidden bg-white border border-gray-100 cursor-pointer" 
             onClick={() => router.push(`/profile/${user.id}`)}
           >
             <div className="absolute inset-0 z-0">
@@ -209,14 +209,14 @@ export default function DiscoverPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  {/* Age Badge - Specific colors requested */}
+                  {/* Age Badge */}
                   <div className={cn(
                     "px-2 h-5 rounded-md flex items-center justify-center shadow-sm",
                     user.gender === 'female' ? "bg-[#E87F24]" : "bg-[#03AED2]"
                   )}>
                     <span className="text-[9px] font-black text-black leading-none">{user.age}</span>
                   </div>
-                  {/* Location Badge - Specific color CE2626 requested */}
+                  {/* Location Badge */}
                   <div className="px-2 h-5 rounded-md bg-[#CE2626] flex items-center justify-center shadow-sm">
                     <span className="text-[9px] font-black text-white uppercase tracking-tighter leading-none">{user.location.split(',')[0]}</span>
                   </div>
