@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef, useMemo, Suspense } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
+import Image from "next/image"
 import { ChevronLeft, Video, Send, Phone, Loader2, Gift, CheckCircle, UserX, ArrowUp, Zap, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -319,22 +320,22 @@ function ChatDetailContent() {
   const presenceText = otherUser.isOnline ? "Online" : "Offline"
 
   return (
-    <div className="flex flex-col h-svh bg-white relative overflow-hidden text-gray-900">
-      <header className="px-5 pt-8 pb-4 bg-white flex items-center justify-between sticky top-0 z-10 border-b border-gray-50">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10 rounded-full bg-gray-50 text-gray-500"><ChevronLeft className="w-5 h-5" /></Button>
+    <div className="flex flex-col h-svh bg-gradient-to-b from-[#111FA2] via-white/50 to-white relative overflow-hidden text-gray-900">
+      <header className="px-5 pt-8 pb-4 bg-white/10 backdrop-blur-md flex items-center justify-between sticky top-0 z-10 border-b border-white/10">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10 rounded-full bg-white/20 text-white"><ChevronLeft className="w-5 h-5" /></Button>
         <div className={cn("flex items-center gap-3 transition-opacity flex-1 justify-center", otherUser.isSupport ? "cursor-default" : "cursor-pointer active:opacity-70")} onClick={() => !otherUser.isSupport && router.push(`/profile/${otherUserId}`)}>
-          <Avatar className="w-9 h-9 border border-gray-100 shadow-sm"><AvatarImage src={otherUserImage} className="object-cover" /><AvatarFallback>{otherUserName[0] || '?'}</AvatarFallback></Avatar>
+          <Avatar className="w-9 h-9 border border-white/20 shadow-sm"><AvatarImage src={otherUserImage} className="object-cover" /><AvatarFallback>{otherUserName[0] || '?'}</AvatarFallback></Avatar>
           <div className="flex flex-col text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <h3 className="font-bold text-[13px] leading-none h-3.5">{otherUserName}</h3>
-              {otherUser.isVerified && <CheckCircle className="w-3 h-3 text-blue-500 fill-blue-500/10" />}
+              <h3 className="font-bold text-[13px] leading-none h-3.5 text-white">{otherUserName}</h3>
+              {otherUser.isVerified && <CheckCircle className="w-3 h-3 text-blue-400 fill-blue-400/10" />}
             </div>
-            <span className={cn("text-[9px] font-black uppercase tracking-widest", otherUser.isOnline ? "text-green-500" : "text-gray-400")}>{presenceText}</span>
+            <span className={cn("text-[9px] font-black uppercase tracking-widest", otherUser.isOnline ? "text-green-400" : "text-white/40")}>{presenceText}</span>
           </div>
         </div>
         <div className="flex items-center">
           {currentUserProfile?.isCoinseller && (
-            <Button variant="ghost" size="icon" onClick={handleSendPackages} className="h-10 w-10 rounded-full bg-amber-50 text-amber-600 border border-amber-100 shadow-sm animate-in fade-in zoom-in">
+            <Button variant="ghost" size="icon" onClick={handleSendPackages} className="h-10 w-10 rounded-full bg-amber-50/20 text-amber-400 border border-amber-400/20 shadow-sm">
               <Zap className="w-5 h-5 fill-current" />
             </Button>
           )}
@@ -342,12 +343,12 @@ function ChatDetailContent() {
         </div>
       </header>
 
-      <ScrollArea className="flex-1 px-4 py-4 bg-white relative">
+      <ScrollArea className="flex-1 px-4 py-4 bg-transparent relative">
         <div className="flex flex-col gap-4">
           {hasMore && (
             <button onClick={() => setMsgLimit(prev => prev + 30)} className="py-4 flex flex-col items-center gap-1 group active:opacity-50 transition-all">
-              <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-gray-100 transition-colors"><ArrowUp className="w-4 h-4 text-gray-400" /></div>
-              <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">Load Earlier</span>
+              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors"><ArrowUp className="w-4 h-4 text-white/40" /></div>
+              <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Load Earlier</span>
             </button>
           )}
 
@@ -362,9 +363,9 @@ function ChatDetailContent() {
                 <div className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
                   <div className={cn(
                     "max-w-[80%] px-4 py-3 text-[13px] font-medium leading-relaxed shadow-sm transition-all", 
-                    isMe ? "bg-primary text-white rounded-[1.5rem] rounded-tr-none" : "bg-gray-100 text-gray-900 rounded-[1.5rem] rounded-tl-none",
+                    isMe ? "bg-primary text-white rounded-[1.5rem] rounded-tr-none" : "bg-white/80 backdrop-blur-sm text-gray-900 rounded-[1.5rem] rounded-tl-none border border-white/20",
                     isGift && "bg-white border border-gray-100 p-0 overflow-hidden rounded-2xl shadow-md min-w-[180px] text-gray-900",
-                    isCallLog && "bg-transparent shadow-none border-none py-1 px-2 font-black text-[10px] tracking-widest text-gray-300 uppercase"
+                    isCallLog && "bg-transparent shadow-none border-none py-1 px-2 font-black text-[10px] tracking-widest text-white/30 uppercase"
                   )}>
                     {isGift ? (
                       <div className="flex flex-col">
@@ -392,7 +393,7 @@ function ChatDetailContent() {
                 </div>
                 {isMe && !isCallLog && (
                   <div className="flex justify-end pr-2 mt-1">
-                    <span className="text-[8px] font-black uppercase text-gray-300 tracking-widest">{statusText}</span>
+                    <span className="text-[8px] font-black uppercase text-white/30 tracking-widest">{statusText}</span>
                   </div>
                 )}
               </div>
@@ -414,22 +415,34 @@ function ChatDetailContent() {
         )}
       </ScrollArea>
 
-      <footer className={cn("px-5 py-5 pb-8 space-y-4 bg-white border-t border-gray-50 relative", isBlocked && "opacity-20 pointer-events-none")}>
+      <footer className={cn("px-5 py-5 pb-8 space-y-4 bg-white/10 backdrop-blur-xl border-t border-white/20 relative", isBlocked && "opacity-20 pointer-events-none")}>
         <div className="relative group">
-          <Input value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="Message..." className="rounded-full h-12 bg-gray-50 border-none px-6 text-[13px]" onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} disabled={isBlocked} />
-          <Button size="icon" className={cn("absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full w-9 h-9", inputText.trim() && !isSending ? "bg-primary text-white" : "bg-gray-200 text-gray-400")} onClick={() => handleSendMessage()} disabled={!inputText.trim() || isSending || isBlocked}>
+          <Input value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="Message..." className="rounded-full h-12 bg-white/40 border-none px-6 text-[13px] placeholder:text-gray-500" onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} disabled={isBlocked} />
+          <Button size="icon" className={cn("absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full w-9 h-9", inputText.trim() && !isSending ? "bg-primary text-white" : "bg-white/20 text-gray-400")} onClick={() => handleSendMessage()} disabled={!inputText.trim() || isSending || isBlocked}>
             {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </Button>
         </div>
         {!otherUser.isSupport && (
           <div className="grid grid-cols-3 gap-2">
-            <button onClick={() => handleInitiateCall('audio')} disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm disabled:opacity-50"><Phone className="w-4 h-4 text-gray-500" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Voice</span></button>
-            <button onClick={() => handleInitiateCall('video')} disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm disabled:opacity-50"><Video className="w-4 h-4 text-gray-500" /><span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Video</span></button>
+            <button onClick={() => handleInitiateCall('audio')} disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-white/20 backdrop-blur-md h-16 rounded-2xl border border-white/10 active:bg-white/30 shadow-sm disabled:opacity-50">
+              <div className="relative w-6 h-6 mb-0.5">
+                <Image src="/voice.png" alt="Voice" fill className="object-contain" />
+              </div>
+              <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Voice</span>
+            </button>
+            <button onClick={() => handleInitiateCall('video')} disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-white/20 backdrop-blur-md h-16 rounded-2xl border border-white/10 active:bg-white/30 shadow-sm disabled:opacity-50">
+              <div className="relative w-6 h-6 mb-0.5">
+                <Image src="/video.png" alt="Video" fill className="object-contain" />
+              </div>
+              <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Video</span>
+            </button>
             <Sheet open={isGiftSheetOpen} onOpenChange={setIsGiftSheetOpen}>
               <SheetTrigger asChild>
-                <button disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm disabled:opacity-50">
-                  <Gift className="w-4 h-4 text-primary" />
-                  <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Gift</span>
+                <button disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-white/20 backdrop-blur-md h-16 rounded-2xl border border-white/10 active:bg-white/30 shadow-sm disabled:opacity-50">
+                  <div className="relative w-6 h-6 mb-0.5">
+                    <Image src="/gift.png" alt="Gift" fill className="object-contain" />
+                  </div>
+                  <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Gift</span>
                 </button>
               </SheetTrigger>
               <SheetContent side="bottom" className="rounded-t-[3rem] h-[75svh] p-0 border-none bg-zinc-900 text-white overflow-hidden flex flex-col">
