@@ -78,7 +78,7 @@ export default function WelcomePage() {
           playsInline
           className="w-full h-full object-cover opacity-70"
         >
-          <source src="/welcome-video.mp4" type="video/mp4" />
+          <source src="/welcome-bg.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#111FA2]" />
       </div>
