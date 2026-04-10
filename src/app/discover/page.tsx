@@ -165,12 +165,12 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Main Feed Grid - Tighter spacing like reference */}
-      <main className="px-4 grid grid-cols-2 gap-3 pb-8 flex-1 mt-1">
+      {/* Main Feed Grid - Even tighter spacing and lower height */}
+      <main className="px-4 grid grid-cols-2 gap-2 pb-8 flex-1 mt-1">
         {mappedUsers.map((user) => (
           <div 
             key={user.id} 
-            className="group relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden bg-white/40 native-shadow transition-all border border-white/20 cursor-pointer" 
+            className="group relative aspect-[3/3.8] rounded-[2.5rem] overflow-hidden bg-white/40 native-shadow transition-all border border-white/20 cursor-pointer" 
             onClick={() => router.push(`/profile/${user.id}`)}
           >
             <div className="absolute inset-0 z-0">
@@ -178,7 +178,7 @@ export default function DiscoverPage() {
                 src={user.image} 
                 alt={user.name} 
                 fill 
-                className="object-cover transition-transform group-hover:scale-105 duration-[1500ms]" 
+                className="object-cover transition-transform duration-[1500ms]" 
                 data-ai-hint="dating profile photo" 
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
@@ -195,7 +195,7 @@ export default function DiscoverPage() {
               <span className="text-[9px] font-black text-white uppercase tracking-wider">Chat</span>
             </button>
 
-            {/* Info Overlay - Reference style */}
+            {/* Info Overlay */}
             <div className="absolute inset-x-0 bottom-0 p-4 z-10 pointer-events-none">
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-1.5">
@@ -210,11 +210,11 @@ export default function DiscoverPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  {/* Age Badge - Cyan from Reference */}
+                  {/* Age Badge - Cyan */}
                   <div className="px-2 h-5 rounded-md bg-[#00E5FF] flex items-center justify-center shadow-sm">
                     <span className="text-[9px] font-black text-black leading-none">{user.age}</span>
                   </div>
-                  {/* Location/Distance Badge - Lime from Reference */}
+                  {/* Location/Distance Badge - Lime */}
                   <div className="px-2 h-5 rounded-md bg-[#C6FF00] flex items-center justify-center shadow-sm">
                     <span className="text-[9px] font-black text-black uppercase tracking-tighter leading-none">{user.location.split(',')[0]}</span>
                   </div>
@@ -225,7 +225,7 @@ export default function DiscoverPage() {
         ))}
 
         {isInitialLoading && Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="aspect-[3/4.2] rounded-[2.5rem] bg-white/20 animate-pulse border border-white/10" />
+          <div key={i} className="aspect-[3/3.8] rounded-[2.5rem] bg-white/20 animate-pulse border border-white/10" />
         ))}
       </main>
     </div>
