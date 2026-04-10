@@ -77,7 +77,7 @@ export default function ProfilePage() {
       <header className="flex flex-col items-center pt-16 pb-8 px-6 shrink-0 relative">
         <div className="relative mb-6 group">
           <div className="absolute -inset-2 bg-gradient-to-tr from-primary to-amber-400 rounded-[3rem] blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-          <Avatar className="w-36 h-36 relative bg-white border-4 border-white native-shadow">
+          <Avatar className="w-36 h-36 relative bg-white native-shadow">
             {userImage && <AvatarImage src={userImage} className="object-cover" />}
             <AvatarFallback className="bg-primary/5 text-primary font-black text-4xl">{userProfile?.username?.[0]}</AvatarFallback>
           </Avatar>
@@ -96,7 +96,7 @@ export default function ProfilePage() {
 
         <div className="flex flex-col items-center gap-2 mb-4">
           <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-black tracking-tight text-center font-headline text-white drop-shadow-md">{userProfile?.username || "Nova User"}</h1>
+            <h1 className="text-3xl font-black tracking-tight text-center font-headline text-white drop-shadow-md">{userProfile?.username || "Matchflow User"}</h1>
             {userProfile?.isPartyAdmin && <Crown className="w-5 h-5 text-amber-500" />}
           </div>
           <button 
