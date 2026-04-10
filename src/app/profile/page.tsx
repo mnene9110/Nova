@@ -10,12 +10,8 @@ import {
   Settings as SettingsIcon,
   Loader2,
   CheckCircle,
-  Award,
-  Zap,
   Gem,
   Gamepad2,
-  ShieldAlert,
-  ClipboardList,
   Building2,
   Crown
 } from "lucide-react"

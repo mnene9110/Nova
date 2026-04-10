@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { RotateCcw, Loader2, CheckCircle, Heart, ClipboardList } from "lucide-react"
+import { RotateCcw, Loader2, CheckCircle } from "lucide-react"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { collection, query, where, limit, getDocs, doc } from "firebase/firestore"
 import { useRouter } from "next/navigation"
@@ -209,11 +209,11 @@ export default function DiscoverPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  {/* Age Badge - Now consistently Blue */}
+                  {/* Age Badge - Consistent Blue */}
                   <div className="px-2 h-5 rounded-md flex items-center justify-center shadow-sm bg-blue-600">
                     <span className="text-[9px] font-black text-white leading-none">{user.age}</span>
                   </div>
-                  {/* Location Badge - Now consistently Green */}
+                  {/* Location Badge - Consistent Green */}
                   <div className="px-2 h-5 rounded-md bg-green-600 flex items-center justify-center shadow-sm">
                     <span className="text-[9px] font-black text-white uppercase tracking-tighter leading-none">{user.location.split(',')[0]}</span>
                   </div>

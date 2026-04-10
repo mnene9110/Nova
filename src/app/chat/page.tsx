@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { MessageSquare, ChevronRight, CheckCircle, EyeOff, Loader2, Trash2 } from "lucide-react"
+import { MessageSquare, CheckCircle, Loader2, Trash2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
 import { useFirebase, useUser } from "@/firebase"
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc } from "firebase/firestore"
+import { collection, query, where, orderBy, onSnapshot, doc, updateDoc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import {
   Dialog,

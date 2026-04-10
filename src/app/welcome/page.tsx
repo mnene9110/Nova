@@ -69,7 +69,7 @@ export default function WelcomePage() {
 
   return (
     <div className="flex flex-col h-svh bg-[#111FA2] relative overflow-hidden">
-      {/* Background Video with refined overlay */}
+      {/* Background Video from local public folder */}
       <div className="absolute inset-0 z-0">
         <video
           autoPlay
@@ -78,7 +78,7 @@ export default function WelcomePage() {
           playsInline
           className="w-full h-full object-cover opacity-70"
         >
-          <source src="https://assets.mixkit.co/videos/preview/mixkit-group-of-friends-having-a-good-time-at-a-party-4640-large.mp4" type="video/mp4" />
+          <source src="/welcome-video.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#111FA2]" />
       </div>
