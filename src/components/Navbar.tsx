@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -69,8 +70,8 @@ export function Navbar() {
   ]
 
   return (
-    <div className="fixed bottom-8 left-8 right-8 z-50 max-w-md mx-auto">
-      <nav className="h-20 w-full bg-white/60 backdrop-blur-2xl border border-white/40 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.1)] flex items-center justify-around px-4">
+    <div className="fixed bottom-6 left-10 right-10 z-50 max-w-sm mx-auto">
+      <nav className="h-16 w-full bg-white/40 backdrop-blur-2xl border border-white/30 rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.08)] flex items-center justify-around px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href
           return (
@@ -83,10 +84,10 @@ export function Navbar() {
               )}
             >
               <div className={cn(
-                "p-2 rounded-2xl transition-all relative",
-                isActive ? "bg-[#111FA2]/10 scale-110" : "bg-transparent grayscale opacity-60"
+                "p-1.5 rounded-2xl transition-all relative",
+                isActive ? "bg-[#111FA2]/10 scale-110" : "bg-transparent grayscale opacity-50"
               )}>
-                <div className="relative w-9 h-9">
+                <div className="relative w-8 h-8">
                   <Image 
                     src={item.icon} 
                     alt={item.label} 
@@ -95,7 +96,7 @@ export function Navbar() {
                   />
                 </div>
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-[#111FA2] flex items-center justify-center text-[8px] font-black text-white border-2 border-white shadow-lg">
+                  <span className="absolute -top-0.5 -right-0.5 h-3.5 min-w-3.5 px-1 rounded-full bg-[#111FA2] flex items-center justify-center text-[7px] font-black text-white border-2 border-white shadow-lg">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}

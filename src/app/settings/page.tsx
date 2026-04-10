@@ -1,3 +1,4 @@
+
 "use client"
 
 import { ChevronLeft, ChevronRight, ShieldCheck, CreditCard, MessageSquare, Ban, Info, BellOff, Zap, ShieldAlert } from "lucide-react"
@@ -57,10 +58,10 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-y-auto">
-      <header className="px-4 pt-12 pb-6 flex items-center justify-between sticky top-0 bg-transparent z-50 backdrop-blur-md">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-gray-900 h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
-        <h1 className="text-xl font-black font-headline tracking-widest uppercase">Settings</h1>
+    <div className="flex flex-col h-svh bg-gradient-to-b from-[#111FA2] via-white/50 to-white text-gray-900 overflow-y-auto">
+      <header className="px-4 pt-12 pb-6 flex items-center justify-between sticky top-0 bg-transparent z-50">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
+        <h1 className="text-xl font-black font-headline tracking-widest uppercase text-white drop-shadow-md">Settings</h1>
         <div className="w-10" />
       </header>
 
@@ -68,7 +69,7 @@ export default function SettingsPage() {
         {settingsItems.map((item, idx) => (
           <button key={idx} onClick={item.onClick || (() => {})} className="w-full flex items-center justify-between p-5 bg-white/40 backdrop-blur-md border border-white/40 rounded-[1.75rem] transition-all hover:bg-white/60 active:scale-[0.98] group shadow-sm">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/5"><item.icon className="w-5 h-5 text-primary" /></div>
+              <div className="w-10 h-10 rounded-2xl bg-[#111FA2]/10 flex items-center justify-center border border-primary/5"><item.icon className="w-5 h-5 text-primary" /></div>
               <div className="flex flex-col items-start"><span className="text-[13px] font-bold text-gray-900">{item.label}</span>{item.badge && <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full mt-1 ${isGuest ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>{item.badge}</span>}</div>
             </div>
             <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
@@ -78,7 +79,7 @@ export default function SettingsPage() {
         <div className="pt-6">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <button className="w-full flex items-center justify-center gap-2 py-5 px-3 bg-red-50/50 border border-red-100/50 rounded-[1.75rem] transition-all active:scale-[0.98] group">
+              <button className="w-full h-14 flex items-center justify-center gap-2 bg-red-50/50 border border-red-100/50 rounded-full transition-all active:scale-[0.98] group">
                 <span className="text-xs font-black uppercase tracking-widest text-red-500">Sign Out</span>
               </button>
             </AlertDialogTrigger>

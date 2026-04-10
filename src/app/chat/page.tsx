@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useRef } from "react"
@@ -22,7 +23,6 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
   
   const otherUserId = session.participants.find((p: string) => p !== currentUser?.uid)
   const [otherUserData, setOtherUserData] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
   
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const longPressedRef = useRef(false)
@@ -36,7 +36,6 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
       } else {
         setOtherUserData({ username: "User logged out", profilePhotoUrls: [] })
       }
-      setIsLoading(false)
     })
   }, [firestore, otherUserId])
 
@@ -71,14 +70,14 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onContextMenu={(e) => e.preventDefault()}
-      className="relative select-none px-2"
+      className="relative select-none px-4"
     >
       <div 
         onClick={handleItemClick}
-        className="flex items-center gap-4 py-3 px-3 bg-white/40 backdrop-blur-md rounded-[2.25rem] border border-white/40 mb-2 transition-all cursor-pointer native-shadow"
+        className="flex items-center gap-4 py-4 px-2 border-b border-white/10 mb-1 transition-all cursor-pointer"
       >
         <div className="relative shrink-0">
-          <Avatar className="w-14 h-14 border border-white shadow-sm bg-gray-50">
+          <Avatar className="w-14 h-14 border border-white/20 shadow-sm bg-white/10">
             {image && <AvatarImage src={image} className="object-cover" />}
             <AvatarFallback className="bg-transparent text-gray-300">
               {name ? name[0] : ''}
@@ -111,7 +110,7 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
               {session.lastMessage || "Start a conversation"}
             </p>
             {unreadCount > 0 && (
-              <span className="h-5 min-w-5 px-1.5 rounded-full bg-primary flex items-center justify-center text-[10px] font-black text-white shadow-sm shadow-primary/20">
+              <span className="h-5 min-w-5 px-1.5 rounded-full bg-[#111FA2] flex items-center justify-center text-[10px] font-black text-white shadow-sm shadow-primary/20">
                 {unreadCount}
               </span>
             )}
@@ -175,8 +174,8 @@ export default function ChatListPage() {
     <div className="flex flex-col h-svh pb-20 bg-gradient-to-b from-[#111FA2] via-white/50 to-white overflow-hidden">
       <header className="px-6 pt-12 pb-6 shrink-0 flex items-center justify-between">
         <h1 className="text-3xl font-logo text-white drop-shadow-md">Chats</h1>
-        <div className="w-10 h-10 rounded-full glass-card flex items-center justify-center border-white/20">
-          <MessageSquare className="w-5 h-5 text-primary" />
+        <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+          <MessageSquare className="w-5 h-5 text-white" />
         </div>
       </header>
 
@@ -196,14 +195,14 @@ export default function ChatListPage() {
           </div>
         ) : hasFetched ? (
           <div className="flex flex-col items-center justify-center py-32 text-gray-300 gap-4">
-            <div className="w-20 h-20 glass-card rounded-[2.5rem] flex items-center justify-center border-gray-100">
+            <div className="w-20 h-20 bg-white/10 rounded-[2.5rem] flex items-center justify-center border border-white/10">
               <MessageSquare className="w-10 h-10" />
             </div>
             <p className="text-xs font-black uppercase tracking-widest">No Active Chats</p>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-32 gap-3 opacity-20">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#111FA2]" />
           </div>
         )}
       </main>

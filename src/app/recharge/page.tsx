@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
@@ -137,7 +138,7 @@ function RechargeContent() {
     : "Pay Ksh ---"
 
   return (
-    <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden">
+    <div className="flex flex-col h-svh bg-gradient-to-b from-[#111FA2] via-white/50 to-white text-gray-900 overflow-hidden">
       <header className="px-4 py-6 flex items-center justify-between sticky top-0 bg-transparent z-10 shrink-0">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-gray-900 h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
         <div className="flex flex-col items-center">
@@ -150,7 +151,7 @@ function RechargeContent() {
       <main className="flex-1 px-6 pt-4 pb-44 overflow-y-auto scroll-smooth">
         <section className="mb-8">
           <div className="flex items-center gap-4 bg-white/40 backdrop-blur-xl p-6 rounded-[2.5rem] border border-white/40 shadow-xl">
-            <div className="bg-primary/10 w-14 h-14 rounded-2xl flex items-center justify-center"><span className="text-primary font-black text-2xl italic">S</span></div>
+            <div className="bg-[#111FA2]/10 w-14 h-14 rounded-2xl flex items-center justify-center"><span className="text-[#111FA2] font-black text-2xl italic">S</span></div>
             <div className="flex flex-col">
               <span className="text-4xl font-black font-headline tracking-tighter text-gray-900">{(profile?.coinBalance || 0).toLocaleString()}</span>
               <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Available Coins</span>
@@ -159,22 +160,22 @@ function RechargeContent() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em] mb-3 ml-2 drop-shadow-sm">Select Package</h2>
+          <h2 className="text-[10px] font-black text-gray-900/60 uppercase tracking-[0.2em] mb-3 ml-2 drop-shadow-sm">Select Package</h2>
           <div className="grid grid-cols-3 gap-3">
             {STANDARD_PACKAGES.map((pkg) => {
               const isSelected = selectedPackage?.amount === pkg.amount;
               const localPrice = Math.round(pkg.priceKes * currencyInfo.rate);
               
               return (
-                <Card key={pkg.amount} onClick={() => setSelectedPackage(pkg)} className={cn("relative aspect-square flex flex-col items-center justify-center gap-2 border-2 transition-all cursor-pointer rounded-[1.75rem]", isSelected ? "border-primary bg-white shadow-2xl scale-[1.05]" : "border-white/40 bg-white/20")}>
-                  <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", isSelected ? "bg-primary" : "bg-primary/10")}><span className={cn("font-black text-sm italic", isSelected ? "text-white" : "text-primary")}>S</span></div>
+                <Card key={pkg.amount} onClick={() => setSelectedPackage(pkg)} className={cn("relative aspect-square flex flex-col items-center justify-center gap-2 border-2 transition-all cursor-pointer rounded-[1.75rem]", isSelected ? "border-[#111FA2] bg-white shadow-2xl scale-[1.05]" : "border-white/40 bg-white/20")}>
+                  <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", isSelected ? "bg-[#111FA2]" : "bg-[#111FA2]/10")}><span className={cn("font-black text-sm italic", isSelected ? "text-white" : "text-[#111FA2]")}>S</span></div>
                   <div className="text-center">
-                    <p className={cn("text-sm font-black", isSelected ? "text-primary" : "text-gray-900")}>{pkg.amount.toLocaleString()}</p>
+                    <p className={cn("text-sm font-black", isSelected ? "text-[#111FA2]" : "text-gray-900")}>{pkg.amount.toLocaleString()}</p>
                     <p className="text-[9px] font-bold text-gray-400">
                       {currencyInfo.symbol} {localPrice.toLocaleString()}
                     </p>
                   </div>
-                  {isSelected && (<div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow-lg"><Check className="w-3 h-3 text-white stroke-[4]" /></div>)}
+                  {isSelected && (<div className="absolute top-2 right-2 w-5 h-5 bg-[#111FA2] rounded-full flex items-center justify-center shadow-lg"><Check className="w-3 h-3 text-white stroke-[4]" /></div>)}
                 </Card>
               )
             })}
@@ -182,13 +183,13 @@ function RechargeContent() {
         </section>
 
         <div className="mt-10 space-y-4">
-          <h3 className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-2">Digital Top-up</h3>
+          <h3 className="text-[10px] font-black text-gray-900/40 uppercase tracking-[0.2em] ml-2">Digital Top-up</h3>
           <Button 
             onClick={handlePesaPal} 
             disabled={isProcessing || !selectedPackage}
             className={cn(
               "w-full h-20 rounded-full text-white font-black text-xl shadow-2xl transition-all active:scale-95 gap-3",
-              selectedPackage ? "bg-primary" : "bg-primary/50"
+              selectedPackage ? "bg-[#111FA2]" : "bg-[#111FA2]/50"
             )}
           >
             {isProcessing ? <Loader2 className="w-7 h-7 animate-spin" /> : (
@@ -235,7 +236,7 @@ function RechargeContent() {
                       <div className="flex items-center gap-4">
                         <Avatar className="w-14 h-14 border-2 border-white shadow-md">
                           <AvatarImage src={seller.profilePhotoUrls?.[0]} className="object-cover" />
-                          <AvatarFallback className="bg-primary text-white text-xs font-black">{seller.username?.[0]}</AvatarFallback>
+                          <AvatarFallback className="bg-[#111FA2] text-white text-xs font-black">{seller.username?.[0]}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
                           <span className="text-[13px] font-black text-gray-900">{seller.username}</span>
@@ -247,7 +248,7 @@ function RechargeContent() {
                       </div>
                       <Button 
                         onClick={() => handleChatWithSeller(seller.id)}
-                        className="h-12 px-6 rounded-full bg-primary text-white font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-90 transition-all gap-2"
+                        className="h-12 px-6 rounded-full bg-[#111FA2] text-white font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-90 transition-all gap-2"
                       >
                         <MessageCircle className="w-4 h-4" />
                         Chat
