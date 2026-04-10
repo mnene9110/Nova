@@ -1,10 +1,9 @@
-
 "use client"
 
 import { useState, useEffect, useRef, useMemo, Suspense } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
-import { ChevronLeft, Video, Send, Phone, Loader2, Gift, CheckCircle, UserX, ArrowUp, Zap, ShieldAlert, AlertTriangle } from "lucide-react"
+import { ChevronLeft, Video as VideoIcon, Send, Phone, Loader2, Gift as GiftIcon, CheckCircle, UserX, ArrowUp, Zap, ShieldAlert, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -159,7 +158,6 @@ function ChatDetailContent() {
       }
     }
 
-    // Number restrictions removed as requested.
     return { processedText: text, isViolating: false };
   }
 
@@ -483,17 +481,23 @@ function ChatDetailContent() {
         {!otherUser.isSupport && (
           <div className="grid grid-cols-3 gap-2">
             <button onClick={() => handleInitiateCall('audio')} disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm disabled:opacity-50">
-              <Phone className="w-5 h-5 text-gray-400" />
+              <div className="relative w-6 h-6">
+                <Image src="/voice.png" alt="Voice Call" fill className="object-contain" />
+              </div>
               <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Voice</span>
             </button>
             <button onClick={() => handleInitiateCall('video')} disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm disabled:opacity-50">
-              <Video className="w-5 h-5 text-gray-400" />
+              <div className="relative w-6 h-6">
+                <Image src="/video.png" alt="Video Call" fill className="object-contain" />
+              </div>
               <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Video</span>
             </button>
             <Sheet open={isGiftSheetOpen} onOpenChange={setIsGiftSheetOpen}>
               <SheetTrigger asChild>
                 <button disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:bg-gray-100 shadow-sm disabled:opacity-50">
-                  <Gift className="w-5 h-5 text-gray-400" />
+                  <div className="relative w-6 h-6">
+                    <Image src="/gift.png" alt="Gift" fill className="object-contain" />
+                  </div>
                   <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Gift</span>
                 </button>
               </SheetTrigger>
