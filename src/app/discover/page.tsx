@@ -6,6 +6,7 @@ import { RotateCcw, Loader2, CheckCircle, Heart, ClipboardList } from "lucide-re
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { collection, query, where, limit, getDocs, doc } from "firebase/firestore"
 import { useRouter } from "next/navigation"
+import { cn } from "@/lib/utils"
 
 let cachedUsers: any[] = []
 let cachedInitialLoaded: boolean = false
@@ -107,7 +108,7 @@ export default function DiscoverPage() {
       location: u.location || "Kenya",
       isVerified: !!u.isVerified,
       isOnline: !!u.isOnline,
-      gender: u.gender || "male",
+      gender: u.gender?.toLowerCase() || "male",
       age: age || 18,
       image: (u.profilePhotoUrls && u.profilePhotoUrls[0]) || `https://picsum.photos/seed/${u.id}/400/600`
     }
@@ -210,13 +211,16 @@ export default function DiscoverPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  {/* Age Badge - Cyan */}
-                  <div className="px-2 h-5 rounded-md bg-[#00E5FF] flex items-center justify-center shadow-sm">
+                  {/* Age Badge - Gender Based */}
+                  <div className={cn(
+                    "px-2 h-5 rounded-md flex items-center justify-center shadow-sm",
+                    user.gender === 'female' ? "bg-[#FF85A1]" : "bg-[#4FACFE]"
+                  )}>
                     <span className="text-[9px] font-black text-black leading-none">{user.age}</span>
                   </div>
-                  {/* Location/Distance Badge - Lime */}
-                  <div className="px-2 h-5 rounded-md bg-[#C6FF00] flex items-center justify-center shadow-sm">
-                    <span className="text-[9px] font-black text-black uppercase tracking-tighter leading-none">{user.location.split(',')[0]}</span>
+                  {/* Location/Distance Badge - Theme Brand Color */}
+                  <div className="px-2 h-5 rounded-md bg-[#FF5A5A] flex items-center justify-center shadow-sm">
+                    <span className="text-[9px] font-black text-white uppercase tracking-tighter leading-none">{user.location.split(',')[0]}</span>
                   </div>
                 </div>
               </div>

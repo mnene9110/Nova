@@ -4,8 +4,8 @@
   "description": "Connect with Heart",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FFC193",
-  "theme_color": "#FFC193",
+  "background_color": "#FF5A5A",
+  "theme_color": "#FF5A5A",
   "icons": [
     {
       "src": "/icon-192.png",
