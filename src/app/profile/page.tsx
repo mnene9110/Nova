@@ -1,3 +1,4 @@
+
 "use client"
 
 import { 
@@ -13,7 +14,10 @@ import {
   Gem,
   Gamepad2,
   Building2,
-  Crown
+  Crown,
+  ShieldAlert,
+  UserCog,
+  Award
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
@@ -36,10 +40,10 @@ export default function ProfilePage() {
   const [pendingReportsCount, setPendingReportsCount] = useState(0)
 
   useEffect(() => {
-    if (!firestore || !userProfile?.isSupport) return
-    const q = query(collection(firestore, "reports"), where("status", "==", "pending"), limit(1));
+    if (!firestore || (!userProfile?.isSupport && !userProfile?.isAdmin)) return
+    const q = query(collection(firestore, "reports"), where("status", "==", "pending"), limit(10));
     getDocs(q).then(snap => setPendingReportsCount(snap.size));
-  }, [firestore, userProfile?.isSupport])
+  }, [firestore, userProfile?.isSupport, userProfile?.isAdmin])
 
   const copyId = () => {
     if (userProfile?.numericId) {
@@ -65,6 +69,7 @@ export default function ProfilePage() {
 
   const userImage = (userProfile?.profilePhotoUrls && userProfile?.profilePhotoUrls[0]) || ""
   const isVerified = !!userProfile?.isVerified
+  const hasAdminPrivileges = userProfile?.isAdmin || userProfile?.isSupport || userProfile?.isCoinseller
 
   if (isLoading) return <div className="flex h-svh items-center justify-center bg-transparent"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
 
@@ -103,6 +108,18 @@ export default function ProfilePage() {
             <Copy className="w-3 h-3 text-primary/40" />
           </button>
         </div>
+
+        <div className="flex gap-2 flex-wrap justify-center mt-2">
+          {userProfile?.isAdmin && (
+            <span className="px-3 py-1 bg-red-500/10 text-red-500 border border-red-500/20 rounded-full text-[8px] font-black uppercase tracking-widest">Administrator</span>
+          )}
+          {userProfile?.isSupport && (
+            <span className="px-3 py-1 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-full text-[8px] font-black uppercase tracking-widest">Official Support</span>
+          )}
+          {userProfile?.isCoinseller && (
+            <span className="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full text-[8px] font-black uppercase tracking-widest">Official Coinseller</span>
+          )}
+        </div>
       </header>
 
       <main className="flex-1 px-6 space-y-10 pb-44">
@@ -140,6 +157,58 @@ export default function ProfilePage() {
             </Button>
           </div>
         </div>
+
+        {/* Administrative Dashboard Section */}
+        {hasAdminPrivileges && (
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-red-500 ml-4">Administrative Dashboards</h3>
+            <div className="grid grid-cols-1 gap-3">
+              {userProfile?.isAdmin && (
+                <button 
+                  onClick={() => router.push('/admin/roles')} 
+                  className="w-full h-16 bg-red-500/5 border border-red-500/10 rounded-[1.75rem] flex items-center px-6 gap-4 active:scale-[0.98] transition-all"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-red-500 text-white flex items-center justify-center">
+                    <UserCog className="w-5 h-5" />
+                  </div>
+                  <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px] flex-1 text-left">Manage Roles</span>
+                  <ChevronRight className="w-4 h-4 text-gray-300" />
+                </button>
+              )}
+              
+              {(userProfile?.isAdmin || userProfile?.isCoinseller) && (
+                <button 
+                  onClick={() => router.push('/coinseller/award')} 
+                  className="w-full h-16 bg-amber-500/5 border border-amber-500/10 rounded-[1.75rem] flex items-center px-6 gap-4 active:scale-[0.98] transition-all"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center">
+                    <Award className="w-5 h-5" />
+                  </div>
+                  <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px] flex-1 text-left">Award Coins</span>
+                  <ChevronRight className="w-4 h-4 text-gray-300" />
+                </button>
+              )}
+
+              {(userProfile?.isAdmin || userProfile?.isSupport) && (
+                <button 
+                  onClick={() => router.push('/support/reports')} 
+                  className="w-full h-16 bg-blue-500/5 border border-blue-500/10 rounded-[1.75rem] flex items-center px-6 gap-4 active:scale-[0.98] transition-all"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center relative">
+                    <ShieldAlert className="w-5 h-5" />
+                    {pendingReportsCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[8px] font-black text-white">
+                        {pendingReportsCount}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-gray-900 font-black uppercase tracking-[0.1em] text-[10px] flex-1 text-left">Safety Reports</span>
+                  <ChevronRight className="w-4 h-4 text-gray-300" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Feature Sections */}
         <div className="space-y-4">

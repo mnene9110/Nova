@@ -7,33 +7,45 @@ service cloud.firestore {
       return request.auth != null;
     }
     
+    function getUserData() {
+      return get(/databases/$(database)/documents/userProfiles/$(request.auth.uid)).data;
+    }
+
     function isAdmin() {
       return isAuthenticated() && 
         exists(/databases/$(database)/documents/userProfiles/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/userProfiles/$(request.auth.uid)).data.isAdmin == true;
+        getUserData().isAdmin == true;
     }
 
     function isSupport() {
       return isAuthenticated() && (
         (exists(/databases/$(database)/documents/userProfiles/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/userProfiles/$(request.auth.uid)).data.isSupport == true) || 
+         getUserData().isSupport == true) || 
         isAdmin()
       );
     }
 
+    function isCoinseller() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/userProfiles/$(request.auth.uid)) &&
+        getUserData().isCoinseller == true;
+    }
+
     match /userProfiles/{userId} {
       allow read: if isAuthenticated();
-      // Allow users to update their own profile, or let anyone update presence/incomingCallId
+      // Allow users to update their own profile
+      // Allow admins full access
+      // Allow coinsellers to update coinBalance specifically for transactions
       allow write: if isAuthenticated() && (
         request.auth.uid == userId || 
         isAdmin() || 
+        (isCoinseller() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['coinBalance', 'updatedAt'])) ||
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isOnline', 'lastActiveAt', 'incomingCallId', 'inCall'])
       );
       
       match /transactions/{transactionId} {
         allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-        allow write: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || 
-          get(/databases/$(database)/documents/userProfiles/$(request.auth.uid)).data.isCoinseller == true);
+        allow write: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || isCoinseller());
       }
       
       match /blockedUsers/{blockedId} {
