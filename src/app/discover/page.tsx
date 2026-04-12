@@ -116,49 +116,45 @@ export default function DiscoverPage() {
   })
 
   return (
-    <div className="flex flex-col min-h-svh bg-gradient-to-b from-[#111FA2] via-white/50 to-white overflow-y-auto pb-32 relative scroll-smooth">
-      {/* Top Background Container */}
-      <div className="px-4 pt-10 pb-6 shrink-0">
+    <div className="flex flex-col min-h-svh bg-white overflow-y-auto pb-32 relative scroll-smooth">
+      {/* Top Background Container - Solid Blue */}
+      <div className="px-4 pt-10 pb-6 shrink-0 bg-[#111FA2]">
         <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
-            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] rounded-[2rem] transition-all overflow-hidden border-t border-white/40 shadow-[0_10px_20px_rgba(0,0,0,0.2),inset_0_2px_10px_rgba(255,255,255,0.5)] bg-gradient-to-br from-emerald-400 to-emerald-600 active:translate-y-1 active:shadow-inner"
+            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] rounded-[2rem] transition-all overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 active:translate-y-1 shadow-lg"
           >
-            {/* Gloss Highlight */}
-            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
             <div className="relative z-10 flex flex-col items-center gap-2">
               <div className="w-14 h-14 relative flex items-center justify-center drop-shadow-lg">
                 <Image src="/mystery.png" alt="Mystery" width={56} height={56} className="object-contain" />
               </div>
-              <span className="text-[12px] font-black text-white tracking-tight uppercase drop-shadow-md">Mystery Note</span>
+              <span className="text-[12px] font-black text-white tracking-tight uppercase">Mystery Note</span>
             </div>
           </button>
           
           <button 
             onClick={() => router.push('/task-center')}
-            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] rounded-[2rem] transition-all overflow-hidden border-t border-white/40 shadow-[0_10px_20px_rgba(0,0,0,0.2),inset_0_2px_10px_rgba(255,255,255,0.5)] bg-gradient-to-br from-amber-400 to-amber-600 active:translate-y-1 active:shadow-inner"
+            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] rounded-[2rem] transition-all overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 active:translate-y-1 shadow-lg"
           >
-            {/* Gloss Highlight */}
-            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
             <div className="relative z-10 flex flex-col items-center gap-2">
               <div className="w-14 h-14 relative flex items-center justify-center drop-shadow-lg">
                 <Image src="/task.png" alt="Task" width={56} height={56} className="object-contain" />
               </div>
-              <span className="text-[12px] font-black text-white tracking-tight uppercase drop-shadow-md">Task Center</span>
+              <span className="text-[12px] font-black text-white tracking-tight uppercase">Task Center</span>
             </div>
           </button>
         </div>
       </div>
 
-      {/* Recommended Header - Sticky */}
-      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-[#111FA2]/10 backdrop-blur-md">
+      {/* Recommended Header - Sticky white */}
+      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-white border-b border-gray-50">
         <div className="flex items-center justify-between">
           <h2 className="text-[14px] font-black text-[#111FA2] tracking-tight ml-1">Recommended for you</h2>
           
           <button 
             onClick={handleRefresh} 
             disabled={isInitialLoading}
-            className="w-9 h-9 rounded-full bg-white/40 backdrop-blur-md border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 text-[#111FA2] shadow-sm disabled:opacity-50"
+            className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center active:rotate-180 transition-all duration-700 text-[#111FA2] shadow-sm disabled:opacity-50"
           >
             {isInitialLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />

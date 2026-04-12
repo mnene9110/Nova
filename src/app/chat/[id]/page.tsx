@@ -341,8 +341,8 @@ function ChatDetailContent() {
   const presenceText = otherUser.isOnline ? "Online" : "Offline"
 
   return (
-    <div className="flex flex-col h-svh bg-gradient-to-b from-[#111FA2] via-white/50 to-white relative overflow-hidden text-gray-900">
-      <header className="px-5 pt-8 pb-4 bg-transparent flex items-center justify-between sticky top-0 z-10">
+    <div className="flex flex-col h-svh bg-white relative overflow-hidden text-gray-900">
+      <header className="px-5 pt-8 pb-4 bg-[#111FA2] flex items-center justify-between sticky top-0 z-10">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10 rounded-full bg-white/20 text-white"><ChevronLeft className="w-5 h-5" /></Button>
         <div className={cn("flex items-center gap-3 transition-opacity flex-1 justify-center", otherUser.isSupport ? "cursor-default" : "cursor-pointer active:opacity-70")} onClick={() => !otherUser.isSupport && router.push(`/profile/${otherUserId}`)}>
           <Avatar className="w-9 h-9 border border-white/40 shadow-sm"><AvatarImage src={otherUserImage} className="object-cover" /><AvatarFallback>{otherUserName[0] || '?'}</AvatarFallback></Avatar>
@@ -361,8 +361,8 @@ function ChatDetailContent() {
         <div className="flex flex-col gap-4">
           {hasMore && (
             <button onClick={() => setMsgLimit(prev => prev + 30)} className="py-4 flex flex-col items-center gap-1 group active:opacity-50 transition-all">
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"><ArrowUp className="w-4 h-4 text-white/60" /></div>
-              <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Load Earlier</span>
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400"><ArrowUp className="w-4 h-4" /></div>
+              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Load Earlier</span>
             </button>
           )}
 
@@ -377,7 +377,7 @@ function ChatDetailContent() {
                 <div className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
                   <div className={cn(
                     "max-w-[80%] px-4 py-3 text-[13px] font-medium leading-relaxed shadow-sm transition-all", 
-                    isMe ? "bg-primary text-white rounded-[1.5rem] rounded-tr-none" : "bg-white/80 backdrop-blur-md text-gray-900 rounded-[1.5rem] rounded-tl-none border border-white/40",
+                    isMe ? "bg-primary text-white rounded-[1.5rem] rounded-tr-none" : "bg-gray-100 text-gray-900 rounded-[1.5rem] rounded-tl-none border border-gray-200",
                     isGift && "bg-white border-none p-0 overflow-hidden rounded-2xl shadow-md min-w-[180px]",
                     isCallLog && "bg-transparent shadow-none border-none py-1 px-2 font-black text-[10px] tracking-widest text-[#111FA2]/30 uppercase"
                   )}>
@@ -425,7 +425,7 @@ function ChatDetailContent() {
         )}
       </ScrollArea>
 
-      <footer className={cn("px-5 py-5 pb-8 space-y-4 bg-white/80 backdrop-blur-xl border-t border-white/40 relative", isBlocked && "opacity-20 pointer-events-none")}>
+      <footer className={cn("px-5 py-5 pb-8 space-y-4 bg-white border-t border-gray-100 relative", isBlocked && "opacity-20 pointer-events-none")}>
         {currentUserProfile?.gender?.toLowerCase() === 'female' && (
           <div className="flex items-center gap-2 px-2 py-1 bg-amber-50 rounded-lg border border-amber-100 mb-2">
             <AlertTriangle className="w-3 h-3 text-amber-600" />
@@ -440,17 +440,17 @@ function ChatDetailContent() {
         </div>
         {!otherUser.isSupport && (
           <div className="grid grid-cols-3 gap-2">
-            <button onClick={() => handleInitiateCall('audio')} disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-white/60 h-16 rounded-2xl border border-white/40 active:scale-95 transition-all shadow-sm">
+            <button onClick={() => handleInitiateCall('audio')} disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:scale-95 transition-all shadow-sm">
               <div className="relative w-6 h-6"><Image src="/voice.png" alt="Voice" fill className="object-contain" /></div>
               <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Voice</span>
             </button>
-            <button onClick={() => handleInitiateCall('video')} disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-white/60 h-16 rounded-2xl border border-white/40 active:scale-95 transition-all shadow-sm">
+            <button onClick={() => handleInitiateCall('video')} disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:scale-95 transition-all shadow-sm">
               <div className="relative w-6 h-6"><Image src="/video.png" alt="Video" fill className="object-contain" /></div>
               <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Video</span>
             </button>
             <Sheet open={isGiftSheetOpen} onOpenChange={setIsGiftSheetOpen}>
               <SheetTrigger asChild>
-                <button disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-white/60 h-16 rounded-2xl border border-white/40 active:scale-95 transition-all shadow-sm">
+                <button disabled={isBlocked} className="flex flex-col items-center justify-center gap-1.5 bg-gray-50 h-16 rounded-2xl border border-gray-100 active:scale-95 transition-all shadow-sm">
                   <div className="relative w-6 h-6"><Image src="/gift.png" alt="Gift" fill className="object-contain" /></div>
                   <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Gift</span>
                 </button>

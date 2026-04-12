@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import Image from "next/image"
+import { Home, MessageSquare, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useFirebase, useUser } from "@/firebase"
 import { collection, query, where, onSnapshot } from "firebase/firestore"
@@ -64,39 +64,39 @@ export function Navbar() {
   if (!mounted || shouldHide) return null
 
   const navItems = [
-    { label: "Home", href: "/discover", icon: "/home.png" },
-    { label: "Chats", href: "/chat", icon: "/chat.png", badge: totalUnread },
-    { label: "You", href: "/profile", icon: "/me.png" },
+    { label: "Home", href: "/discover", icon: Home },
+    { label: "Chats", href: "/chat", icon: MessageSquare, badge: totalUnread },
+    { label: "You", href: "/profile", icon: User },
   ]
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 w-full border-t border-white/20 bg-white/80 backdrop-blur-2xl">
-      <nav className="h-14 w-full flex items-center justify-around px-4 overflow-hidden max-w-md mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 z-50 w-full border-t border-gray-100 bg-white/90 backdrop-blur-2xl">
+      <nav className="h-18 w-full flex items-center justify-around px-4 overflow-hidden max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href
+          const Icon = item.icon
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center transition-all duration-300 flex-1 relative h-full",
+                "flex flex-col items-center justify-center transition-all duration-300 flex-1 relative h-full pt-1",
                 isActive ? "text-[#111FA2]" : "text-gray-400"
               )}
             >
-              <div className={cn(
-                "p-1 rounded-xl transition-all relative flex items-center justify-center",
-                isActive ? "scale-110" : "grayscale opacity-40"
-              )}>
-                <div className="relative w-7 h-7">
-                  <Image 
-                    src={item.icon} 
-                    alt={item.label} 
-                    fill 
-                    className="object-contain"
-                  />
-                </div>
+              <div className="relative flex flex-col items-center gap-1">
+                <Icon className={cn(
+                  "w-6 h-6 transition-all",
+                  isActive ? "scale-110 stroke-[2.5px]" : "stroke-[2px]"
+                )} />
+                <span className={cn(
+                  "text-[10px] font-black uppercase tracking-widest",
+                  isActive ? "opacity-100" : "opacity-0"
+                )}>
+                  {item.label}
+                </span>
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-red-500 flex items-center justify-center text-[8px] font-black text-white border-2 border-white shadow-md">
+                  <span className="absolute -top-2 -right-2 h-4 min-w-4 px-1 rounded-full bg-red-500 flex items-center justify-center text-[8px] font-black text-white border-2 border-white shadow-md">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
