@@ -1,19 +1,18 @@
 
-const CACHE_NAME = 'matchflow-cache-v1';
-const OFFLINE_URL = '/';
+const CACHE_NAME = 'matchflow-v1';
+const ASSETS_TO_CACHE = [
+  '/',
+  '/manifest.json',
+  '/home.png',
+  '/chat.png',
+  '/me.png',
+  '/ringtone.mp3'
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([
-        OFFLINE_URL,
-        '/manifest.json',
-        '/home.png',
-        '/chat.png',
-        '/me.png',
-        '/icon-192.png',
-        '/icon-512.png',
-      ]);
+      return cache.addAll(ASSETS_TO_CACHE);
     })
   );
   self.skipWaiting();
@@ -29,28 +28,34 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    }).then(() => self.clients.claim())
+    })
   );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
+  // Navigation fallback for SPA behavior
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match('/');
+      })
+    );
+    return;
+  }
 
+  // Stale-while-revalidate strategy
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-          const responseToCache = networkResponse.clone();
+        if (networkResponse && networkResponse.status === 200) {
+          const cacheCopy = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
+            cache.put(event.request, cacheCopy);
           });
         }
         return networkResponse;
-      }).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match(OFFLINE_URL);
-        }
-      });
+      }).catch(() => null);
 
       return cachedResponse || fetchPromise;
     })
