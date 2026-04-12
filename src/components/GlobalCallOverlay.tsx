@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef } from "react"
@@ -164,10 +163,16 @@ export function GlobalCallOverlay() {
   const engageHardware = async (type: 'video' | 'audio') => {
     if (!AgoraRTC || !navigator.mediaDevices) return;
     try {
-      // Direct browser check to trigger native prompt
-      const constraints = type === 'video' ? { video: true, audio: true } : { audio: true };
+      // Must use direct getUserMedia from a user gesture for PWA reliability
+      const constraints = type === 'video' 
+        ? { video: { facingMode: "user" }, audio: true } 
+        : { audio: true };
+      
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       
+      // Stop the test stream tracks after success
+      stream.getTracks().forEach(t => t.stop());
+
       // Agora tracks creation
       if (!localTracksRef.current.audioTrack) {
         localTracksRef.current.audioTrack = await AgoraRTC.createMicrophoneAudioTrack({
@@ -195,9 +200,6 @@ export function GlobalCallOverlay() {
         if (localTracksRef.current.videoTrack) tracks.push(localTracksRef.current.videoTrack);
         if (tracks.length > 0) await agoraClientRef.current.publish(tracks);
       }
-
-      // Cleanup initial test stream
-      stream.getTracks().forEach(t => t.stop());
 
     } catch (e) {
       console.error("Hardware failed:", e);
