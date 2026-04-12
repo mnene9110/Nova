@@ -183,13 +183,13 @@ export default function DiscoverPage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
             </div>
 
-            {/* Chat Icon - Top Right - Transparent background & Prominent */}
+            {/* Chat Icon - Top Right - Settled on the absolute edge */}
             <button 
               onClick={(e) => { 
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute top-1 right-1 w-20 h-20 flex items-center justify-center z-10 transition-all active:scale-90 outline-none ring-0 select-none"
+              className="absolute top-0 right-0 w-20 h-20 flex items-center justify-center z-10 transition-all active:scale-90 outline-none ring-0 select-none"
             >
               <div className="relative w-18 h-18 drop-shadow-2xl">
                 <Image src="/chatt.png" alt="Chat" fill className="object-contain" />

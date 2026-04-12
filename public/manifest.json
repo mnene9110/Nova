@@ -1,11 +1,12 @@
 {
   "name": "Matchflow",
   "short_name": "Matchflow",
-  "description": "Connect with heart on Matchflow.",
+  "description": "Connect with Heart",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#EB4C4C",
   "theme_color": "#EB4C4C",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/icon-192.png",
