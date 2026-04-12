@@ -59,7 +59,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col h-svh bg-white text-gray-900 overflow-y-auto">
-      <header className="px-4 py-6 flex items-center justify-between sticky top-0 bg-[#111FA2] z-50 shrink-0">
+      <header className="px-4 py-4 flex items-center justify-between sticky top-0 bg-[#111FA2] z-50 shrink-0">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
         <h1 className="text-xl font-black font-headline tracking-widest uppercase text-white drop-shadow-md">Settings</h1>
         <div className="w-10" />

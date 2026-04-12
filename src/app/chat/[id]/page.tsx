@@ -342,19 +342,19 @@ function ChatDetailContent() {
 
   return (
     <div className="flex flex-col h-svh bg-white relative overflow-hidden text-gray-900">
-      <header className="px-5 pt-8 pb-4 bg-[#111FA2] flex items-center justify-between sticky top-0 z-10">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10 rounded-full bg-white/20 text-white"><ChevronLeft className="w-5 h-5" /></Button>
+      <header className="px-5 pt-6 pb-3 bg-[#111FA2] flex items-center justify-between sticky top-0 z-10">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-9 w-9 rounded-full bg-white/20 text-white"><ChevronLeft className="w-5 h-5" /></Button>
         <div className={cn("flex items-center gap-3 transition-opacity flex-1 justify-center", otherUser.isSupport ? "cursor-default" : "cursor-pointer active:opacity-70")} onClick={() => !otherUser.isSupport && router.push(`/profile/${otherUserId}`)}>
-          <Avatar className="w-9 h-9 border border-white/40 shadow-sm"><AvatarImage src={otherUserImage} className="object-cover" /><AvatarFallback>{otherUserName[0] || '?'}</AvatarFallback></Avatar>
+          <Avatar className="w-8 h-8 border border-white/40 shadow-sm"><AvatarImage src={otherUserImage} className="object-cover" /><AvatarFallback>{otherUserName[0] || '?'}</AvatarFallback></Avatar>
           <div className="flex flex-col text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <h3 className="font-bold text-[13px] leading-none h-3.5 text-white drop-shadow-sm">{otherUserName}</h3>
-              {otherUser.isVerified && <CheckCircle className="w-3 h-3 text-blue-400 fill-blue-400/10" />}
+            <div className="flex items-center justify-center gap-1 mb-0.5">
+              <h3 className="font-bold text-[12px] leading-none text-white drop-shadow-sm">{otherUserName}</h3>
+              {otherUser.isVerified && <CheckCircle className="w-2.5 h-2.5 text-blue-400 fill-blue-400/10" />}
             </div>
-            <span className={cn("text-[9px] font-black uppercase tracking-widest", otherUser.isOnline ? "text-green-400" : "text-white/40")}>{presenceText}</span>
+            <span className={cn("text-[8px] font-black uppercase tracking-widest", otherUser.isOnline ? "text-green-400" : "text-white/40")}>{presenceText}</span>
           </div>
         </div>
-        <div className="w-10" />
+        <div className="w-9" />
       </header>
 
       <ScrollArea className="flex-1 px-4 py-4 bg-transparent relative">
