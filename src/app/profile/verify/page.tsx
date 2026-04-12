@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect } from "react"
@@ -9,6 +8,7 @@ import { useUser, useDoc, useFirestore, useMemoFirebase, updateDocumentNonBlocki
 import { doc } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { verifyFace } from "@/ai/flows/verify-face-flow"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function VerifyIdentityPage() {
   const router = useRouter()
@@ -28,83 +28,67 @@ export default function VerifyIdentityPage() {
   const userRef = useMemoFirebase(() => currentUser ? doc(firestore, "userProfiles", currentUser.uid) : null, [firestore, currentUser])
   const { data: profile } = useDoc(userRef)
 
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-  };
+  useEffect(() => {
+    if (!isStarted) return;
 
-  const getCameraPermission = async () => {
-    try {
-      // Request camera with user-facing mode
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: "user",
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } 
-      });
-      
-      streamRef.current = stream;
-      setHasCameraPermission(true);
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+    const getCameraPermission = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            facingMode: "user",
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        });
+        setHasCameraPermission(true);
+        streamRef.current = stream;
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Access Denied',
+          description: 'Please enable camera permissions in your browser settings to use this app.',
+        });
       }
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      setHasCameraPermission(false);
-      toast({
-        variant: 'destructive',
-        title: 'Camera Access Denied',
-        description: 'Please enable camera permissions in your browser settings to verify your identity.',
-      });
-    }
-  };
+    };
+
+    getCameraPermission();
+
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [isStarted, toast]);
 
   const handleStart = () => {
     setIsStarted(true);
-    getCameraPermission();
   }
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stopCamera();
-    };
-  }, []);
 
   const handleCapture = () => {
     if (videoRef.current && canvasRef.current) {
       const context = canvasRef.current.getContext('2d');
       if (context) {
-        // Match video dimensions
         canvasRef.current.width = videoRef.current.videoWidth;
         canvasRef.current.height = videoRef.current.videoHeight;
         
-        // Apply mirror effect to the canvas to match the video preview
         context.translate(canvasRef.current.width, 0);
         context.scale(-1, 1);
         
         context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
         const dataUri = canvasRef.current.toDataURL('image/jpeg', 0.8);
         setCapturedImage(dataUri);
-        
-        // Optional: stop camera immediately after capture to save resources
-        // stopCamera(); 
       }
     }
   }
 
   const handleRetake = () => {
     setCapturedImage(null);
-    if (!streamRef.current) {
-      getCameraPermission();
-    }
   }
 
   const handleSubmit = async () => {
@@ -136,9 +120,6 @@ export default function VerifyIdentityPage() {
           updatedAt: new Date().toISOString()
         });
         
-        // Stop camera before leaving
-        stopCamera();
-        
         toast({
           title: "Verification Successful",
           description: "Your identity has been verified! A tick has been added to your profile.",
@@ -168,10 +149,7 @@ export default function VerifyIdentityPage() {
         <Button 
           variant="ghost" 
           size="icon" 
-          onClick={() => {
-            stopCamera();
-            router.back();
-          }} 
+          onClick={() => router.back()} 
           className="text-gray-900 h-10 w-10 bg-gray-50 rounded-full hover:bg-gray-100"
         >
           <ChevronLeft className="w-6 h-6" />
@@ -219,20 +197,19 @@ export default function VerifyIdentityPage() {
             </div>
 
             <div className="relative aspect-square w-full bg-zinc-950 rounded-[3rem] overflow-hidden shadow-2xl border-4 border-gray-50 flex items-center justify-center shrink-0">
-              {capturedImage ? (
+              <video 
+                ref={videoRef} 
+                className={cn("w-full h-full object-cover scale-x-[-1]", capturedImage && "hidden")} 
+                autoPlay 
+                muted 
+                playsInline
+              />
+              
+              {capturedImage && (
                 <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
-              ) : (
-                <>
-                  <video 
-                    ref={videoRef} 
-                    className="w-full h-full object-cover scale-x-[-1]" 
-                    autoPlay 
-                    muted 
-                    playsInline
-                  />
-                  <div className="absolute inset-0 border-[3px] border-white/20 rounded-[2.5rem] pointer-events-none m-8" />
-                </>
               )}
+
+              <div className={cn("absolute inset-0 border-[3px] border-white/20 rounded-[2.5rem] pointer-events-none m-8", capturedImage && "hidden")} />
 
               {hasCameraPermission === false && (
                 <div className="absolute inset-0 bg-zinc-900 flex flex-col items-center justify-center p-8 text-center text-white space-y-4">
@@ -242,6 +219,16 @@ export default function VerifyIdentityPage() {
                 </div>
               )}
             </div>
+
+            {!(hasCameraPermission) && isStarted && (
+              <Alert variant="destructive">
+                <ShieldAlert className="h-4 w-4" />
+                <AlertTitle>Camera Access Required</AlertTitle>
+                <AlertDescription>
+                  Please allow camera access to use this feature. Check your browser settings if no prompt appears.
+                </AlertDescription>
+              </Alert>
+            )}
 
             <canvas ref={canvasRef} className="hidden" />
 

@@ -128,7 +128,12 @@ export function GlobalCallOverlay() {
       
       if (statusRef.current === 'idle') {
         setCallStatus(isCaller ? 'ringing' : 'incoming');
-        engageHardware(data.callType);
+        
+        // Only engage hardware automatically for the CALLER (as they just initiated with a gesture)
+        // Receivers MUST wait for handleAcceptCall (gesture)
+        if (isCaller) {
+          engageHardware(data.callType);
+        }
         
         getAgoraToken(activeChatIdRef.current!, currentUser.uid)
           .then(setAgoraTokenData)
@@ -241,6 +246,7 @@ export function GlobalCallOverlay() {
 
       await client.join(tokenData!.appId, channelName, tokenData!.token, currentUser.uid);
       
+      // Re-ensure hardware is ready
       await engageHardware(type);
 
       const tracksToPublish = [];
@@ -325,15 +331,16 @@ export function GlobalCallOverlay() {
   const handleAcceptCall = async () => {
     if (!firestore || !activeChatIdRef.current || !callData) return;
     
-    // Check permission again before accepting
+    // Receiver triggers permission request via Accept button gesture
     try {
       const constraints = callData.callType === 'video' ? { video: true, audio: true } : { audio: true };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       stream.getTracks().forEach(t => t.stop());
       setHasHardwarePermission(true);
     } catch (e) {
+      console.error("Permission denied on accept:", e);
       setHasHardwarePermission(false);
-      return; // Don't accept if denied
+      return; // Stop acceptance if hardware is inaccessible
     }
 
     if (ringtoneRef.current) {
