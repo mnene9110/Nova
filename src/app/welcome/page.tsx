@@ -68,26 +68,27 @@ export default function WelcomePage() {
   }
 
   return (
-    <div className="flex flex-col h-svh bg-[#EB4C4C] relative overflow-hidden">
-      {/* Background Video from local public folder */}
+    <div className="flex flex-col h-svh bg-zinc-950 relative overflow-hidden">
+      {/* Background Video with Blur and no tint */}
       <div className="absolute inset-0 z-0">
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="w-full h-full object-cover opacity-70"
+          className="w-full h-full object-cover opacity-50 blur-[4px]"
         >
           <source src="/welcome-bg.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent" />
+        {/* Deep Vignette for legibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/80" />
       </div>
 
       {/* Content Overlay */}
       <main className="flex-1 flex flex-col items-center justify-center px-8 text-center relative z-10 pt-20">
         <div className="mb-12 relative">
           {/* Animated Glow Logo Container */}
-          <div className="w-44 h-44 bg-white/10 backdrop-blur-2xl rounded-[3.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-white/20 flex flex-col items-center justify-center animate-float relative overflow-hidden group">
+          <div className="w-44 h-44 bg-white/10 backdrop-blur-2xl rounded-[3.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-white/20 flex flex-col items-center justify-center animate-float relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
             
             <div className="relative z-10 flex flex-col items-center gap-2">
@@ -105,7 +106,7 @@ export default function WelcomePage() {
 
         <div className="space-y-3 mb-16">
           <h1 className="text-5xl font-logo text-white drop-shadow-2xl">Matchflow</h1>
-          <div className="inline-flex items-center gap-3 px-6 py-2 bg-black/10 backdrop-blur-md rounded-full border border-white/10">
+          <div className="inline-flex items-center gap-3 px-6 py-2 bg-black/30 backdrop-blur-md rounded-full border border-white/10">
             <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
             <p className="text-white/90 text-[12px] font-black uppercase tracking-[0.3em]">Connect with Heart</p>
           </div>
@@ -113,7 +114,7 @@ export default function WelcomePage() {
 
         <div className="w-full space-y-4 max-w-sm animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <Button 
-            className="w-full h-20 rounded-[2rem] bg-white text-[#EB4C4C] hover:bg-white/90 text-xl font-black gap-4 shadow-[0_15px_40px_rgba(0,0,0,0.3)] transition-all active:scale-95 flex items-center justify-center border-t border-white/20" 
+            className="w-full h-20 rounded-[2.25rem] bg-white text-[#EB4C4C] hover:bg-white/90 text-xl font-black gap-4 shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all active:scale-95 flex items-center justify-center border-t border-white/20" 
             onClick={handleEmailClick}
             disabled={isNavigatingEmail || isLoggingIn}
           >
@@ -123,7 +124,7 @@ export default function WelcomePage() {
           
           <Button 
             variant="ghost" 
-            className="w-full h-20 rounded-[2rem] bg-white/10 text-white border border-white/20 hover:bg-white/20 text-xl font-black gap-4 transition-all active:scale-95 backdrop-blur-md shadow-sm flex items-center justify-center" 
+            className="w-full h-20 rounded-[2.25rem] bg-white/10 text-white border border-white/20 hover:bg-white/20 text-xl font-black gap-4 transition-all active:scale-95 backdrop-blur-md shadow-sm flex items-center justify-center" 
             onClick={handleFastLogin} 
             disabled={isLoggingIn || isNavigatingEmail}
           >
