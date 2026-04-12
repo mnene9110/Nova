@@ -189,9 +189,9 @@ export default function DiscoverPage() {
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute top-1 right-1 w-14 h-14 flex items-center justify-center z-10 transition-all active:scale-90 outline-none ring-0 select-none"
+              className="absolute top-1 right-1 w-16 h-16 flex items-center justify-center z-10 transition-all active:scale-90 outline-none ring-0 select-none"
             >
-              <div className="relative w-11 h-11 drop-shadow-2xl">
+              <div className="relative w-13 h-13 drop-shadow-2xl">
                 <Image src="/chatt.png" alt="Chat" fill className="object-contain" />
               </div>
             </button>
