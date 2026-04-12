@@ -174,32 +174,32 @@ export default function EditProfilePage() {
     } catch (error) { toast({ variant: "destructive", title: "Error" }); setIsSaving(false) }
   }
 
-  if (isLoading) return <div className="flex h-svh items-center justify-center bg-transparent"><Loader2 className="w-8 h-8 animate-spin text-white" /></div>
+  if (isLoading) return <div className="flex h-svh items-center justify-center bg-white"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
 
   const extraPhotoSlots = [1, 2, 3, 4]
 
   return (
-    <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden">
-      <header className="shrink-0 px-4 py-8 flex items-center bg-transparent z-50">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white h-10 w-10 bg-black/10 backdrop-blur-md rounded-full"><ChevronLeft className="w-6 h-6" /></Button>
-        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-white drop-shadow-md">Edit Profile</h1>
+    <div className="flex flex-col h-svh bg-white text-gray-900 overflow-hidden">
+      <header className="shrink-0 px-4 py-8 flex items-center bg-[#111FA2] z-50">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full"><ChevronLeft className="w-6 h-6" /></Button>
+        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-white">Edit Profile</h1>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 pt-2 pb-40 space-y-10 scroll-smooth">
+      <main className="flex-1 overflow-y-auto px-6 pt-6 pb-40 space-y-10 scroll-smooth">
         <section className="space-y-6">
           <div className="flex flex-col items-center">
             <div className="relative">
-              <Avatar className="w-40 h-40 shadow-[0_20px_60px_rgba(0,0,0,0.15)] border-4 border-white">
+              <Avatar className="w-40 h-40 shadow-[0_20px_60px_rgba(0,0,0,0.15)] border-4 border-gray-50">
                 <AvatarImage src={formData.profilePhotoUrls[0] || ""} className="object-cover" />
-                <AvatarFallback className="bg-primary text-white text-4xl font-black">{formData.username?.[0] || <User className="w-16 h-16" />}</AvatarFallback>
+                <AvatarFallback className="bg-primary/5 text-primary text-4xl font-black">{formData.username?.[0] || <User className="w-16 h-16" />}</AvatarFallback>
               </Avatar>
               <button onClick={() => { setActivePhotoSlot(0); mainFileInputRef.current?.click(); }} className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-zinc-900 border-2 border-white flex items-center justify-center shadow-xl active:scale-90 transition-transform z-10"><Camera className="w-5 h-5 text-white" /></button>
             </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-950/60 mt-5 drop-shadow-sm">Main Profile Photo</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mt-5">Main Profile Photo</p>
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-950/40 ml-1">Profile Gallery</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 ml-1">Profile Gallery</h3>
             <div className="grid grid-cols-4 gap-3">
               {extraPhotoSlots.map((slotIndex) => {
                 const photoUrl = formData.profilePhotoUrls[slotIndex];
@@ -207,42 +207,42 @@ export default function EditProfilePage() {
                   <div key={slotIndex} className="relative aspect-square">
                     {photoUrl ? (
                       <>
-                        <div className="w-full h-full rounded-2xl overflow-hidden border-2 border-white shadow-lg"><Image src={photoUrl} alt="Extra" fill className="object-cover" /></div>
+                        <div className="w-full h-full rounded-2xl overflow-hidden border-2 border-gray-50 shadow-md"><Image src={photoUrl} alt="Extra" fill className="object-cover" /></div>
                         <button onClick={() => removePhoto(slotIndex)} className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white shadow-md active:scale-90 transition-all z-20"><X className="w-3 h-3" /></button>
                       </>
                     ) : (
                       <button 
                         onClick={() => { setActivePhotoSlot(slotIndex); extraPhotosInputRef.current?.click(); }} 
-                        className="w-full h-full rounded-2xl border-2 border-dashed border-white bg-white/60 flex items-center justify-center shadow-sm hover:bg-white hover:border-primary/30 active:scale-95 transition-all group"
+                        className="w-full h-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center shadow-sm hover:bg-white hover:border-primary/30 active:scale-95 transition-all group"
                       >
-                        <Plus className="w-6 h-6 text-primary/40 group-hover:text-primary transition-colors" />
+                        <Plus className="w-6 h-6 text-gray-300 group-hover:text-primary transition-colors" />
                       </button>
                     )}
                   </div>
                 )
               })}
             </div>
-            <p className="text-[9px] font-bold text-sky-950/30 uppercase tracking-widest text-center">Add up to 4 extra photos</p>
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center">Add up to 4 extra photos</p>
           </div>
           <input type="file" ref={mainFileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
           <input type="file" ref={extraPhotosInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
         </section>
 
-        <section className="space-y-6 bg-white/60 backdrop-blur-2xl p-7 rounded-[2.5rem] border border-white/50 shadow-2xl">
+        <section className="space-y-6 bg-gray-50 p-7 rounded-[2.5rem] border border-gray-100 shadow-sm">
           <div className="space-y-3">
             <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Full Name</Label>
-            <Input value={formData.username} onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))} className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner" />
+            <Input value={formData.username} onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))} className="h-14 rounded-2xl bg-white border-none text-sm font-bold shadow-inner" />
           </div>
           
           <div className="space-y-3">
             <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Bio</Label>
-            <Textarea value={formData.bio} onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))} className="min-h-[120px] rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner py-4" />
+            <Textarea value={formData.bio} onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))} className="min-h-[120px] rounded-2xl bg-white border-none text-sm font-bold shadow-inner py-4" />
           </div>
 
           <div className="space-y-3">
             <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Current Location (Kenya Only)</Label>
             <div className="flex gap-2">
-              <div className="flex-1 h-14 rounded-2xl bg-white/80 border-none px-4 flex items-center gap-3 shadow-inner">
+              <div className="flex-1 h-14 rounded-2xl bg-white border-none px-4 flex items-center gap-3 shadow-inner">
                 <MapPin className="w-4 h-4 text-primary/40" />
                 <span className="text-sm font-bold text-gray-900 truncate">{formData.location || "Detecting..."}</span>
               </div>
@@ -251,7 +251,7 @@ export default function EditProfilePage() {
                 disabled={isDetectingLocation}
                 variant="ghost" 
                 size="icon" 
-                className="h-14 w-14 rounded-2xl bg-white/80 text-primary shadow-inner"
+                className="h-14 w-14 rounded-2xl bg-white text-primary shadow-inner"
               >
                 <RefreshCw className={cn("w-5 h-5", isDetectingLocation && "animate-spin")} />
               </Button>
@@ -261,7 +261,7 @@ export default function EditProfilePage() {
           <div className="space-y-3">
             <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Looking For</Label>
             <Select value={formData.relationshipGoal} onValueChange={(val) => setFormData(prev => ({ ...prev, relationshipGoal: val }))}>
-              <SelectTrigger className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner"><SelectValue placeholder="What are you seeking?" /></SelectTrigger>
+              <SelectTrigger className="h-14 rounded-2xl bg-white border-none text-sm font-bold shadow-inner"><SelectValue placeholder="What are you seeking?" /></SelectTrigger>
               <SelectContent className="rounded-2xl">{LOOKING_FOR_OPTIONS.map(opt => <SelectItem key={opt.id} value={opt.id}>{opt.label}</SelectItem>)}</SelectContent>
             </Select>
           </div>
@@ -269,7 +269,7 @@ export default function EditProfilePage() {
           <div className="space-y-3">
             <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Education</Label>
             <Select value={formData.education} onValueChange={(val) => setFormData(prev => ({ ...prev, education: val }))}>
-              <SelectTrigger className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner"><SelectValue placeholder="Level of education" /></SelectTrigger>
+              <SelectTrigger className="h-14 rounded-2xl bg-white border-none text-sm font-bold shadow-inner"><SelectValue placeholder="Level of education" /></SelectTrigger>
               <SelectContent className="rounded-2xl">{EDUCATION_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent>
             </Select>
           </div>
@@ -277,7 +277,7 @@ export default function EditProfilePage() {
           <div className="space-y-3">
             <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Zodiac Sign</Label>
             <Select value={formData.horoscope} onValueChange={(val) => setFormData(prev => ({ ...prev, horoscope: val }))}>
-              <SelectTrigger className="h-14 rounded-2xl bg-white/80 border-none text-sm font-bold shadow-inner"><SelectValue placeholder="Your star sign" /></SelectTrigger>
+              <SelectTrigger className="h-14 rounded-2xl bg-white border-none text-sm font-bold shadow-inner"><SelectValue placeholder="Your star sign" /></SelectTrigger>
               <SelectContent className="rounded-2xl">{ZODIAC_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent>
             </Select>
           </div>
@@ -298,7 +298,7 @@ export default function EditProfilePage() {
                       "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm",
                       isSelected 
                         ? "bg-primary text-white border-primary" 
-                        : "bg-white/50 text-gray-500 border-gray-100 hover:bg-white"
+                        : "bg-white text-gray-500 border-gray-100 hover:bg-gray-50"
                     )}
                   >
                     {interest}
@@ -310,7 +310,7 @@ export default function EditProfilePage() {
         </section>
       </main>
 
-      <footer className="shrink-0 fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white/90 via-white/80 to-transparent backdrop-blur-sm z-50">
+      <footer className="shrink-0 fixed bottom-0 left-0 right-0 p-6 bg-white/95 backdrop-blur-md z-50 border-t border-gray-100">
         <div className="max-w-md mx-auto"><Button onClick={handleSave} disabled={isSaving} className="w-full h-16 rounded-full bg-primary text-white font-black text-lg gap-3 shadow-xl">{isSaving ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}Save Changes</Button></div>
       </footer>
 
