@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useUser, useFirebase } from "@/firebase"
 import { doc, getDoc } from "firebase/firestore"
@@ -12,8 +13,10 @@ export default function Home() {
   const { user, isUserLoading } = useUser()
   const { firestore } = useFirebase()
   const router = useRouter()
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const checkUser = async () => {
       if (!isUserLoading && firestore) {
         // Minimum splash time for premium branding feel
@@ -41,6 +44,8 @@ export default function Home() {
     }
     checkUser()
   }, [user, isUserLoading, firestore, router])
+
+  if (!mounted) return null
 
   return (
     <div className="flex h-svh w-full bg-[#EB4C4C] items-center justify-center overflow-hidden">
