@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useRef } from "react"
@@ -129,6 +130,12 @@ export function GlobalCallOverlay() {
       if (statusRef.current === 'idle') {
         setCallStatus(isCaller ? 'ringing' : 'incoming');
         
+        // Caller had gesture in Chat screen, Receiver will have gesture on Accept button.
+        // For Caller, we can try engageHardware immediately.
+        if (isCaller) {
+          engageHardware(data.callType);
+        }
+
         // Pre-fetch token
         getAgoraToken(activeChatIdRef.current!, currentUser.uid)
           .then(setAgoraTokenData)
@@ -163,7 +170,6 @@ export function GlobalCallOverlay() {
   const engageHardware = async (type: 'video' | 'audio') => {
     if (!AgoraRTC || !navigator.mediaDevices) return;
     try {
-      // Must use direct getUserMedia from a user gesture for PWA reliability
       const constraints = type === 'video' 
         ? { video: { facingMode: "user" }, audio: true } 
         : { audio: true };
@@ -193,7 +199,6 @@ export function GlobalCallOverlay() {
       
       setHasHardwarePermission(true);
       
-      // If we are already in an ongoing call but weren't connected because of permissions
       if (statusRef.current === 'ongoing' && agoraClientRef.current) {
         const tracks = [];
         if (localTracksRef.current.audioTrack) tracks.push(localTracksRef.current.audioTrack);
@@ -262,7 +267,6 @@ export function GlobalCallOverlay() {
 
       await client.join(tokenData!.appId, channelName, tokenData!.token, currentUser.uid);
       
-      // Only publish if tracks exist (they might not if permissions were denied initially)
       const tracksToPublish = [];
       if (localTracksRef.current.audioTrack) tracksToPublish.push(localTracksRef.current.audioTrack);
       if (type === 'video' && localTracksRef.current.videoTrack) tracksToPublish.push(localTracksRef.current.videoTrack);
@@ -459,7 +463,7 @@ export function GlobalCallOverlay() {
         />
       </div>
 
-      {(callStatus !== 'ongoing' || isConnecting || hasHardwarePermission !== true) && (
+      {(callStatus !== 'ongoing' || isConnecting) && (
         <div className="absolute inset-0 z-[60] flex flex-col items-center justify-between py-24 px-8 bg-black/40 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-8 mt-12 w-full">
             <div className="relative">
@@ -482,18 +486,11 @@ export function GlobalCallOverlay() {
               )}
             </div>
 
-            {hasHardwarePermission !== true && (
+            {hasHardwarePermission === false && (
               <div className="mt-8 flex flex-col items-center gap-4 animate-in zoom-in">
-                <Button 
-                  onClick={() => engageHardware(callData?.callType)}
-                  className="h-16 px-10 rounded-full bg-primary text-white font-black text-lg gap-3 shadow-2xl animate-bounce"
-                >
-                  <Camera className="w-6 h-6" />
-                  Turn on Camera & Mic
-                </Button>
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/40 text-center max-w-[200px]">
-                  Permissions are required to connect your call securely.
-                </p>
+                <div className="p-4 bg-red-500/20 border border-red-500/40 rounded-2xl text-center">
+                  <p className="text-xs font-bold text-red-200">Hardware access was denied. Please check your browser settings.</p>
+                </div>
               </div>
             )}
           </div>

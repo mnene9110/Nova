@@ -177,6 +177,20 @@ function ChatDetailContent() {
       return;
     }
 
+    // TRIGGER BROWSER PROMPT IMMEDIATELY ON GESTURE
+    try {
+      const constraints = type === 'video' ? { video: true, audio: true } : { audio: true };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      stream.getTracks().forEach(t => t.stop()); // Verification only
+    } catch (e) {
+      toast({ 
+        variant: "destructive", 
+        title: "Permission Required", 
+        description: "Please allow camera and microphone access to start a call." 
+      });
+      return;
+    }
+
     const callRef = doc(firestore, "calls", chatId);
     await setDoc(callRef, { 
       callerId: currentUser.uid, 
