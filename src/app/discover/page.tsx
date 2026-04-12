@@ -183,7 +183,7 @@ export default function DiscoverPage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
             </div>
 
-            {/* Chat Icon - Top Right - Transparent background & Larger */}
+            {/* Chat Icon - Top Right - Transparent background & Prominent */}
             <button 
               onClick={(e) => { 
                 e.stopPropagation(); 
@@ -191,7 +191,7 @@ export default function DiscoverPage() {
               }}
               className="absolute top-1 right-1 w-16 h-16 flex items-center justify-center z-10 transition-all active:scale-90 outline-none ring-0 select-none"
             >
-              <div className="relative w-13 h-13 drop-shadow-2xl">
+              <div className="relative w-14 h-14 drop-shadow-2xl">
                 <Image src="/chatt.png" alt="Chat" fill className="object-contain" />
               </div>
             </button>
