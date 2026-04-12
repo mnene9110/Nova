@@ -79,7 +79,7 @@ export function Navbar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center transition-all duration-300 flex-1 relative h-full gap-1",
+                "flex flex-col items-center justify-center transition-all duration-300 flex-1 relative h-full gap-1 outline-none border-none",
                 isActive ? "text-[#111FA2]" : "text-gray-400"
               )}
             >

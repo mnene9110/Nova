@@ -84,7 +84,7 @@ export default function ProfilePage() {
           </Avatar>
           <button 
             onClick={() => router.push('/profile/edit')} 
-            className="absolute bottom-1 right-1 w-11 h-11 rounded-2xl bg-zinc-900 border-4 border-white flex items-center justify-center shadow-xl active:scale-90 transition-all"
+            className="absolute bottom-1 right-1 w-11 h-11 rounded-2xl bg-zinc-900 flex items-center justify-center shadow-xl active:scale-90 transition-all"
           >
             <Pencil className="w-4 h-4 text-white" />
           </button>
