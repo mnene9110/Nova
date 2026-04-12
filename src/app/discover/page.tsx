@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { RotateCcw, Loader2, CheckCircle, MessageSquare } from "lucide-react"
+import { RotateCcw, Loader2, CheckCircle } from "lucide-react"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { collection, query, where, limit, getDocs, doc } from "firebase/firestore"
 import { useRouter } from "next/navigation"
@@ -191,7 +191,9 @@ export default function DiscoverPage() {
               }}
               className="absolute top-3 right-3 w-10 h-10 bg-[#EB4C4C] rounded-full flex items-center justify-center z-10 transition-all active:scale-90 shadow-lg border border-white/20 outline-none ring-0 select-none"
             >
-              <MessageSquare className="w-5 h-5 text-white" />
+              <div className="relative w-6 h-6">
+                <Image src="/chatt.png" alt="Chat" fill className="object-contain" />
+              </div>
             </button>
 
             {/* Info Overlay */}
