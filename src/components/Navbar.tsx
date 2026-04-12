@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -80,7 +79,7 @@ export function Navbar() {
               href={item.href}
               className={cn(
                 "flex flex-col items-center justify-center transition-all duration-300 flex-1 relative h-full gap-1 outline-none border-none ring-0 select-none",
-                isActive ? "text-[#111FA2]" : "text-gray-400"
+                isActive ? "text-[#EB4C4C]" : "text-gray-400"
               )}
             >
               <div className="relative w-7 h-7">

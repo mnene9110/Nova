@@ -1,12 +1,11 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Gem, Coins, ArrowRightLeft, Loader2, Info, ArrowUpRight, History, ArrowDownLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useUser, useFirestore, useMemoFirebase, useFirebase, useCollection, useDoc } from "@/firebase"
-import { doc, updateDoc, increment as firestoreIncrement, setDoc, collection, query, where, orderBy, limit, runTransaction } from "firebase/firestore"
+import { useUser, useMemoFirebase, useFirebase, useCollection, useDoc } from "@/firebase"
+import { doc, increment as firestoreIncrement, collection, query, where, orderBy, limit, runTransaction } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
@@ -86,7 +85,7 @@ export default function IncomePage() {
 
   return (
     <div className="flex flex-col h-svh bg-white text-gray-900 overflow-hidden">
-      <header className="px-4 py-6 flex items-center sticky top-0 bg-[#111FA2] z-10 shrink-0">
+      <header className="px-4 py-6 flex items-center sticky top-0 bg-[#EB4C4C] z-10 shrink-0">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
         <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-white">Income Center</h1>
       </header>

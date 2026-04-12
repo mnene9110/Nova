@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -117,8 +116,8 @@ export default function DiscoverPage() {
 
   return (
     <div className="flex flex-col min-h-svh bg-white overflow-y-auto pb-32 relative scroll-smooth">
-      {/* Top Background Container - Solid Blue */}
-      <div className="px-4 pt-10 pb-6 shrink-0 bg-[#111FA2]">
+      {/* Top Background Container - Solid Brand Red */}
+      <div className="px-4 pt-10 pb-6 shrink-0 bg-[#EB4C4C]">
         <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
@@ -147,7 +146,7 @@ export default function DiscoverPage() {
       </div>
 
       {/* Recommended Header - Sticky Colored */}
-      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-[#111FA2] shadow-sm">
+      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-[#EB4C4C] shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-[14px] font-black text-white tracking-tight ml-1">Recommended for you</h2>
           

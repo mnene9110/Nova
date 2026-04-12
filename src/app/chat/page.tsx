@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef } from "react"
@@ -93,7 +92,7 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
             <div className="flex items-center gap-1.5 truncate">
               <h3 className={cn(
                 "font-black text-[15px] truncate font-headline tracking-tight",
-                name === "User logged out" ? "text-gray-400 font-medium italic" : "text-[#111FA2]"
+                name === "User logged out" ? "text-gray-400 font-medium italic" : "text-[#EB4C4C]"
               )}>
                 {name}
               </h3>
@@ -110,7 +109,7 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
               {session.lastMessage || "Start a conversation"}
             </p>
             {unreadCount > 0 && (
-              <span className="h-5 min-w-5 px-1.5 rounded-full bg-[#111FA2] flex items-center justify-center text-[10px] font-black text-white shadow-sm">
+              <span className="h-5 min-w-5 px-1.5 rounded-full bg-[#EB4C4C] flex items-center justify-center text-[10px] font-black text-white shadow-sm">
                 {unreadCount}
               </span>
             )}
@@ -172,7 +171,7 @@ export default function ChatListPage() {
 
   return (
     <div className="flex flex-col min-h-svh pb-20 bg-white overflow-hidden">
-      <header className="px-6 pt-8 pb-4 shrink-0 flex items-center justify-between bg-[#111FA2]">
+      <header className="px-6 pt-8 pb-4 shrink-0 flex items-center justify-between bg-[#EB4C4C]">
         <h1 className="text-3xl font-logo text-white drop-shadow-md">Chats</h1>
         <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
           <MessageSquare className="w-5 h-5 text-white" />
@@ -190,11 +189,11 @@ export default function ChatListPage() {
               />
             ))}
             <div className="py-8 flex justify-center opacity-30">
-               <p className="text-[10px] font-black text-[#111FA2] uppercase tracking-[0.3em]">Encrypted Conversations</p>
+               <p className="text-[10px] font-black text-[#EB4C4C] uppercase tracking-[0.3em]">Encrypted Conversations</p>
             </div>
           </div>
         ) : hasFetched ? (
-          <div className="flex flex-col items-center justify-center py-32 text-[#111FA2]/30 gap-4">
+          <div className="flex flex-col items-center justify-center py-32 text-[#EB4C4C]/30 gap-4">
             <div className="w-20 h-20 bg-gray-50 rounded-[2.5rem] flex items-center justify-center border border-gray-100 shadow-inner">
               <MessageSquare className="w-10 h-10 text-gray-200" />
             </div>
@@ -202,7 +201,7 @@ export default function ChatListPage() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-32 gap-3 opacity-20">
-            <Loader2 className="w-8 h-8 animate-spin text-[#111FA2]" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#EB4C4C]" />
           </div>
         )}
       </main>

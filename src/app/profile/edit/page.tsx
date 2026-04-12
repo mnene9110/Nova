@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
@@ -181,7 +180,7 @@ export default function EditProfilePage() {
 
   return (
     <div className="flex flex-col h-svh bg-white text-gray-900 overflow-hidden">
-      <header className="shrink-0 px-4 py-5 flex items-center bg-[#111FA2] z-50">
+      <header className="shrink-0 px-4 py-5 flex items-center bg-[#EB4C4C] z-50">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full"><ChevronLeft className="w-6 h-6" /></Button>
         <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-white">Edit Profile</h1>
       </header>
@@ -194,7 +193,7 @@ export default function EditProfilePage() {
                 <AvatarImage src={formData.profilePhotoUrls[0] || ""} className="object-cover" />
                 <AvatarFallback className="bg-primary/5 text-primary text-4xl font-black">{formData.username?.[0] || <User className="w-16 h-16" />}</AvatarFallback>
               </Avatar>
-              <button onClick={() => { setActivePhotoSlot(0); mainFileInputRef.current?.click(); }} className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-zinc-900 border-2 border-white flex items-center justify-center shadow-xl active:scale-90 transition-transform z-10"><Camera className="w-5 h-5 text-white" /></button>
+              <button onClick={() => { setActivePhotoSlot(0); mainFileInputRef.current?.click(); }} className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center shadow-xl active:scale-90 transition-transform z-10"><Camera className="w-5 h-5 text-white" /></button>
             </div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mt-5">Main Profile Photo</p>
           </div>

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -121,7 +120,7 @@ export default function MysteryNotePage() {
   }
 
   return (
-    <div className="flex flex-col h-svh bg-gradient-to-b from-[#111FA2] via-white/50 to-white text-gray-900 overflow-hidden relative font-body">
+    <div className="flex flex-col h-svh bg-gradient-to-b from-[#EB4C4C] via-white/50 to-white text-gray-900 overflow-hidden relative font-body">
       <header className="px-4 py-8 flex items-center sticky top-0 z-50 shrink-0">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
         <div className="ml-4 flex flex-col"><h1 className="text-xl font-black font-headline tracking-widest uppercase text-white drop-shadow-sm">Leave a message</h1><p className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Share your thoughts anonymously</p></div>
@@ -132,7 +131,7 @@ export default function MysteryNotePage() {
           <div className="space-y-2">
             <h2 className="text-3xl font-black font-headline text-gray-900 leading-tight">Tell me a secret <span className="text-4xl">🤫</span>..</h2>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5 bg-[#111FA2]/10 px-3 py-1.5 rounded-full border border-primary/20"><Coins className="w-3.5 h-3.5 text-primary" /><span className="text-[10px] font-black text-primary uppercase tracking-widest">{COST_PER_PERSON} coins/person</span></div>
+              <div className="flex items-center gap-1.5 bg-[#EB4C4C]/10 px-3 py-1.5 rounded-full border border-primary/20"><Coins className="w-3.5 h-3.5 text-primary" /><span className="text-[10px] font-black text-primary uppercase tracking-widest">{COST_PER_PERSON} coins/person</span></div>
               <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-primary/40" />
                 <Select value={recipientCount.toString()} onValueChange={(v) => setRecipientCount(Number(v))}>
                   <SelectTrigger className="h-8 border-none bg-primary/10 rounded-full px-3 text-[10px] font-black text-primary focus:ring-0"><SelectValue placeholder="3" /></SelectTrigger>
@@ -150,7 +149,7 @@ export default function MysteryNotePage() {
           </div>
 
           <div className="pt-4">
-            <Button onClick={handleSend} disabled={isSending || !messageText.trim()} className={cn("w-full h-18 rounded-full text-white font-black text-xl shadow-2xl transition-all gap-3 bg-[#111FA2]")}>
+            <Button onClick={handleSend} disabled={isSending || !messageText.trim()} className={cn("w-full h-18 rounded-full text-white font-black text-xl shadow-2xl transition-all gap-3 bg-[#EB4C4C]")}>
               {isSending ? (<><Loader2 className="w-6 h-6 animate-spin" /><span>Broadcasting...</span></>) : (<><span>Send to {recipientCount} People</span><div className="flex items-center gap-1.5 bg-black/20 px-3 py-1 rounded-full"><Coins className="w-4 h-4 text-amber-400" /><span className="text-xs">{totalCost}</span></div></>)}
             </Button>
           </div>

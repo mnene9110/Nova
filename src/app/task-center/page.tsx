@@ -1,11 +1,10 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { RotateCcw, Trophy, Loader2, ChevronLeft, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useFirestore, useUser, useDoc, useMemoFirebase, useFirebase } from "@/firebase"
+import { useUser, useDoc, useMemoFirebase, useFirebase } from "@/firebase"
 import { doc, writeBatch, increment, collection, serverTimestamp } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
@@ -84,7 +83,7 @@ export default function TaskCenterPage() {
 
   if (!mounted || isLoading) {
     return (
-      <div className="flex h-svh items-center justify-center bg-[#111FA2]">
+      <div className="flex h-svh items-center justify-center bg-[#EB4C4C]">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-10 h-10 animate-spin text-white" />
           <span className="text-[10px] font-black uppercase text-white/60 tracking-[0.2em]">Checking rewards...</span>
@@ -94,7 +93,7 @@ export default function TaskCenterPage() {
   }
 
   return (
-    <div className="flex flex-col h-svh bg-gradient-to-b from-[#111FA2] via-white/50 to-white text-gray-900 overflow-hidden font-body">
+    <div className="flex flex-col h-svh bg-gradient-to-b from-[#EB4C4C] via-white/50 to-white text-gray-900 overflow-hidden font-body">
       <header className="px-6 pt-12 pb-6 flex items-center justify-between shrink-0 relative">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/40"><ChevronLeft className="w-6 h-6" /></Button>
         <div className="text-center">
@@ -112,7 +111,7 @@ export default function TaskCenterPage() {
               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Maintain your streak for massive bonuses</p>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-[#111FA2]" />
+              <Trophy className="w-5 h-5 text-[#EB4C4C]" />
             </div>
           </div>
 
@@ -122,11 +121,11 @@ export default function TaskCenterPage() {
               const isActive = streak >= dayNum; 
               const isCurrent = (streak % 7) + 1 === dayNum && canClaim;
               return (
-                <div key={i} className={cn("aspect-square rounded-[1.75rem] border flex flex-col items-center justify-center gap-2 transition-all duration-500", isActive ? "bg-[#111FA2] border-[#111FA2] shadow-lg" : isCurrent ? "bg-white/60 border-[#111FA2] animate-pulse" : "bg-white/20 border-white/30")}>
+                <div key={i} className={cn("aspect-square rounded-[1.75rem] border flex flex-col items-center justify-center gap-2 transition-all duration-500", isActive ? "bg-[#EB4C4C] border-[#EB4C4C] shadow-lg" : isCurrent ? "bg-white/60 border-[#EB4C4C] animate-pulse" : "bg-white/20 border-white/30")}>
                   <span className={cn("text-[8px] font-black uppercase tracking-widest", isActive ? "text-white/60" : "text-gray-400")}>Day {dayNum}</span>
                   <div className="flex flex-col items-center">
-                    <div className={cn("w-6 h-6 rounded-full flex items-center justify-center mb-0.5", isActive ? "bg-white/20" : "bg-[#111FA2]/10")}>
-                      {isActive ? <Check className="w-3 h-3 text-white stroke-[4]" /> : <span className="font-black text-[10px] text-[#111FA2] italic">S</span>}
+                    <div className={cn("w-6 h-6 rounded-full flex items-center justify-center mb-0.5", isActive ? "bg-white/20" : "bg-[#EB4C4C]/10")}>
+                      {isActive ? <Check className="w-3 h-3 text-white stroke-[4]" /> : <span className="font-black text-[10px] text-[#EB4C4C] italic">S</span>}
                     </div>
                     <span className={cn("text-[10px] font-black", isActive ? "text-white" : "text-gray-900")}>{reward}</span>
                   </div>
@@ -141,11 +140,11 @@ export default function TaskCenterPage() {
               const isActive = streak >= dayNum; 
               const isCurrent = (streak % 7) + 1 === dayNum && canClaim;
               return (
-                <div key={i} className={cn("aspect-square rounded-[2rem] border flex flex-col items-center justify-center gap-2 transition-all relative", isActive ? "bg-[#111FA2] border-[#111FA2] shadow-lg" : isCurrent ? "bg-white/60 border-[#111FA2] animate-pulse" : "bg-white/20 border-white/30")}>
+                <div key={i} className={cn("aspect-square rounded-[2rem] border flex flex-col items-center justify-center gap-2 transition-all relative", isActive ? "bg-[#EB4C4C] border-[#EB4C4C] shadow-lg" : isCurrent ? "bg-white/60 border-[#EB4C4C] animate-pulse" : "bg-white/20 border-white/30")}>
                   <span className={cn("text-[10px] font-black uppercase tracking-widest", isActive ? "text-white/60" : "text-gray-400")}>Day {dayNum}</span>
                   <div className="flex flex-col items-center">
-                    <div className={cn("w-8 h-8 rounded-full flex items-center justify-center mb-1", isActive ? "bg-white/20" : "bg-[#111FA2]/10")}>
-                      {isActive ? <Check className="w-4 h-4 text-white stroke-[4]" /> : <span className="font-black text-xs text-[#111FA2] italic">S</span>}
+                    <div className={cn("w-8 h-8 rounded-full flex items-center justify-center mb-1", isActive ? "bg-white/20" : "bg-[#EB4C4C]/10")}>
+                      {isActive ? <Check className="w-4 h-4 text-white stroke-[4]" /> : <span className="font-black text-xs text-[#EB4C4C] italic">S</span>}
                     </div>
                     <span className={cn("text-xs font-black", isActive ? "text-white" : "text-gray-900")}>{reward}</span>
                   </div>
@@ -154,7 +153,7 @@ export default function TaskCenterPage() {
             })}
           </div>
 
-          <Button onClick={handleClaim} disabled={!canClaim || isClaiming} className={cn("w-full h-18 rounded-full text-white text-xl font-black uppercase tracking-widest mt-10 shadow-2xl transition-all active:scale-95", canClaim ? "bg-[#111FA2]" : "bg-gray-200 text-gray-400")}>
+          <Button onClick={handleClaim} disabled={!canClaim || isClaiming} className={cn("w-full h-18 rounded-full text-white text-xl font-black uppercase tracking-widest mt-10 shadow-2xl transition-all active:scale-95", canClaim ? "bg-[#EB4C4C]" : "bg-gray-200 text-gray-400")}>
             {isClaiming ? <Loader2 className="w-6 h-6 animate-spin" /> : canClaim ? "Claim Reward" : "Already Claimed"}
           </Button>
         </section>

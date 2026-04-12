@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -64,12 +63,12 @@ export default function WelcomePage() {
 
   if (isUserLoading || (user && !isLoggingIn)) {
     return (
-      <div className="flex h-svh w-full bg-[#111FA2]" />
+      <div className="flex h-svh w-full bg-[#EB4C4C]" />
     )
   }
 
   return (
-    <div className="flex flex-col h-svh bg-[#111FA2] relative overflow-hidden">
+    <div className="flex flex-col h-svh bg-[#EB4C4C] relative overflow-hidden">
       {/* Background Video from local public folder */}
       <div className="absolute inset-0 z-0">
         <video
@@ -81,7 +80,6 @@ export default function WelcomePage() {
         >
           <source src="/welcome-bg.mp4" type="video/mp4" />
         </video>
-        {/* Removed bottom color overlay by changing 'to-[#111FA2]' to 'to-transparent' */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent" />
       </div>
 
@@ -115,7 +113,7 @@ export default function WelcomePage() {
 
         <div className="w-full space-y-4 max-w-sm animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <Button 
-            className="w-full h-20 rounded-[2rem] bg-white text-[#111FA2] hover:bg-white/90 text-xl font-black gap-4 shadow-[0_15px_40px_rgba(0,0,0,0.3)] transition-all active:scale-95 flex items-center justify-center border-t border-white/20" 
+            className="w-full h-20 rounded-[2rem] bg-white text-[#EB4C4C] hover:bg-white/90 text-xl font-black gap-4 shadow-[0_15px_40px_rgba(0,0,0,0.3)] transition-all active:scale-95 flex items-center justify-center border-t border-white/20" 
             onClick={handleEmailClick}
             disabled={isNavigatingEmail || isLoggingIn}
           >

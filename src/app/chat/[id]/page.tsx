@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef, useMemo, Suspense } from "react"
@@ -332,7 +331,7 @@ function ChatDetailContent() {
           <h2 className="text-3xl font-black font-headline text-gray-900 tracking-tight">User logged out</h2>
           <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-[240px] mx-auto">This account no longer exists.</p>
         </div>
-        <Button onClick={() => router.back()} className="h-14 w-full max-w-[200px] rounded-full bg-primary font-black uppercase text-xs tracking-widest shadow-xl">Go Back</Button>
+        <Button onClick={() => router.back()} className="h-14 w-full max-w-[200px] rounded-full bg-[#EB4C4C] font-black uppercase text-xs tracking-widest shadow-xl">Go Back</Button>
       </div>
     )
   }
@@ -343,7 +342,7 @@ function ChatDetailContent() {
 
   return (
     <div className="flex flex-col h-svh bg-white relative overflow-hidden text-gray-900">
-      <header className="px-5 pt-6 pb-3 bg-[#111FA2] flex items-center justify-between sticky top-0 z-10">
+      <header className="px-5 pt-6 pb-3 bg-[#EB4C4C] flex items-center justify-between sticky top-0 z-10">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-9 w-9 rounded-full bg-white/20 text-white"><ChevronLeft className="w-5 h-5" /></Button>
         <div className={cn("flex items-center gap-3 transition-opacity flex-1 justify-center", otherUser.isSupport ? "cursor-default" : "cursor-pointer active:opacity-70")} onClick={() => !otherUser.isSupport && router.push(`/profile/${otherUserId}`)}>
           <Avatar className="w-8 h-8 border border-white/40 shadow-sm"><AvatarImage src={otherUserImage} className="object-cover" /><AvatarFallback>{otherUserName[0] || '?'}</AvatarFallback></Avatar>
@@ -378,9 +377,9 @@ function ChatDetailContent() {
                 <div className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
                   <div className={cn(
                     "max-w-[80%] px-4 py-3 text-[13px] font-medium leading-relaxed shadow-sm transition-all", 
-                    isMe ? "bg-primary text-white rounded-[1.5rem] rounded-tr-none" : "bg-gray-100 text-gray-900 rounded-[1.5rem] rounded-tl-none border border-gray-200",
+                    isMe ? "bg-[#EB4C4C] text-white rounded-[1.5rem] rounded-tr-none" : "bg-gray-100 text-gray-900 rounded-[1.5rem] rounded-tl-none border border-gray-200",
                     isGift && "bg-white border-none p-0 overflow-hidden rounded-2xl shadow-md min-w-[180px]",
-                    isCallLog && "bg-transparent shadow-none border-none py-1 px-2 font-black text-[10px] tracking-widest text-[#111FA2]/30 uppercase"
+                    isCallLog && "bg-transparent shadow-none border-none py-1 px-2 font-black text-[10px] tracking-widest text-[#EB4C4C]/30 uppercase"
                   )}>
                     {isGift ? (
                       <div className="flex flex-col">
@@ -408,7 +407,7 @@ function ChatDetailContent() {
                 </div>
                 {isMe && !isCallLog && (
                   <div className="flex justify-end pr-2 mt-1">
-                    <span className="text-[8px] font-black uppercase text-[#111FA2]/20 tracking-widest">{statusText}</span>
+                    <span className="text-[8px] font-black uppercase text-[#EB4C4C]/20 tracking-widest">{statusText}</span>
                   </div>
                 )}
               </div>
@@ -435,7 +434,7 @@ function ChatDetailContent() {
         )}
         <div className="relative group">
           <Input value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="Message..." className="rounded-full h-12 bg-gray-50 border-none px-6 text-[13px]" onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} disabled={isBlocked} />
-          <Button size="icon" className={cn("absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full w-9 h-9", inputText.trim() && !isSending ? "bg-primary text-white" : "bg-gray-200 text-gray-400")} onClick={() => handleSendMessage()} disabled={!inputText.trim() || isSending || isBlocked}>
+          <Button size="icon" className={cn("absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full w-9 h-9", inputText.trim() && !isSending ? "bg-[#EB4C4C] text-white" : "bg-gray-200 text-gray-400")} onClick={() => handleSendMessage()} disabled={!inputText.trim() || isSending || isBlocked}>
             {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <SendIcon className="w-4 h-4" />}
           </Button>
         </div>
@@ -468,7 +467,7 @@ function ChatDetailContent() {
                         onClick={() => setSelectedGift(gift)}
                         className={cn(
                           "flex flex-col items-center gap-2 p-2 rounded-2xl border transition-all cursor-pointer",
-                          selectedGift?.id === gift.id ? "bg-primary/20 border-primary shadow-lg" : "bg-transparent border-transparent"
+                          selectedGift?.id === gift.id ? "bg-[#EB4C4C]/20 border-[#EB4C4C] shadow-lg" : "bg-transparent border-transparent"
                         )}
                       >
                         <div className="w-14 h-14 flex items-center justify-center text-4xl">{gift.emoji}</div>
@@ -493,7 +492,7 @@ function ChatDetailContent() {
                   <Button 
                     onClick={() => handleSendGift()} 
                     disabled={!selectedGift || isSendingGift}
-                    className="h-12 px-10 rounded-full bg-primary text-white font-black uppercase text-xs tracking-widest shadow-xl"
+                    className="h-12 px-10 rounded-full bg-[#EB4C4C] text-white font-black uppercase text-xs tracking-widest shadow-xl"
                   >
                     {isSendingGift ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send"}
                   </Button>

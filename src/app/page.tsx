@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect } from "react"
@@ -44,7 +43,7 @@ export default function Home() {
   }, [user, isUserLoading, firestore, router])
 
   return (
-    <div className="flex h-svh w-full bg-[#111FA2] items-center justify-center overflow-hidden">
+    <div className="flex h-svh w-full bg-[#EB4C4C] items-center justify-center overflow-hidden">
       <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-1000">
         <h1 className="text-6xl font-logo text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.3)]">Matchflow</h1>
         <div className="w-32 h-1 bg-white/10 rounded-full overflow-hidden relative">
