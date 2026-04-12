@@ -349,7 +349,7 @@ function ChatDetailContent() {
           <div className="flex flex-col text-center">
             <div className="flex items-center justify-center gap-1 mb-0.5">
               <h3 className="font-bold text-[12px] leading-none text-white drop-shadow-sm">{otherUserName}</h3>
-              {otherUser.isVerified && <CheckCircle className="w-2.5 h-2.5 text-blue-400 fill-blue-400/10" />}
+              {otherUser.isVerified && <CheckCircle className="w-2.5 h-2.5 text-white/80 fill-white/10" />}
             </div>
             <span className={cn("text-[8px] font-black uppercase tracking-widest", otherUser.isOnline ? "text-green-400" : "text-white/40")}>{presenceText}</span>
           </div>
@@ -385,7 +385,7 @@ function ChatDetailContent() {
                       <div className="flex flex-col">
                         <div className="p-6 flex flex-col items-center justify-center bg-gray-50/50 relative">
                           <div className="text-5xl mb-2 drop-shadow-sm">{GIFTS.find(g => g.id === msg.giftId)?.emoji || '🎁'}</div>
-                          <div className="absolute bottom-4 right-4 italic font-black text-sky-500 text-2xl">x 1</div>
+                          <div className="absolute bottom-4 right-4 italic font-black text-red-500 text-2xl">x 1</div>
                         </div>
                         {isMe && !isBlocked && (
                           <button 
@@ -394,7 +394,7 @@ function ChatDetailContent() {
                               if (gift) handleSendGift(gift);
                             }}
                             disabled={isSendingGift}
-                            className="w-full h-12 bg-[#00AEEF] hover:bg-[#009EDF] text-white font-black text-sm uppercase tracking-widest transition-all active:scale-95"
+                            className="w-full h-12 bg-[#EB4C4C] hover:bg-[#D43B3B] text-white font-black text-sm uppercase tracking-widest transition-all active:scale-95"
                           >
                             {isSendingGift ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send one more"}
                           </button>

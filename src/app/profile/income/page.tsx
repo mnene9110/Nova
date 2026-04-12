@@ -81,11 +81,11 @@ export default function IncomePage() {
     }
   }
 
-  const darkRed = "bg-[#7F1D1D]";
+  const brandRed = "bg-[#EB4C4C]";
 
   return (
     <div className="flex flex-col h-svh bg-white text-gray-900 overflow-hidden">
-      <header className="px-4 py-6 flex items-center sticky top-0 bg-[#EB4C4C] z-10 shrink-0">
+      <header className="px-4 py-6 flex items-center sticky top-0 bg-[#EB4C4C] z-10 shrink-0 shadow-sm">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
         <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-white">Income Center</h1>
       </header>
@@ -95,8 +95,8 @@ export default function IncomePage() {
           <div className="absolute top-0 right-0 p-8 opacity-10"><Gem className="w-32 h-32" /></div>
           <div className="relative z-10 space-y-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center"><Gem className="w-5 h-5 text-blue-400" /></div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400">Total Diamonds</span>
+              <div className="w-10 h-10 rounded-2xl bg-[#EB4C4C]/20 flex items-center justify-center"><Gem className="w-5 h-5 text-[#EB4C4C]" /></div>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#EB4C4C]">Total Diamonds</span>
             </div>
             <div className="flex flex-col">
               <span className="text-6xl font-black font-headline tracking-tighter text-white">
@@ -109,26 +109,26 @@ export default function IncomePage() {
 
         <section className="bg-gray-50 p-8 rounded-[2.5rem] border border-gray-100 space-y-8 shadow-sm shrink-0">
           <div className="flex items-center justify-between">
-            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Conversion Rate</h2>
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#EB4C4C]">Conversion Rate</h2>
             <div className="flex items-center gap-2 px-3 py-1 bg-white/50 rounded-full border border-gray-200"><Info className="w-3 h-3 text-gray-400" /><span className="text-[9px] font-bold text-gray-500">Fixed Rate</span></div>
           </div>
 
           <div className="flex items-center justify-between gap-4 py-4">
             <div className="flex flex-col items-center gap-3 flex-1">
-              <div className="w-16 h-16 rounded-[1.5rem] bg-blue-500/10 flex items-center justify-center border border-blue-500/5 shadow-inner"><Gem className="w-8 h-8 text-blue-500" /></div>
+              <div className="w-16 h-16 rounded-[1.5rem] bg-zinc-900/5 flex items-center justify-center border border-zinc-900/5 shadow-inner"><Gem className="w-8 h-8 text-zinc-900" /></div>
               <span className="text-lg font-black font-headline text-gray-900">500</span>
               <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Diamonds</span>
             </div>
-            <ArrowRightLeft className="w-6 h-6 text-primary/30" />
+            <ArrowRightLeft className="w-6 h-6 text-[#EB4C4C]/30" />
             <div className="flex flex-col items-center gap-3 flex-1">
-              <div className="w-16 h-16 rounded-[1.5rem] bg-primary/10 flex items-center justify-center border border-primary/5 shadow-inner"><Coins className="w-8 h-8 text-primary" /></div>
+              <div className="w-16 h-16 rounded-[1.5rem] bg-[#EB4C4C]/10 flex items-center justify-center border border-[#EB4C4C]/5 shadow-inner"><Coins className="w-8 h-8 text-[#EB4C4C]" /></div>
               <span className="text-lg font-black font-headline text-gray-900">150</span>
               <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Coins</span>
             </div>
           </div>
 
           <div className="pt-4">
-            <Button onClick={handleExchange} disabled={isExchanging || !canExchange} className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3", canExchange ? darkRed : "bg-gray-200 text-gray-400 cursor-not-allowed")}>
+            <Button onClick={handleExchange} disabled={isExchanging || !canExchange} className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3", canExchange ? brandRed : "bg-gray-200 text-gray-400 cursor-not-allowed")}>
               {isExchanging ? <Loader2 className="w-6 h-6 animate-spin" /> : <><span className="text-sm font-black uppercase tracking-widest">Exchange Now</span><ArrowUpRight className="w-5 h-5" /></>}
             </Button>
             {!canExchange && !isProfileLoading && (
@@ -139,14 +139,14 @@ export default function IncomePage() {
 
         <section className="space-y-4 pb-10">
           <div className="flex items-center gap-2 px-2">
-            <History className="w-4 h-4 text-primary/40" />
+            <History className="w-4 h-4 text-[#EB4C4C]/40" />
             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Activity History</h2>
           </div>
 
           <div className="space-y-3">
             {isHistoryLoading ? (
               <div className="flex justify-center py-10">
-                <Loader2 className="w-6 h-6 animate-spin text-primary/20" />
+                <Loader2 className="w-6 h-6 animate-spin text-[#EB4C4C]/20" />
               </div>
             ) : transactions && transactions.length > 0 ? (
               transactions.map((tx: any) => {
@@ -157,7 +157,7 @@ export default function IncomePage() {
                   <div key={tx.id} className="bg-gray-50 border border-gray-100 p-5 rounded-[2rem] flex items-center gap-4 shadow-sm">
                     <div className={cn(
                       "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0",
-                      isGain ? "bg-blue-500/10 text-blue-500" : "bg-red-500/10 text-red-500"
+                      isGain ? "bg-[#EB4C4C]/10 text-[#EB4C4C]" : "bg-zinc-900/10 text-zinc-900"
                     )}>
                       {isGain ? <ArrowUpRight className="w-6 h-6" /> : <ArrowDownLeft className="w-6 h-6" />}
                     </div>
@@ -170,7 +170,7 @@ export default function IncomePage() {
                     <div className="text-right">
                       <div className={cn(
                         "flex items-center justify-end gap-1 text-sm font-black font-headline",
-                        isGain ? "text-blue-500" : "text-red-500"
+                        isGain ? "text-[#EB4C4C]" : "text-zinc-900"
                       )}>
                         {isGain ? "+" : "-"}{amount.toLocaleString()}
                         <Gem className="w-3 h-3 opacity-40" />

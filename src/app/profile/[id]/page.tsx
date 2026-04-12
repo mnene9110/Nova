@@ -166,8 +166,8 @@ export default function ProfileDetailPage() {
           <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-[240px] mx-auto">Profile details for Customer Support agents are private.</p>
         </div>
         <div className="flex flex-col w-full gap-3 max-w-[240px]">
-          <Button onClick={() => router.push(`/chat/${id}`)} className="h-14 rounded-full bg-primary font-black uppercase text-xs tracking-widest gap-3"><Headset className="w-4 h-4" />Chat with Support</Button>
-          <Button variant="ghost" onClick={() => router.back()} className="h-14 rounded-full text-gray-400 font-bold uppercase text-[10px] tracking-widest">Go Back</Button>
+          <Button onClick={() => router.push(`/chat/${id}`)} className="h-14 rounded-full bg-primary font-black uppercase text-xs tracking-widest gap-3 outline-none border-none ring-0"><Headset className="w-4 h-4" />Chat with Support</Button>
+          <Button variant="ghost" onClick={() => router.back()} className="h-14 rounded-full text-gray-400 font-bold uppercase text-[10px] tracking-widest outline-none ring-0">Go Back</Button>
         </div>
       </div>
     )
@@ -184,10 +184,10 @@ export default function ProfileDetailPage() {
       <div className="relative aspect-[3/4] w-full shrink-0">
         <Image src={mainPhoto} alt={userProfile?.username || "User"} fill className="object-cover cursor-pointer active:opacity-90" priority onClick={() => openFullscreen(mainPhoto)} />
         <div className="absolute top-12 left-4 right-4 flex justify-between items-center z-30">
-          <Button variant="ghost" size="icon" className="text-white bg-black/20 backdrop-blur-md hover:bg-black/30 rounded-full" onClick={() => router.back()}><ChevronLeft className="w-8 h-8" /></Button>
+          <Button variant="ghost" size="icon" className="text-white bg-black/20 backdrop-blur-md hover:bg-black/30 rounded-full outline-none ring-0" onClick={() => router.back()}><ChevronLeft className="w-8 h-8" /></Button>
           {!isProtected && (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="text-white bg-black/20 backdrop-blur-md hover:bg-black/30 rounded-full"><MoreHorizontal className="w-8 h-8" /></Button></DropdownMenuTrigger>
+              <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="text-white bg-black/20 backdrop-blur-md hover:bg-black/30 rounded-full outline-none ring-0"><MoreHorizontal className="w-8 h-8" /></Button></DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 rounded-2xl bg-white border-none shadow-2xl p-2">
                 <DropdownMenuItem onClick={() => setShowReportDialog(true)} className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-gray-700 rounded-xl cursor-pointer"><ShieldAlert className="w-4 h-4 text-amber-500" />Report User</DropdownMenuItem>
                 <DropdownMenuItem onClick={handleBlock} className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-red-600 rounded-xl cursor-pointer"><UserX className="w-4 h-4" />Block User</DropdownMenuItem>
@@ -207,13 +207,12 @@ export default function ProfileDetailPage() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <h1 className="text-3xl font-black font-headline text-gray-900 leading-none">{userProfile?.username}</h1>
-              {isVerified && <CheckCircle className="w-6 h-6 text-blue-500 fill-blue-500/10" />}
+              {isVerified && <CheckCircle className="w-6 h-6 text-red-500 fill-red-500/10" />}
             </div>
             <div className="flex flex-col gap-1.5">
               <p className="text-[13px] font-medium text-gray-500 capitalize leading-none font-body">{userProfile?.gender || "Not specified"} • {age ? `${age} years old` : 'Age hidden'}</p>
               <div className="flex items-center gap-4 mt-2">
-                <button onClick={copyId} className="flex items-center gap-2 px-3 py-1 bg-green-50 rounded-full text-[9px] font-black text-green-600 uppercase tracking-widest active:scale-95 transition-all">ID: {userProfile?.numericId || '---'}<Copy className="w-3 h-3 opacity-50" /></button>
-                {/* Location remains prominent in Detail View */}
+                <button onClick={copyId} className="flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-full text-[9px] font-black text-gray-600 uppercase tracking-widest active:scale-95 transition-all outline-none ring-0 select-none">ID: {userProfile?.numericId || '---'}<Copy className="w-3 h-3 opacity-50" /></button>
                 <div className="flex items-center gap-1.5 text-[9px] font-black text-gray-400 uppercase tracking-widest"><Globe className="w-3 h-3" />{userProfile?.location || "Kenya"}</div>
               </div>
             </div>
@@ -222,8 +221,8 @@ export default function ProfileDetailPage() {
           {(userProfile?.isAdmin || userProfile?.isSupport || isVerified) && (
             <div className="flex gap-2 flex-wrap">
               {userProfile?.isAdmin && <div className="px-3 py-1 bg-primary/10 rounded-full inline-flex items-center gap-1.5 border border-primary/20"><Zap className="w-3 h-3 text-primary fill-current" /><span className="text-[9px] font-black text-primary uppercase tracking-widest">Admin</span></div>}
-              {userProfile?.isSupport && <div className="px-3 py-1 bg-blue-500/10 rounded-full inline-flex items-center gap-1.5 border border-blue-500/20"><Headset className="w-3 h-3 text-blue-500" /><span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Support</span></div>}
-              {isVerified && <div className="px-3 py-1 bg-blue-500/10 rounded-full inline-flex items-center gap-1.5 border border-blue-500/20"><ShieldCheck className="w-3 h-3 text-blue-500" /><span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Verified</span></div>}
+              {userProfile?.isSupport && <div className="px-3 py-1 bg-zinc-900/5 rounded-full inline-flex items-center gap-1.5 border border-zinc-900/10"><Headset className="w-3 h-3 text-zinc-900" /><span className="text-[9px] font-black text-zinc-900 uppercase tracking-widest">Support</span></div>}
+              {isVerified && <div className="px-3 py-1 bg-primary/10 rounded-full inline-flex items-center gap-1.5 border border-primary/20"><ShieldCheck className="w-3 h-3 text-primary" /><span className="text-[9px] font-black text-primary uppercase tracking-widest">Verified</span></div>}
             </div>
           )}
 
@@ -296,14 +295,14 @@ export default function ProfileDetailPage() {
 
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white/95 to-transparent z-[60] flex flex-col items-center">
         <div className="w-full max-w-md">
-          <Button className="w-full h-16 rounded-full bg-primary text-white font-black text-lg shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3" onClick={() => router.push(`/chat/${id}`)}>Send Message</Button>
+          <Button className="w-full h-16 rounded-full bg-primary text-white font-black text-lg shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 outline-none border-none ring-0" onClick={() => router.push(`/chat/${id}`)}>Send Message</Button>
         </div>
       </div>
 
       {fullscreenImage && (
         <div className="fixed inset-0 z-[1000] bg-black flex flex-col items-center justify-center animate-in fade-in duration-300">
           <div className="relative w-full flex-1"><Image src={fullscreenImage} alt="Fullscreen" fill className="object-contain" priority /></div>
-          <div className="p-10 shrink-0"><Button onClick={closeFullscreen} className="h-16 px-10 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white font-black uppercase text-xs tracking-[0.2em] shadow-2xl active:scale-95 transition-all gap-3"><X className="w-5 h-5" />Close Viewer</Button></div>
+          <div className="p-10 shrink-0"><Button onClick={closeFullscreen} className="h-16 px-10 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white font-black uppercase text-xs tracking-[0.2em] shadow-2xl active:scale-95 transition-all gap-3 outline-none ring-0"><X className="w-5 h-5" />Close Viewer</Button></div>
         </div>
       )}
 
@@ -315,8 +314,8 @@ export default function ProfileDetailPage() {
           </DialogHeader>
           <div className="py-4"><Textarea placeholder="Tell us what happened..." value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} className="min-h-[140px] rounded-[1.5rem] bg-gray-50 border-none focus-visible:ring-primary/20 py-4 font-medium" /></div>
           <DialogFooter className="flex flex-col gap-3">
-            <Button onClick={handleReport} disabled={!reportDetails.trim() || isSubmittingReport} className="w-full h-14 rounded-full bg-primary text-white font-black shadow-lg">{isSubmittingReport ? <Loader2 className="w-5 h-5 animate-spin" /> : "Submit Report"}</Button>
-            <Button variant="ghost" onClick={() => setShowReportDialog(false)} className="w-full h-12 rounded-full text-gray-400 font-black uppercase text-[10px] tracking-widest">Cancel</Button>
+            <Button onClick={handleReport} disabled={!reportDetails.trim() || isSubmittingReport} className="w-full h-14 rounded-full bg-primary text-white font-black shadow-lg border-none outline-none ring-0">{isSubmittingReport ? <Loader2 className="w-5 h-5 animate-spin" /> : "Submit Report"}</Button>
+            <Button variant="ghost" onClick={() => setShowReportDialog(false)} className="w-full h-12 rounded-full text-gray-400 font-black uppercase text-[10px] tracking-widest outline-none ring-0">Cancel</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

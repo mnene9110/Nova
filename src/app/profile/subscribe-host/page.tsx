@@ -82,32 +82,32 @@ export default function SubscribeHostPage() {
     }
   }
 
-  const darkRed = "bg-[#7F1D1D]";
+  const brandRed = "bg-[#EB4C4C]";
 
   return (
-    <div className="flex flex-col min-h-svh bg-transparent text-gray-900 overflow-y-auto pb-20">
-      <header className="px-4 py-8 flex items-center bg-transparent shrink-0">
+    <div className="flex flex-col min-h-svh bg-white text-gray-900 overflow-y-auto pb-20">
+      <header className="px-4 py-6 flex items-center bg-[#EB4C4C] shrink-0 sticky top-0 z-50 shadow-sm">
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={() => router.back()} 
-          className="text-white h-10 w-10 bg-black/10 backdrop-blur-md rounded-full"
+          className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"
         >
           <ChevronLeft className="w-6 h-6" />
         </Button>
-        <h1 className="text-xl font-black font-headline ml-4 tracking-widest uppercase text-white drop-shadow-md">Become a Host</h1>
+        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-white">Become a Host</h1>
       </header>
 
-      <main className="flex-1 px-6 pt-4 space-y-8">
+      <main className="flex-1 px-6 pt-8 space-y-8">
         <section className="bg-zinc-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-10"><Star className="w-32 h-32" /></div>
           <div className="relative z-10 space-y-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center border border-amber-500/10">
-                <Sparkles className="w-6 h-6 text-amber-500" />
+              <div className="w-12 h-12 rounded-2xl bg-[#EB4C4C]/20 flex items-center justify-center border border-[#EB4C4C]/10">
+                <Sparkles className="w-6 h-6 text-[#EB4C4C]" />
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500">Official Status</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#EB4C4C]">Official Status</span>
                 <h2 className="text-3xl font-black font-headline leading-none">Party Admin</h2>
               </div>
             </div>
@@ -128,14 +128,14 @@ export default function SubscribeHostPage() {
           </div>
         </section>
 
-        <section className="bg-white/60 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/50 shadow-2xl space-y-8">
+        <section className="bg-gray-50 p-8 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-8">
           <div className="text-center space-y-2">
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">One-time Subscription</p>
             <div className="flex items-center justify-center gap-3">
-              <div className="bg-primary/10 w-10 h-10 rounded-xl flex items-center justify-center">
-                <span className="text-primary font-black text-xl italic">S</span>
+              <div className="bg-[#EB4C4C]/10 w-10 h-10 rounded-xl flex items-center justify-center">
+                <span className="text-[#EB4C4C] font-black text-xl italic">S</span>
               </div>
-              <span className="text-5xl font-black font-headline tracking-tighter">{HOST_SUBSCRIPTION_COST.toLocaleString()}</span>
+              <span className="text-5xl font-black font-headline tracking-tighter">4,000</span>
             </div>
           </div>
 
@@ -143,7 +143,7 @@ export default function SubscribeHostPage() {
             <Button 
               onClick={handleSubscribe}
               disabled={isSubscribing}
-              className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl active:scale-95 transition-all gap-3", darkRed)}
+              className={cn("w-full h-18 rounded-full text-white font-black text-lg shadow-2xl active:scale-95 transition-all gap-3 border-none outline-none ring-0", brandRed)}
             >
               {isSubscribing ? (
                 <Loader2 className="w-6 h-6 animate-spin" />

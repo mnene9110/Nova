@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { RotateCcw, Loader2, CheckCircle } from "lucide-react"
+import { RotateCcw, Loader2, CheckCircle, MessageSquare } from "lucide-react"
 import { useFirebase, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { collection, query, where, limit, getDocs, doc } from "firebase/firestore"
 import { useRouter } from "next/navigation"
@@ -121,7 +121,7 @@ export default function DiscoverPage() {
         <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
-            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] rounded-[2rem] transition-all overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 active:translate-y-1 shadow-lg"
+            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] rounded-[2rem] transition-all overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 active:translate-y-1 shadow-lg outline-none ring-0 select-none"
           >
             <div className="relative z-10 flex flex-col items-center gap-2">
               <div className="w-14 h-14 relative flex items-center justify-center drop-shadow-lg">
@@ -133,7 +133,7 @@ export default function DiscoverPage() {
           
           <button 
             onClick={() => router.push('/task-center')}
-            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] rounded-[2rem] transition-all overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 active:translate-y-1 shadow-lg"
+            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] rounded-[2rem] transition-all overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 active:translate-y-1 shadow-lg outline-none ring-0 select-none"
           >
             <div className="relative z-10 flex flex-col items-center gap-2">
               <div className="w-14 h-14 relative flex items-center justify-center drop-shadow-lg">
@@ -148,12 +148,12 @@ export default function DiscoverPage() {
       {/* Recommended Header - Sticky Colored */}
       <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-[#EB4C4C] shadow-sm">
         <div className="flex items-center justify-between">
-          <h2 className="text-[14px] font-black text-white tracking-tight ml-1">Recommended for you</h2>
+          <h2 className="text-[14px] font-black text-white tracking-tight ml-1 uppercase tracking-[0.1em]">Recommended for you</h2>
           
           <button 
             onClick={handleRefresh} 
             disabled={isInitialLoading}
-            className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 text-white shadow-sm disabled:opacity-50"
+            className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 text-white shadow-sm disabled:opacity-50 outline-none ring-0 select-none"
           >
             {isInitialLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -169,7 +169,7 @@ export default function DiscoverPage() {
         {mappedUsers.map((user) => (
           <div 
             key={user.id} 
-            className="group relative aspect-[3/3.8] rounded-[1.75rem] overflow-hidden bg-white border border-gray-100 cursor-pointer shadow-sm" 
+            className="group relative aspect-[3/3.8] rounded-[1.75rem] overflow-hidden bg-white border border-gray-100 cursor-pointer shadow-sm outline-none ring-0 select-none" 
             onClick={() => router.push(`/profile/${user.id}`)}
           >
             <div className="absolute inset-0 z-0">
@@ -183,17 +183,15 @@ export default function DiscoverPage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
             </div>
 
-            {/* Chat Icon - Top Right */}
+            {/* Red Chat Icon - Top Right */}
             <button 
               onClick={(e) => { 
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute -top-3 -right-2 w-20 h-20 bg-transparent flex items-center justify-center z-10 transition-all active:scale-90"
+              className="absolute top-3 right-3 w-10 h-10 bg-[#EB4C4C] rounded-full flex items-center justify-center z-10 transition-all active:scale-90 shadow-lg border border-white/20 outline-none ring-0 select-none"
             >
-              <div className="relative w-16 h-16 drop-shadow-[0_5px_10px_rgba(0,0,0,0.3)]">
-                <Image src="/chatt.png" alt="Chat" fill className="object-contain" />
-              </div>
+              <MessageSquare className="w-5 h-5 text-white" />
             </button>
 
             {/* Info Overlay */}
@@ -204,17 +202,17 @@ export default function DiscoverPage() {
                     {user.name}
                   </h3>
                   {user.isVerified && (
-                    <div className="w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center shadow-sm">
-                      <CheckCircle className="w-3 h-3 text-black fill-current" />
+                    <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm">
+                      <CheckCircle className="w-3 h-3 text-[#EB4C4C] fill-current" />
                     </div>
                   )}
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <div className="px-2 h-5 rounded-md flex items-center justify-center shadow-sm bg-blue-600">
+                  <div className="px-2 h-5 rounded-md flex items-center justify-center shadow-sm bg-zinc-900/40 backdrop-blur-md">
                     <span className="text-[9px] font-black text-white leading-none">{user.age}</span>
                   </div>
-                  <div className="px-2 h-5 rounded-md bg-green-600 flex items-center justify-center shadow-sm">
+                  <div className="px-2 h-5 rounded-md bg-[#EB4C4C] flex items-center justify-center shadow-sm">
                     <span className="text-[9px] font-black text-white uppercase tracking-tighter leading-none">{user.location.split(',')[0]}</span>
                   </div>
                 </div>

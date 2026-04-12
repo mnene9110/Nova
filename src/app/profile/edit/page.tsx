@@ -180,7 +180,7 @@ export default function EditProfilePage() {
 
   return (
     <div className="flex flex-col h-svh bg-white text-gray-900 overflow-hidden">
-      <header className="shrink-0 px-4 py-5 flex items-center bg-[#EB4C4C] z-50">
+      <header className="shrink-0 px-4 py-6 flex items-center bg-[#EB4C4C] z-50 shadow-sm">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full"><ChevronLeft className="w-6 h-6" /></Button>
         <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-white">Edit Profile</h1>
       </header>
@@ -193,7 +193,7 @@ export default function EditProfilePage() {
                 <AvatarImage src={formData.profilePhotoUrls[0] || ""} className="object-cover" />
                 <AvatarFallback className="bg-primary/5 text-primary text-4xl font-black">{formData.username?.[0] || <User className="w-16 h-16" />}</AvatarFallback>
               </Avatar>
-              <button onClick={() => { setActivePhotoSlot(0); mainFileInputRef.current?.click(); }} className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center shadow-xl active:scale-90 transition-transform z-10"><Camera className="w-5 h-5 text-white" /></button>
+              <button onClick={() => { setActivePhotoSlot(0); mainFileInputRef.current?.click(); }} className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center shadow-xl active:scale-90 transition-transform z-10 outline-none border-none ring-0 select-none"><Camera className="w-5 h-5 text-white" /></button>
             </div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mt-5">Main Profile Photo</p>
           </div>
@@ -208,12 +208,12 @@ export default function EditProfilePage() {
                     {photoUrl ? (
                       <>
                         <div className="w-full h-full rounded-2xl overflow-hidden border-2 border-gray-50 shadow-md"><Image src={photoUrl} alt="Extra" fill className="object-cover" /></div>
-                        <button onClick={() => removePhoto(slotIndex)} className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white shadow-md active:scale-90 transition-all z-20"><X className="w-3 h-3" /></button>
+                        <button onClick={() => removePhoto(slotIndex)} className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white shadow-md active:scale-90 transition-all z-20 outline-none border-none ring-0 select-none"><X className="w-3 h-3" /></button>
                       </>
                     ) : (
                       <button 
                         onClick={() => { setActivePhotoSlot(slotIndex); extraPhotosInputRef.current?.click(); }} 
-                        className="w-full h-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center shadow-sm hover:bg-white hover:border-primary/30 active:scale-95 transition-all group"
+                        className="w-full h-full rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center shadow-sm hover:bg-white hover:border-primary/30 active:scale-95 transition-all group outline-none ring-0 select-none"
                       >
                         <Plus className="w-6 h-6 text-gray-300 group-hover:text-primary transition-colors" />
                       </button>
@@ -295,7 +295,7 @@ export default function EditProfilePage() {
                     key={interest}
                     onClick={() => toggleInterest(interest)}
                     className={cn(
-                      "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm",
+                      "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm outline-none ring-0 select-none",
                       isSelected 
                         ? "bg-primary text-white border-primary" 
                         : "bg-white text-gray-500 border-gray-100 hover:bg-gray-50"
@@ -311,13 +311,13 @@ export default function EditProfilePage() {
       </main>
 
       <footer className="shrink-0 fixed bottom-0 left-0 right-0 p-6 bg-white/95 backdrop-blur-md z-50 border-t border-gray-100">
-        <div className="max-w-md mx-auto"><Button onClick={handleSave} disabled={isSaving} className="w-full h-16 rounded-full bg-primary text-white font-black text-lg gap-3 shadow-xl">{isSaving ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}Save Changes</Button></div>
+        <div className="max-w-md mx-auto"><Button onClick={handleSave} disabled={isSaving} className="w-full h-16 rounded-full bg-primary text-white font-black text-lg gap-3 shadow-xl border-none outline-none ring-0">{isSaving ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}Save Changes</Button></div>
       </footer>
 
       <Dialog open={!!imageToCrop} onOpenChange={(open) => !open && !isCropping && setImageToCrop(null)}>
         <DialogContent className="rounded-[2.5rem] bg-white border-none p-0 max-w-[95%] mx-auto shadow-2xl overflow-hidden">
           <div className="relative w-full aspect-square bg-zinc-950">{imageToCrop && <Cropper image={imageToCrop} crop={crop} zoom={zoom} aspect={1} onCropChange={setCrop} onCropComplete={onCropComplete} onZoomChange={setZoom} />}</div>
-          <div className="p-6 space-y-6"><input type="range" value={zoom} min={1} max={3} step={0.1} onChange={(e) => setZoom(Number(e.target.value))} className="w-full" /><DialogFooter className="flex gap-3"><Button variant="ghost" onClick={() => setImageToCrop(null)} className="flex-1">Cancel</Button><Button onClick={handleApplyCrop} className="flex-1">Apply</Button></DialogFooter></div>
+          <div className="p-6 space-y-6"><input type="range" value={zoom} min={1} max={3} step={0.1} onChange={(e) => setZoom(Number(e.target.value))} className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-primary" /><DialogFooter className="flex gap-3"><Button variant="ghost" onClick={() => setImageToCrop(null)} className="flex-1 rounded-full font-black text-xs uppercase text-gray-400">Cancel</Button><Button onClick={handleApplyCrop} className="flex-1 rounded-full bg-zinc-900 text-white font-black text-xs uppercase shadow-xl">Apply</Button></DialogFooter></div>
         </DialogContent>
       </Dialog>
     </div>

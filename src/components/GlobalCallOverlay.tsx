@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef } from "react"
@@ -130,13 +129,10 @@ export function GlobalCallOverlay() {
       if (statusRef.current === 'idle') {
         setCallStatus(isCaller ? 'ringing' : 'incoming');
         
-        // Caller had gesture in Chat screen, Receiver will have gesture on Accept button.
-        // For Caller, we can try engageHardware immediately.
         if (isCaller) {
           engageHardware(data.callType);
         }
 
-        // Pre-fetch token
         getAgoraToken(activeChatIdRef.current!, currentUser.uid)
           .then(setAgoraTokenData)
           .catch(err => console.error("Token pre-fetch failed", err));
@@ -176,10 +172,8 @@ export function GlobalCallOverlay() {
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       
-      // Stop the test stream tracks after success
       stream.getTracks().forEach(t => t.stop());
 
-      // Agora tracks creation
       if (!localTracksRef.current.audioTrack) {
         localTracksRef.current.audioTrack = await AgoraRTC.createMicrophoneAudioTrack({
           ANS: true, AEC: true, AGC: true
@@ -349,7 +343,6 @@ export function GlobalCallOverlay() {
   const handleAcceptCall = async () => {
     if (!firestore || !activeChatIdRef.current || !callData) return;
     
-    // Receiver triggers permission request via Accept button gesture
     await engageHardware(callData.callType);
 
     if (ringtoneRef.current) {
@@ -513,13 +506,13 @@ export function GlobalCallOverlay() {
           <>
             <button 
               onClick={handleEndCall} 
-              className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center shadow-2xl active:scale-90 transition-all border-4 border-white/10"
+              className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center shadow-2xl active:scale-90 transition-all border-4 border-white/10 outline-none ring-0 select-none"
             >
               <PhoneOff className="w-8 h-8 text-white" />
             </button>
             <button 
               onClick={handleAcceptCall} 
-              className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center shadow-2xl active:scale-90 transition-all animate-bounce border-4 border-white/10"
+              className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center shadow-2xl active:scale-90 transition-all animate-bounce border-4 border-white/10 outline-none ring-0 select-none"
             >
               <Phone className="w-8 h-8 text-white" />
             </button>
@@ -527,7 +520,7 @@ export function GlobalCallOverlay() {
         ) : (
           <button 
             onClick={handleEndCall} 
-            className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center shadow-2xl active:scale-90 transition-all border-4 border-white/10"
+            className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center shadow-2xl active:scale-90 transition-all border-4 border-white/10 outline-none ring-0 select-none"
           >
             <PhoneOff className="w-8 h-8 text-white" />
           </button>

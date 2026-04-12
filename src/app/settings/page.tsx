@@ -44,7 +44,7 @@ export default function SettingsPage() {
     }
   }
 
-  const isGuest = user?.email?.includes('@matchflow.app') || user?.isAnonymous
+  const isGuest = user?.email?.includes('@nova.app') || user?.isAnonymous
   const isAdmin = userProfile?.isAdmin === true
 
   const settingsItems = [
@@ -58,18 +58,18 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col h-svh bg-white text-gray-900 overflow-y-auto">
-      <header className="px-4 py-4 flex items-center justify-between sticky top-0 bg-[#EB4C4C] z-50 shrink-0">
+      <header className="px-4 py-6 flex items-center justify-between sticky top-0 bg-[#EB4C4C] z-50 shrink-0 shadow-sm">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
-        <h1 className="text-xl font-black font-headline tracking-widest uppercase text-white drop-shadow-md">Settings</h1>
+        <h1 className="text-xl font-black font-headline tracking-widest uppercase text-white">Settings</h1>
         <div className="w-10" />
       </header>
 
       <main className="px-6 pt-8 pb-6 space-y-3">
         {settingsItems.map((item, idx) => (
-          <button key={idx} onClick={item.onClick || (() => {})} className="w-full flex items-center justify-between p-5 bg-gray-50 border border-gray-100 rounded-[1.75rem] transition-all hover:bg-white active:scale-[0.98] group shadow-sm">
+          <button key={idx} onClick={item.onClick || (() => {})} className="w-full flex items-center justify-between p-5 bg-gray-50 border border-gray-100 rounded-[1.75rem] transition-all hover:bg-white active:scale-[0.98] group shadow-sm outline-none ring-0 select-none">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-2xl bg-[#EB4C4C]/10 flex items-center justify-center border border-primary/5"><item.icon className="w-5 h-5 text-primary" /></div>
-              <div className="flex flex-col items-start"><span className="text-[13px] font-bold text-gray-900">{item.label}</span>{item.badge && <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full mt-1 ${isGuest ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>{item.badge}</span>}</div>
+              <div className="flex flex-col items-start"><span className="text-[13px] font-bold text-gray-900">{item.label}</span>{item.badge && <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full mt-1 ${isGuest ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-primary/10 text-primary border border-primary/20'}`}>{item.badge}</span>}</div>
             </div>
             <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
           </button>
@@ -78,7 +78,7 @@ export default function SettingsPage() {
         <div className="pt-6">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <button className="w-full h-14 flex items-center justify-center gap-2 bg-red-50/50 border border-red-100/50 rounded-full transition-all active:scale-[0.98] group">
+              <button className="w-full h-14 flex items-center justify-center gap-2 bg-red-50/50 border border-red-100/50 rounded-full transition-all active:scale-[0.98] group outline-none ring-0 select-none">
                 <span className="text-xs font-black uppercase tracking-widest text-red-500">Sign Out</span>
               </button>
             </AlertDialogTrigger>
@@ -90,8 +90,8 @@ export default function SettingsPage() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter className="flex flex-col gap-2 mt-6">
-                <AlertDialogAction onClick={handleSignOut} className="rounded-full h-14 bg-red-500 hover:bg-red-600 text-white font-black text-sm w-full">Sign Out</AlertDialogAction>
-                <AlertDialogCancel className="rounded-full h-14 border-none bg-gray-50 font-black text-sm text-gray-400 hover:bg-gray-100 w-full">Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleSignOut} className="rounded-full h-14 bg-red-500 hover:bg-red-600 text-white font-black text-sm w-full outline-none border-none ring-0">Sign Out</AlertDialogAction>
+                <AlertDialogCancel className="rounded-full h-14 border-none bg-gray-50 font-black text-sm text-gray-400 hover:bg-gray-100 w-full outline-none ring-0">Cancel</AlertDialogCancel>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

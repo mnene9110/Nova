@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -72,16 +71,16 @@ export default function BindAccountPage() {
   }
 
   return (
-    <div className="flex flex-col h-svh bg-transparent text-gray-900">
-      <header className="px-4 py-4 flex items-center sticky top-0 bg-transparent z-10 border-b border-gray-100">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-gray-900 h-10 w-10 bg-white/20 backdrop-blur-md rounded-full"><ChevronLeft className="w-6 h-6" /></Button>
-        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase">Secure Account</h1>
+    <div className="flex flex-col h-svh bg-white text-gray-900">
+      <header className="px-4 py-6 flex items-center sticky top-0 bg-[#EB4C4C] z-10 shadow-sm">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full"><ChevronLeft className="w-6 h-6" /></Button>
+        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-white">Secure Account</h1>
       </header>
 
       <main className="flex-1 p-8 space-y-10 overflow-y-auto">
         <div className="space-y-4">
-          <div className="w-16 h-16 bg-primary/10 rounded-[2rem] flex items-center justify-center mb-2 border border-primary/20">
-            <ShieldCheck className="w-8 h-8 text-primary" />
+          <div className="w-16 h-16 bg-[#EB4C4C]/10 rounded-[2rem] flex items-center justify-center mb-2 border border-[#EB4C4C]/20">
+            <ShieldCheck className="w-8 h-8 text-[#EB4C4C]" />
           </div>
           <div className="space-y-2">
             <h2 className="text-3xl font-black font-headline text-gray-900 leading-tight">Link your Email</h2>
@@ -91,18 +90,18 @@ export default function BindAccountPage() {
 
         <div className="space-y-6">
           <div className="space-y-3">
-            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Email Address</Label>
+            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#EB4C4C] ml-1">Email Address</Label>
             <div className="relative">
               <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-              <Input type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="h-16 pl-14 rounded-2xl bg-gray-50 border-gray-100 text-gray-900 placeholder:text-gray-300 text-sm font-medium focus-visible:ring-primary/50" />
+              <Input type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="h-16 pl-14 rounded-2xl bg-gray-50 border-gray-100 text-gray-900 placeholder:text-gray-300 text-sm font-medium focus-visible:ring-[#EB4C4C]/50" />
             </div>
           </div>
 
           <div className="space-y-3">
-            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Create Password</Label>
+            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#EB4C4C] ml-1">Create Password</Label>
             <div className="relative">
               <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-              <Input type="password" placeholder="Min. 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} className="h-16 pl-14 rounded-2xl bg-gray-50 border-gray-100 text-gray-900 placeholder:text-gray-300 text-sm font-medium focus-visible:ring-primary/50" />
+              <Input type="password" placeholder="Min. 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} className="h-16 pl-14 rounded-2xl bg-gray-50 border-gray-100 text-gray-900 placeholder:text-gray-300 text-sm font-medium focus-visible:ring-[#EB4C4C]/50" />
             </div>
 
             {password.length > 0 && (
@@ -125,7 +124,7 @@ export default function BindAccountPage() {
         </div>
 
         <div className="pt-8 pb-10">
-          <Button className="w-full h-16 rounded-full bg-primary text-white text-lg font-black shadow-2xl shadow-primary/20 active:scale-95 transition-all" onClick={handleBind} disabled={isPending}>{isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : "Secure My Account"}</Button>
+          <Button className="w-full h-16 rounded-full bg-[#EB4C4C] text-white text-lg font-black shadow-2xl shadow-[#EB4C4C]/20 active:scale-95 transition-all" onClick={handleBind} disabled={isPending}>{isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : "Secure My Account"}</Button>
           <p className="text-[10px] text-center text-gray-400 mt-6 font-black uppercase tracking-[0.1em]">Your data and coins will be safely linked</p>
         </div>
       </main>

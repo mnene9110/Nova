@@ -138,13 +138,13 @@ function RechargeContent() {
 
   return (
     <div className="flex flex-col h-svh bg-white text-gray-900 overflow-hidden">
-      <header className="px-4 py-4 flex items-center justify-between sticky top-0 bg-[#EB4C4C] z-10 shrink-0">
+      <header className="px-4 py-6 flex items-center justify-between sticky top-0 bg-[#EB4C4C] z-10 shrink-0 shadow-sm">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
         <div className="flex flex-col items-center">
-          <h1 className="text-lg font-black font-headline tracking-widest uppercase text-white drop-shadow-md">Wallet</h1>
+          <h1 className="text-lg font-black font-headline tracking-widest uppercase text-white">Wallet</h1>
           <p className="text-[8px] font-black text-white/60 uppercase tracking-widest">Kenya Region</p>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => router.push('/recharge/history')} className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full"><History className="w-5 h-5" /></Button>
+        <Button variant="ghost" size="icon" onClick={() => router.push('/recharge/history')} className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><History className="w-5 h-5" /></Button>
       </header>
 
       <main className="flex-1 px-6 pt-8 pb-44 overflow-y-auto scroll-smooth">
@@ -166,7 +166,7 @@ function RechargeContent() {
               const localPrice = Math.round(pkg.priceKes * currencyInfo.rate);
               
               return (
-                <Card key={pkg.amount} onClick={() => setSelectedPackage(pkg)} className={cn("relative aspect-square flex flex-col items-center justify-center gap-2 border-2 transition-all cursor-pointer rounded-[1.75rem]", isSelected ? "border-[#EB4C4C] bg-white shadow-2xl scale-[1.05]" : "border-gray-100 bg-gray-50/50")}>
+                <Card key={pkg.amount} onClick={() => setSelectedPackage(pkg)} className={cn("relative aspect-square flex flex-col items-center justify-center gap-2 border-2 transition-all cursor-pointer rounded-[1.75rem] outline-none ring-0 select-none", isSelected ? "border-[#EB4C4C] bg-white shadow-2xl scale-[1.05]" : "border-gray-100 bg-gray-50/50")}>
                   <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", isSelected ? "bg-[#EB4C4C]" : "bg-[#EB4C4C]/10")}><span className={cn("font-black text-sm italic", isSelected ? "text-white" : "text-[#EB4C4C]")}>S</span></div>
                   <div className="text-center">
                     <p className={cn("text-sm font-black", isSelected ? "text-[#EB4C4C]" : "text-gray-900")}>{pkg.amount.toLocaleString()}</p>
@@ -187,7 +187,7 @@ function RechargeContent() {
             onClick={handlePesaPal} 
             disabled={isProcessing || !selectedPackage}
             className={cn(
-              "w-full h-20 rounded-full text-white font-black text-xl shadow-2xl transition-all active:scale-95 gap-3",
+              "w-full h-20 rounded-full text-white font-black text-xl shadow-2xl transition-all active:scale-95 gap-3 border-none outline-none ring-0",
               selectedPackage ? "bg-[#EB4C4C]" : "bg-[#EB4C4C]/50"
             )}
           >
@@ -201,7 +201,7 @@ function RechargeContent() {
 
           <Sheet open={isSellersOpen} onOpenChange={setIsSellersOpen}>
             <SheetTrigger asChild>
-              <button className="w-full h-20 rounded-full bg-gray-50 border border-gray-100 flex items-center px-8 gap-4 active:scale-95 transition-all shadow-sm group">
+              <button className="w-full h-20 rounded-full bg-gray-50 border border-gray-100 flex items-center px-8 gap-4 active:scale-95 transition-all shadow-sm group outline-none ring-0 select-none">
                 <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 group-hover:bg-amber-500/20 transition-colors">
                   <Users className="w-5 h-5 text-amber-600" />
                 </div>
@@ -239,7 +239,7 @@ function RechargeContent() {
                         </Avatar>
                         <div className="flex flex-col">
                           <span className="text-[13px] font-black text-gray-900">{seller.username}</span>
-                          <button onClick={() => copySellerId(seller.numericId?.toString())} className="text-[9px] font-bold text-green-500 uppercase tracking-widest flex items-center gap-1 active:opacity-50">
+                          <button onClick={() => copySellerId(seller.numericId?.toString())} className="text-[9px] font-bold text-green-500 uppercase tracking-widest flex items-center gap-1 active:opacity-50 outline-none ring-0 select-none">
                             ID: {seller.numericId || "---"}
                             <Copy className="w-2.5 h-2.5" />
                           </button>
@@ -247,7 +247,7 @@ function RechargeContent() {
                       </div>
                       <Button 
                         onClick={() => handleChatWithSeller(seller.id)}
-                        className="h-12 px-6 rounded-full bg-[#EB4C4C] text-white font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-90 transition-all gap-2"
+                        className="h-12 px-6 rounded-full bg-[#EB4C4C] text-white font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-90 transition-all gap-2 outline-none border-none ring-0"
                       >
                         <MessageCircle className="w-4 h-4" />
                         Chat
