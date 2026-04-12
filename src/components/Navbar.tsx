@@ -70,9 +70,8 @@ export function Navbar() {
   ]
 
   return (
-    <div className="fixed bottom-6 left-10 right-10 z-50 max-w-sm mx-auto">
-      <nav className="h-16 w-full bg-white/60 backdrop-blur-2xl border border-white/40 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-around px-2 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent pointer-events-none" />
+    <div className="fixed bottom-0 left-0 right-0 z-50 w-full border-t border-white/20 bg-white/80 backdrop-blur-2xl">
+      <nav className="h-14 w-full flex items-center justify-around px-4 overflow-hidden max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href
           return (
@@ -80,15 +79,15 @@ export function Navbar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center transition-all duration-300 flex-1 relative z-10",
+                "flex flex-col items-center justify-center transition-all duration-300 flex-1 relative h-full",
                 isActive ? "text-[#111FA2]" : "text-gray-400"
               )}
             >
               <div className={cn(
-                "p-1.5 rounded-2xl transition-all relative",
-                isActive ? "bg-[#111FA2]/10 scale-110" : "bg-transparent grayscale opacity-50"
+                "p-1 rounded-xl transition-all relative flex items-center justify-center",
+                isActive ? "scale-110" : "grayscale opacity-40"
               )}>
-                <div className="relative w-8 h-8">
+                <div className="relative w-7 h-7">
                   <Image 
                     src={item.icon} 
                     alt={item.label} 
@@ -97,7 +96,7 @@ export function Navbar() {
                   />
                 </div>
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 h-3.5 min-w-3.5 px-1 rounded-full bg-[#111FA2] flex items-center justify-center text-[7px] font-black text-white border-2 border-white shadow-lg">
+                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-red-500 flex items-center justify-center text-[8px] font-black text-white border-2 border-white shadow-md">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}

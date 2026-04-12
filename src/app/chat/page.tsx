@@ -74,12 +74,12 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
     >
       <div 
         onClick={handleItemClick}
-        className="flex items-center gap-4 py-4 px-2 border-b border-gray-100 mb-1 transition-all cursor-pointer"
+        className="flex items-center gap-4 py-4 px-2 border-b border-[#111FA2]/5 transition-all cursor-pointer"
       >
         <div className="relative shrink-0">
-          <Avatar className="w-14 h-14 border border-gray-100 shadow-sm bg-gray-50">
+          <Avatar className="w-14 h-14 border border-white/20 shadow-sm bg-white/10">
             {image && <AvatarImage src={image} className="object-cover" />}
-            <AvatarFallback className="bg-transparent text-gray-300">
+            <AvatarFallback className="bg-transparent text-gray-400">
               {name ? name[0] : ''}
             </AvatarFallback>
           </Avatar>
@@ -93,7 +93,7 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
             <div className="flex items-center gap-1.5 truncate">
               <h3 className={cn(
                 "font-black text-[15px] truncate font-headline tracking-tight",
-                name === "User logged out" ? "text-gray-400 font-medium italic" : "text-gray-900"
+                name === "User logged out" ? "text-gray-400 font-medium italic" : "text-[#111FA2]"
               )}>
                 {name}
               </h3>
@@ -110,7 +110,7 @@ function ChatSessionItem({ session, onLongPress }: { session: any, onLongPress: 
               {session.lastMessage || "Start a conversation"}
             </p>
             {unreadCount > 0 && (
-              <span className="h-5 min-w-5 px-1.5 rounded-full bg-[#111FA2] flex items-center justify-center text-[10px] font-black text-white shadow-sm shadow-primary/20">
+              <span className="h-5 min-w-5 px-1.5 rounded-full bg-[#111FA2] flex items-center justify-center text-[10px] font-black text-white shadow-sm">
                 {unreadCount}
               </span>
             )}
@@ -171,15 +171,15 @@ export default function ChatListPage() {
   }
 
   return (
-    <div className="flex flex-col h-svh pb-20 bg-white overflow-hidden">
-      <header className="px-6 pt-10 pb-4 shrink-0 flex items-center justify-between bg-[#111FA2]">
-        <h1 className="text-2xl font-logo text-white drop-shadow-md">Chats</h1>
-        <div className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
-          <MessageSquare className="w-4 h-4 text-white" />
+    <div className="flex flex-col min-h-svh pb-20 bg-gradient-to-b from-[#111FA2] via-white/50 to-white overflow-hidden">
+      <header className="px-6 pt-10 pb-4 shrink-0 flex items-center justify-between bg-transparent">
+        <h1 className="text-3xl font-logo text-white drop-shadow-md">Chats</h1>
+        <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+          <MessageSquare className="w-5 h-5 text-white" />
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto scroll-smooth pt-2 bg-white">
+      <main className="flex-1 overflow-y-auto scroll-smooth pt-2">
         {sessions.length > 0 ? (
           <div className="flex flex-col gap-1 pb-32">
             {sessions.map((session) => (
@@ -190,15 +190,15 @@ export default function ChatListPage() {
               />
             ))}
             <div className="py-8 flex justify-center opacity-30">
-               <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Encrypted Conversations</p>
+               <p className="text-[10px] font-black text-[#111FA2] uppercase tracking-[0.3em]">Encrypted Conversations</p>
             </div>
           </div>
         ) : hasFetched ? (
-          <div className="flex flex-col items-center justify-center py-32 text-gray-300 gap-4">
-            <div className="w-20 h-20 bg-gray-50 rounded-[2.5rem] flex items-center justify-center border border-gray-100">
+          <div className="flex flex-col items-center justify-center py-32 text-[#111FA2]/30 gap-4">
+            <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-[2.5rem] flex items-center justify-center border border-white/10 shadow-inner">
               <MessageSquare className="w-10 h-10" />
             </div>
-            <p className="text-xs font-black uppercase tracking-widest text-gray-400">No Active Chats</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em]">No Active Chats</p>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-32 gap-3 opacity-20">

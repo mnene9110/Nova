@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -115,45 +116,49 @@ export default function DiscoverPage() {
   })
 
   return (
-    <div className="flex flex-col h-svh bg-transparent overflow-y-auto pb-32 relative scroll-smooth">
+    <div className="flex flex-col min-h-svh bg-gradient-to-b from-[#111FA2] via-white/50 to-white overflow-y-auto pb-32 relative scroll-smooth">
       {/* Top Background Container */}
-      <div className="bg-[#111FA2] px-4 pt-10 pb-4 shrink-0">
+      <div className="px-4 pt-10 pb-6 shrink-0">
         <div className="grid grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/mystery-note')}
-            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] bg-white/10 backdrop-blur-md rounded-[2rem] native-shadow transition-all overflow-hidden border border-white/20 active:opacity-90"
+            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] rounded-[2rem] transition-all overflow-hidden border-t border-white/40 shadow-[0_10px_20px_rgba(0,0,0,0.2),inset_0_2px_10px_rgba(255,255,255,0.5)] bg-gradient-to-br from-emerald-400 to-emerald-600 active:translate-y-1 active:shadow-inner"
           >
+            {/* Gloss Highlight */}
+            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="w-14 h-14 relative flex items-center justify-center">
+              <div className="w-14 h-14 relative flex items-center justify-center drop-shadow-lg">
                 <Image src="/mystery.png" alt="Mystery" width={56} height={56} className="object-contain" />
               </div>
-              <span className="text-[12px] font-black text-white tracking-tight uppercase">Mystery Note</span>
+              <span className="text-[12px] font-black text-white tracking-tight uppercase drop-shadow-md">Mystery Note</span>
             </div>
           </button>
           
           <button 
             onClick={() => router.push('/task-center')}
-            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] bg-white/10 backdrop-blur-md rounded-[2rem] native-shadow transition-all overflow-hidden border border-white/20 active:opacity-90"
+            className="group relative flex flex-col items-center justify-center aspect-[1.3/1] rounded-[2rem] transition-all overflow-hidden border-t border-white/40 shadow-[0_10px_20px_rgba(0,0,0,0.2),inset_0_2px_10px_rgba(255,255,255,0.5)] bg-gradient-to-br from-amber-400 to-amber-600 active:translate-y-1 active:shadow-inner"
           >
+            {/* Gloss Highlight */}
+            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
             <div className="relative z-10 flex flex-col items-center gap-2">
-              <div className="w-14 h-14 relative flex items-center justify-center">
+              <div className="w-14 h-14 relative flex items-center justify-center drop-shadow-lg">
                 <Image src="/task.png" alt="Task" width={56} height={56} className="object-contain" />
               </div>
-              <span className="text-[12px] font-black text-white tracking-tight uppercase">Task Center</span>
+              <span className="text-[12px] font-black text-white tracking-tight uppercase drop-shadow-md">Task Center</span>
             </div>
           </button>
         </div>
       </div>
 
-      {/* Recommended Header - Sticky with solid theme background */}
-      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-[#111FA2]">
+      {/* Recommended Header - Sticky */}
+      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-[#111FA2]/10 backdrop-blur-md">
         <div className="flex items-center justify-between">
-          <h2 className="text-[14px] font-black text-white tracking-tight ml-1">Recommended for you</h2>
+          <h2 className="text-[14px] font-black text-[#111FA2] tracking-tight ml-1">Recommended for you</h2>
           
           <button 
             onClick={handleRefresh} 
             disabled={isInitialLoading}
-            className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 native-shadow text-white disabled:opacity-50"
+            className="w-9 h-9 rounded-full bg-white/40 backdrop-blur-md border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 text-[#111FA2] shadow-sm disabled:opacity-50"
           >
             {isInitialLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -164,12 +169,12 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Main Feed Grid - Solid White Background */}
-      <main className="px-4 grid grid-cols-2 gap-2 pb-8 flex-1 bg-white mt-0 pt-4">
+      {/* Main Feed Grid */}
+      <main className="px-4 grid grid-cols-2 gap-2 pb-8 flex-1 mt-2">
         {mappedUsers.map((user) => (
           <div 
             key={user.id} 
-            className="group relative aspect-[3/3.8] rounded-[1.75rem] overflow-hidden bg-white border border-gray-100 cursor-pointer" 
+            className="group relative aspect-[3/3.8] rounded-[1.75rem] overflow-hidden bg-white border border-gray-100 cursor-pointer shadow-sm" 
             onClick={() => router.push(`/profile/${user.id}`)}
           >
             <div className="absolute inset-0 z-0">
@@ -183,15 +188,15 @@ export default function DiscoverPage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
             </div>
 
-            {/* Chat Icon - Top Right - Tightened hit area to only operate on visual icon click */}
+            {/* Chat Icon - Top Right */}
             <button 
               onClick={(e) => { 
                 e.stopPropagation(); 
                 router.push(`/chat/${user.id}`); 
               }}
-              className="absolute -top-2 -right-1 w-16 h-16 bg-transparent flex items-center justify-center z-10 transition-all active:scale-95"
+              className="absolute -top-3 -right-2 w-20 h-20 bg-transparent flex items-center justify-center z-10 transition-all active:scale-90"
             >
-              <div className="relative w-14 h-14">
+              <div className="relative w-16 h-16 drop-shadow-[0_5px_10px_rgba(0,0,0,0.3)]">
                 <Image src="/chatt.png" alt="Chat" fill className="object-contain" />
               </div>
             </button>
@@ -211,11 +216,9 @@ export default function DiscoverPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  {/* Age Badge - Consistent Blue */}
                   <div className="px-2 h-5 rounded-md flex items-center justify-center shadow-sm bg-blue-600">
                     <span className="text-[9px] font-black text-white leading-none">{user.age}</span>
                   </div>
-                  {/* Location Badge - Consistent Green */}
                   <div className="px-2 h-5 rounded-md bg-green-600 flex items-center justify-center shadow-sm">
                     <span className="text-[9px] font-black text-white uppercase tracking-tighter leading-none">{user.location.split(',')[0]}</span>
                   </div>
