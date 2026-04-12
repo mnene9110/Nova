@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -70,7 +71,7 @@ export function Navbar() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 w-full border-t border-gray-100 bg-white/95 backdrop-blur-2xl">
-      <nav className="h-20 w-full flex items-center justify-around px-4 overflow-hidden max-w-md mx-auto">
+      <nav className="h-[4.5rem] w-full flex items-center justify-around px-4 overflow-hidden max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href
           return (
@@ -89,7 +90,7 @@ export function Navbar() {
                   fill 
                   className={cn(
                     "object-contain transition-all",
-                    isActive ? "scale-110" : "opacity-60"
+                    isActive ? "scale-110 opacity-100" : "opacity-40"
                   )} 
                 />
                 {item.badge !== undefined && item.badge > 0 && (
@@ -100,7 +101,7 @@ export function Navbar() {
               </div>
               <span className={cn(
                 "text-[9px] font-black uppercase tracking-widest transition-opacity",
-                isActive ? "opacity-100" : "opacity-60"
+                isActive ? "opacity-100" : "opacity-40"
               )}>
                 {item.label}
               </span>

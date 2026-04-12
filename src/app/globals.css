@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -36,8 +37,9 @@
     -ms-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
-    -webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color: transparent !important;
     outline: none !important;
+    box-shadow: none !important;
   }
   
   html, body {
@@ -81,7 +83,6 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* Ensure app-container also hides scrollbar */
 .app-container::-webkit-scrollbar {
   display: none;
 }

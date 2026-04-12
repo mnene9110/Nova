@@ -1,7 +1,8 @@
+
 {
-  "name": "MatchFlow",
-  "short_name": "MatchFlow",
-  "description": "Premium dating and connection platform.",
+  "name": "Matchflow",
+  "short_name": "Matchflow",
+  "description": "Connect with Heart - High quality video and voice calls.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#111FA2",
@@ -19,5 +20,7 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "orientation": "portrait",
+  "scope": "/"
 }

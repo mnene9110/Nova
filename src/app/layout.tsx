@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect } from 'react';
@@ -19,42 +20,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   useEffect(() => {
-    window.onbeforeunload = null;
-    const preventConfirm = (e: BeforeUnloadEvent) => {
-      delete e['returnValue'];
-    };
-    window.addEventListener('beforeunload', preventConfirm);
+    // Service Worker Registration for Offline Capability
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => console.log('SW registered:', reg.scope))
+          .catch((err) => console.error('SW registration failed:', err));
+      });
+    }
 
-    // Notification Permission Request
+    // Permission requests
     if (typeof window !== 'undefined' && 'Notification' in window) {
       if (Notification.permission === 'default') {
         Notification.requestPermission();
       }
     }
 
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      const registerSW = () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then((reg) => {
-            console.log('Service Worker registered');
-          })
-          .catch((err) => {
-            if (err.name !== 'InvalidStateError') {
-              console.error('SW registration failed:', err);
-            }
-          });
-      };
-
-      if (document.readyState === 'complete') {
-        registerSW();
-      } else {
-        window.addEventListener('load', registerSW);
-        return () => {
-          window.removeEventListener('load', registerSW);
-          window.removeEventListener('beforeunload', preventConfirm);
-        };
-      }
-    }
+    // Prevent navigation confirm dialogs
+    window.onbeforeunload = null;
+    const preventConfirm = (e: BeforeUnloadEvent) => {
+      delete e['returnValue'];
+    };
+    window.addEventListener('beforeunload', preventConfirm);
     
     return () => window.removeEventListener('beforeunload', preventConfirm);
   }, []);
@@ -77,7 +64,7 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
         <title>Matchflow</title>
       </head>
-      <body className="font-body antialiased selection:bg-none">
+      <body className="font-body antialiased selection:bg-none bg-white">
         <FirebaseClientProvider>
           <OfflineDetector>
             <div className="app-container">
