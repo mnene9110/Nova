@@ -1,7 +1,8 @@
+
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Phone, PhoneOff, Loader2, Camera, ShieldAlert } from "lucide-react"
+import { Phone, PhoneOff, Loader2, Camera, ShieldAlert, Zap } from "lucide-react"
 import { useFirebase, useUser } from "@/firebase"
 import { 
   collection, 
@@ -129,12 +130,7 @@ export function GlobalCallOverlay() {
       if (statusRef.current === 'idle') {
         setCallStatus(isCaller ? 'ringing' : 'incoming');
         
-        // Only engage hardware automatically for the CALLER (as they just initiated with a gesture)
-        // Receivers MUST wait for handleAcceptCall (gesture)
-        if (isCaller) {
-          engageHardware(data.callType);
-        }
-        
+        // Pre-fetch token
         getAgoraToken(activeChatIdRef.current!, currentUser.uid)
           .then(setAgoraTokenData)
           .catch(err => console.error("Token pre-fetch failed", err));
@@ -166,8 +162,13 @@ export function GlobalCallOverlay() {
   };
 
   const engageHardware = async (type: 'video' | 'audio') => {
-    if (!AgoraRTC) return;
+    if (!AgoraRTC || !navigator.mediaDevices) return;
     try {
+      // Direct browser check to trigger native prompt
+      const constraints = type === 'video' ? { video: true, audio: true } : { audio: true };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      // Agora tracks creation
       if (!localTracksRef.current.audioTrack) {
         localTracksRef.current.audioTrack = await AgoraRTC.createMicrophoneAudioTrack({
           ANS: true, AEC: true, AGC: true
@@ -184,7 +185,20 @@ export function GlobalCallOverlay() {
           videoTrack.play(previewVideoRef.current);
         }
       }
+      
       setHasHardwarePermission(true);
+      
+      // If we are already in an ongoing call but weren't connected because of permissions
+      if (statusRef.current === 'ongoing' && agoraClientRef.current) {
+        const tracks = [];
+        if (localTracksRef.current.audioTrack) tracks.push(localTracksRef.current.audioTrack);
+        if (localTracksRef.current.videoTrack) tracks.push(localTracksRef.current.videoTrack);
+        if (tracks.length > 0) await agoraClientRef.current.publish(tracks);
+      }
+
+      // Cleanup initial test stream
+      stream.getTracks().forEach(t => t.stop());
+
     } catch (e) {
       console.error("Hardware failed:", e);
       setHasHardwarePermission(false);
@@ -246,9 +260,7 @@ export function GlobalCallOverlay() {
 
       await client.join(tokenData!.appId, channelName, tokenData!.token, currentUser.uid);
       
-      // Re-ensure hardware is ready
-      await engageHardware(type);
-
+      // Only publish if tracks exist (they might not if permissions were denied initially)
       const tracksToPublish = [];
       if (localTracksRef.current.audioTrack) tracksToPublish.push(localTracksRef.current.audioTrack);
       if (type === 'video' && localTracksRef.current.videoTrack) tracksToPublish.push(localTracksRef.current.videoTrack);
@@ -332,16 +344,7 @@ export function GlobalCallOverlay() {
     if (!firestore || !activeChatIdRef.current || !callData) return;
     
     // Receiver triggers permission request via Accept button gesture
-    try {
-      const constraints = callData.callType === 'video' ? { video: true, audio: true } : { audio: true };
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      stream.getTracks().forEach(t => t.stop());
-      setHasHardwarePermission(true);
-    } catch (e) {
-      console.error("Permission denied on accept:", e);
-      setHasHardwarePermission(false);
-      return; // Stop acceptance if hardware is inaccessible
-    }
+    await engageHardware(callData.callType);
 
     if (ringtoneRef.current) {
       ringtoneRef.current.pause();
@@ -454,7 +457,7 @@ export function GlobalCallOverlay() {
         />
       </div>
 
-      {(callStatus !== 'ongoing' || isConnecting) && (
+      {(callStatus !== 'ongoing' || isConnecting || hasHardwarePermission !== true) && (
         <div className="absolute inset-0 z-[60] flex flex-col items-center justify-between py-24 px-8 bg-black/40 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-8 mt-12 w-full">
             <div className="relative">
@@ -466,7 +469,7 @@ export function GlobalCallOverlay() {
             </div>
             
             <div className="text-center space-y-2">
-              <h2 className="text-4xl font-black font-headline tracking-tight text-white drop-shadow-lg">
+              <h2 className="text-4xl font-black font-headline tracking-tight text-white drop-shadow-md">
                 {isConnecting ? 'Securing Link' : isCaller ? 'Ringing...' : (callData?.callerName || 'Incoming...')}
               </h2>
               {isConnecting && (
@@ -477,17 +480,19 @@ export function GlobalCallOverlay() {
               )}
             </div>
 
-            {hasHardwarePermission === false && (
-              <Alert variant="destructive" className="max-w-xs bg-red-950/80 border-red-500/50 text-white mt-4 animate-in zoom-in">
-                <ShieldAlert className="h-4 w-4" />
-                <AlertTitle className="font-black uppercase tracking-widest text-[10px]">Access Denied</AlertTitle>
-                <AlertDescription className="text-[11px] font-medium opacity-90 leading-tight">
-                  Please enable camera and microphone permissions in your browser settings to continue.
-                </AlertDescription>
-                <Button variant="outline" size="sm" onClick={() => engageHardware(callData?.callType)} className="mt-3 w-full h-10 border-white/20 hover:bg-white/10 text-white font-black text-[9px] uppercase tracking-[0.2em]">
-                  Retry Permission
+            {hasHardwarePermission !== true && (
+              <div className="mt-8 flex flex-col items-center gap-4 animate-in zoom-in">
+                <Button 
+                  onClick={() => engageHardware(callData?.callType)}
+                  className="h-16 px-10 rounded-full bg-primary text-white font-black text-lg gap-3 shadow-2xl animate-bounce"
+                >
+                  <Camera className="w-6 h-6" />
+                  Turn on Camera & Mic
                 </Button>
-              </Alert>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/40 text-center max-w-[200px]">
+                  Permissions are required to connect your call securely.
+                </p>
+              </div>
             )}
           </div>
         </div>

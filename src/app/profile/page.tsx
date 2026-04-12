@@ -84,7 +84,7 @@ export default function ProfilePage() {
           </Avatar>
           <button 
             onClick={() => router.push('/profile/edit')} 
-            className="absolute bottom-1 right-1 w-11 h-11 rounded-2xl bg-zinc-900 flex items-center justify-center shadow-xl active:scale-90 transition-all"
+            className="absolute bottom-1 right-1 w-11 h-11 rounded-2xl bg-zinc-900 flex items-center justify-center shadow-xl active:scale-90 transition-all border-none outline-none"
           >
             <Pencil className="w-4 h-4 text-white" />
           </button>
@@ -102,7 +102,7 @@ export default function ProfilePage() {
           </div>
           <button 
             onClick={copyId} 
-            className="flex items-center gap-2 px-5 py-2 glass-card rounded-full active:scale-95 transition-all native-shadow border-white/30"
+            className="flex items-center gap-2 px-5 py-2 glass-card rounded-full active:scale-95 transition-all native-shadow border-white/30 outline-none"
           >
             <span className="text-[10px] font-black text-primary uppercase tracking-[0.25em]">ID: {userProfile?.numericId || '---'}</span>
             <Copy className="w-3 h-3 text-primary/40" />
@@ -166,7 +166,7 @@ export default function ProfilePage() {
               {userProfile?.isAdmin && (
                 <button 
                   onClick={() => router.push('/admin/roles')} 
-                  className="w-full h-16 bg-red-500/5 border border-red-500/10 rounded-[1.75rem] flex items-center px-6 gap-4 active:scale-[0.98] transition-all"
+                  className="w-full h-16 bg-red-500/5 border border-red-500/10 rounded-[1.75rem] flex items-center px-6 gap-4 active:scale-[0.98] transition-all outline-none"
                 >
                   <div className="w-10 h-10 rounded-xl bg-red-500 text-white flex items-center justify-center">
                     <UserCog className="w-5 h-5" />
@@ -179,7 +179,7 @@ export default function ProfilePage() {
               {(userProfile?.isAdmin || userProfile?.isCoinseller) && (
                 <button 
                   onClick={() => router.push('/coinseller/award')} 
-                  className="w-full h-16 bg-amber-500/5 border border-amber-500/10 rounded-[1.75rem] flex items-center px-6 gap-4 active:scale-[0.98] transition-all"
+                  className="w-full h-16 bg-amber-500/5 border border-amber-500/10 rounded-[1.75rem] flex items-center px-6 gap-4 active:scale-[0.98] transition-all outline-none"
                 >
                   <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center">
                     <Award className="w-5 h-5" />
@@ -192,7 +192,7 @@ export default function ProfilePage() {
               {(userProfile?.isAdmin || userProfile?.isSupport) && (
                 <button 
                   onClick={() => router.push('/support/reports')} 
-                  className="w-full h-16 bg-blue-500/5 border border-blue-500/10 rounded-[1.75rem] flex items-center px-6 gap-4 active:scale-[0.98] transition-all"
+                  className="w-full h-16 bg-blue-500/5 border border-blue-500/10 rounded-[1.75rem] flex items-center px-6 gap-4 active:scale-[0.98] transition-all outline-none"
                 >
                   <div className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center relative">
                     <ShieldAlert className="w-5 h-5" />
@@ -216,7 +216,7 @@ export default function ProfilePage() {
           
           <button 
             onClick={() => router.push('/games')} 
-            className="w-full h-20 glass-card rounded-[2.25rem] flex items-center px-6 gap-5 native-shadow group active:scale-[0.98] transition-all"
+            className="w-full h-20 glass-card rounded-[2.25rem] flex items-center px-6 gap-5 native-shadow group active:scale-[0.98] transition-all outline-none"
           >
             <div className="w-12 h-12 rounded-[1.25rem] bg-gradient-to-tr from-primary to-blue-600 flex items-center justify-center shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
               <Gamepad2 className="w-6 h-6 text-white" />
@@ -231,7 +231,7 @@ export default function ProfilePage() {
           {userProfile?.isAgent && (
             <button 
               onClick={() => router.push('/profile/agent-center')} 
-              className="w-full h-20 bg-zinc-950 rounded-[2.25rem] flex items-center px-6 gap-5 active:scale-[0.98] transition-all native-shadow"
+              className="w-full h-20 bg-zinc-950 rounded-[2.25rem] flex items-center px-6 gap-5 active:scale-[0.98] transition-all native-shadow outline-none"
             >
               <div className="w-12 h-12 rounded-[1.25rem] bg-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
                 <Building2 className="w-6 h-6 text-white" />
@@ -247,7 +247,7 @@ export default function ProfilePage() {
           {userProfile?.gender?.toLowerCase() === 'female' && !userProfile?.isAgent && (
             <button 
               onClick={() => router.push('/profile/agency')} 
-              className="w-full h-20 glass-card rounded-[2.25rem] flex items-center px-6 gap-5 native-shadow group active:scale-[0.98] transition-all"
+              className="w-full h-20 glass-card rounded-[2.25rem] flex items-center px-6 gap-5 native-shadow group active:scale-[0.98] transition-all outline-none"
             >
               <div className="w-12 h-12 rounded-[1.25rem] bg-amber-500/10 flex items-center justify-center">
                 <Building2 className="w-6 h-6 text-amber-600" />
@@ -266,7 +266,7 @@ export default function ProfilePage() {
           
           <button 
             onClick={() => router.push('/profile/verify')} 
-            className="w-full h-16 glass-card rounded-[1.75rem] flex items-center justify-between px-6 native-shadow transition-all active:scale-[0.98]"
+            className="w-full h-16 glass-card rounded-[1.75rem] flex items-center justify-between px-6 native-shadow transition-all active:scale-[0.98] outline-none"
           >
             <div className="flex items-center gap-4">
               <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", isVerified ? "bg-blue-50 text-blue-500" : "bg-gray-50 text-gray-400")}>
@@ -279,7 +279,7 @@ export default function ProfilePage() {
 
           <button 
             onClick={handleContactSupport} 
-            className="w-full h-16 glass-card rounded-[1.75rem] flex items-center px-6 gap-4 native-shadow transition-all active:scale-[0.98]"
+            className="w-full h-16 glass-card rounded-[1.75rem] flex items-center px-6 gap-4 native-shadow transition-all active:scale-[0.98] outline-none"
           >
             <div className="w-10 h-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center">
               <Headset className="w-5 h-5" />
@@ -290,7 +290,7 @@ export default function ProfilePage() {
 
           <button 
             onClick={() => router.push('/settings')} 
-            className="w-full h-16 glass-card rounded-[1.75rem] flex items-center px-6 gap-4 native-shadow transition-all active:scale-[0.98]"
+            className="w-full h-16 glass-card rounded-[1.75rem] flex items-center px-6 gap-4 native-shadow transition-all active:scale-[0.98] outline-none"
           >
             <div className="w-10 h-10 rounded-xl bg-zinc-100 text-gray-500 flex items-center justify-center">
               <SettingsIcon className="w-5 h-5" />
