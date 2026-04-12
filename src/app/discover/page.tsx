@@ -146,15 +146,15 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Recommended Header - Sticky white */}
-      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-white border-b border-gray-50">
+      {/* Recommended Header - Sticky Colored */}
+      <div className="sticky top-0 z-30 px-4 py-4 shrink-0 bg-[#111FA2] shadow-sm">
         <div className="flex items-center justify-between">
-          <h2 className="text-[14px] font-black text-[#111FA2] tracking-tight ml-1">Recommended for you</h2>
+          <h2 className="text-[14px] font-black text-white tracking-tight ml-1">Recommended for you</h2>
           
           <button 
             onClick={handleRefresh} 
             disabled={isInitialLoading}
-            className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center active:rotate-180 transition-all duration-700 text-[#111FA2] shadow-sm disabled:opacity-50"
+            className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center active:rotate-180 transition-all duration-700 text-white shadow-sm disabled:opacity-50"
           >
             {isInitialLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
