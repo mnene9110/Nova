@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -23,8 +24,8 @@ const ToastViewport = React.forwardRef<
     <ToastPrimitives.Viewport
       ref={ref}
       className={cn(
-        "fixed z-[100] flex flex-col-reverse p-4 w-full max-w-[90vw] md:max-w-[420px] gap-2 transition-all",
-        // Positioned at the bottom to avoid blocking the top area
+        "fixed z-[100] flex flex-col p-4 w-full max-w-[90vw] md:max-w-[420px] gap-2 transition-all",
+        // Positioned above the navigation bar
         mounted ? "bottom-24 left-1/2 -translate-x-1/2" : "bottom-0 right-0",
         className
       )}
@@ -35,7 +36,7 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(
-  "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-2xl border p-6 shadow-2xl transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=open]:fade-in-80 data-[state=open]:slide-in-from-bottom-10 data-[state=closed]:slide-out-to-bottom-full",
+  "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-2xl border p-6 shadow-2xl transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-80 data-[state=open]:slide-in-from-bottom-10 data-[state=closed]:slide-out-to-right-full",
   {
     variants: {
       variant: {

@@ -71,7 +71,7 @@ export function Navbar() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 w-full border-t border-gray-100 bg-white/95 backdrop-blur-2xl">
-      <nav className="h-18 w-full flex items-center justify-around px-4 overflow-hidden max-w-md mx-auto">
+      <nav className="h-20 w-full flex items-center justify-around px-4 overflow-hidden max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href
           return (
