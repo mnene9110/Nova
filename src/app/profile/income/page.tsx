@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -84,13 +85,13 @@ export default function IncomePage() {
   const darkRed = "bg-[#7F1D1D]";
 
   return (
-    <div className="flex flex-col h-svh bg-transparent text-gray-900 overflow-hidden">
-      <header className="px-4 py-8 flex items-center sticky top-0 bg-transparent z-10 shrink-0">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-gray-900 h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
-        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-gray-900">Income Center</h1>
+    <div className="flex flex-col h-svh bg-white text-gray-900 overflow-hidden">
+      <header className="px-4 py-8 flex items-center sticky top-0 bg-[#111FA2] z-10 shrink-0">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white h-10 w-10 bg-white/20 backdrop-blur-md rounded-full shadow-sm"><ChevronLeft className="w-6 h-6" /></Button>
+        <h1 className="text-lg font-black font-headline ml-4 tracking-widest uppercase text-white">Income Center</h1>
       </header>
 
-      <main className="flex-1 px-6 pb-20 space-y-8 overflow-y-auto scroll-smooth">
+      <main className="flex-1 px-6 pb-20 space-y-8 overflow-y-auto scroll-smooth pt-8">
         <section className="bg-zinc-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 p-8 opacity-10"><Gem className="w-32 h-32" /></div>
           <div className="relative z-10 space-y-6">
@@ -107,10 +108,10 @@ export default function IncomePage() {
           </div>
         </section>
 
-        <section className="bg-white/40 backdrop-blur-xl border border-white/40 rounded-[2.5rem] p-8 space-y-8 shadow-sm shrink-0">
+        <section className="bg-gray-50 p-8 rounded-[2.5rem] border border-gray-100 space-y-8 shadow-sm shrink-0">
           <div className="flex items-center justify-between">
             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Conversion Rate</h2>
-            <div className="flex items-center gap-2 px-3 py-1 bg-white/50 rounded-full border border-white/50"><Info className="w-3 h-3 text-gray-400" /><span className="text-[9px] font-bold text-gray-500">Fixed Rate</span></div>
+            <div className="flex items-center gap-2 px-3 py-1 bg-white/50 rounded-full border border-gray-200"><Info className="w-3 h-3 text-gray-400" /><span className="text-[9px] font-bold text-gray-500">Fixed Rate</span></div>
           </div>
 
           <div className="flex items-center justify-between gap-4 py-4">
@@ -154,7 +155,7 @@ export default function IncomePage() {
                 const amount = Math.abs(tx.diamondAmount || (isGain ? Math.floor((tx.amount || 0) / 0.6) : 0))
                 
                 return (
-                  <div key={tx.id} className="bg-white/40 backdrop-blur-md border border-white/40 p-5 rounded-[2rem] flex items-center gap-4 shadow-sm">
+                  <div key={tx.id} className="bg-gray-50 border border-gray-100 p-5 rounded-[2rem] flex items-center gap-4 shadow-sm">
                     <div className={cn(
                       "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0",
                       isGain ? "bg-blue-500/10 text-blue-500" : "bg-red-500/10 text-red-500"
